@@ -3,16 +3,19 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
+using Microsoft.AspNetCore.Identity;
 
 namespace Website.Data.EF.Models
 {
-    public class Client
+        //TODO concurrency fields
+    public class ClientProfile
     {
         [Key]
         [ForeignKey("IdentityUser")]
         public string Id { get; set; }
-        [Required(ErrorMessage = "Не указан возраст")]
-        [Range(18, 100, ErrorMessage = "Только от 18")]
+
         public int Age { get; set; }
+
+        public virtual IdentityUser IdentityUser { get; set; }
     }
 }

@@ -29,7 +29,7 @@ namespace Website.Web
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<EFDbContext>(options =>
+            services.AddDbContext<WebsiteContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
             services.AddIdentity<IdentityUser, IdentityRole>(options =>
@@ -44,7 +44,7 @@ namespace Website.Web
                 options.Lockout.MaxFailedAccessAttempts = 5;
                 //option.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
             })
-            .AddEntityFrameworkStores<EFDbContext>()
+            .AddEntityFrameworkStores<WebsiteContext>()
                 .AddDefaultTokenProviders()
                 .AddErrorDescriber<RusIdentityErrorDescriber>();
 

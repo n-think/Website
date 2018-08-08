@@ -3,17 +3,15 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Website.Data.EF.Models;
 
 namespace Website.Data.EF.Migrations
 {
-    [DbContext(typeof(EFDbContext))]
-    [Migration("20180802155947_Initial")]
-    partial class Initial
+    [DbContext(typeof(WebsiteContext))]
+    partial class WebsiteContextModelSnapshot : ModelSnapshot
     {
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -182,16 +180,124 @@ namespace Website.Data.EF.Migrations
                     b.ToTable("AspNetUserTokens");
                 });
 
-            modelBuilder.Entity("Website.Data.EF.Models.Client", b =>
+            modelBuilder.Entity("Website.Data.EF.Models.Category", b =>
                 {
-                    b.Property<string>("Id")
-                        .ValueGeneratedOnAdd();
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("Description");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(50);
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Categories");
+                });
+
+            modelBuilder.Entity("Website.Data.EF.Models.ClientProfile", b =>
+                {
+                    b.Property<string>("Id");
 
                     b.Property<int>("Age");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Clients");
+                    b.ToTable("ClientProfiles");
+                });
+
+            modelBuilder.Entity("Website.Data.EF.Models.Description", b =>
+                {
+                    b.Property<int>("Id");
+
+                    b.Property<int?>("DescriptionGroup");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(50);
+
+                    b.Property<int?>("ProductId");
+
+                    b.Property<int?>("SubDescrGroup");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DescriptionGroup");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("Descriptions");
+                });
+
+            modelBuilder.Entity("Website.Data.EF.Models.DescriptionGroup", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(50);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50);
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DescriptionGroups");
+                });
+
+            modelBuilder.Entity("Website.Data.EF.Models.Product", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("Description");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50);
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Products");
+                });
+
+            modelBuilder.Entity("Website.Data.EF.Models.ProductImage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<byte[]>("Data");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(50);
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(50);
+
+                    b.Property<int?>("ProductId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("ProductImages");
+                });
+
+            modelBuilder.Entity("Website.Data.EF.Models.ProductToCategory", b =>
+                {
+                    b.Property<int>("ProductId");
+
+                    b.Property<int>("CategoryId");
+
+                    b.HasKey("ProductId", "CategoryId");
+
+                    b.HasIndex("CategoryId");
+
+                    b.ToTable("ProductToCategory");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -236,6 +342,51 @@ namespace Website.Data.EF.Migrations
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser")
                         .WithMany()
                         .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("Website.Data.EF.Models.ClientProfile", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "IdentityUser")
+                        .WithMany()
+                        .HasForeignKey("Id")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("Website.Data.EF.Models.Description", b =>
+                {
+                    b.HasOne("Website.Data.EF.Models.DescriptionGroup", "DescriptionGroupNavigation")
+                        .WithMany("Descriptions")
+                        .HasForeignKey("DescriptionGroup")
+                        .HasConstraintName("FK_Descriptions_DescriptionGroups")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Website.Data.EF.Models.Product", "Product")
+                        .WithMany("Descriptions")
+                        .HasForeignKey("ProductId")
+                        .HasConstraintName("FK_Descriptions_Products")
+                        .OnDelete(DeleteBehavior.SetNull);
+                });
+
+            modelBuilder.Entity("Website.Data.EF.Models.ProductImage", b =>
+                {
+                    b.HasOne("Website.Data.EF.Models.Product", "Product")
+                        .WithMany("ProductImages")
+                        .HasForeignKey("ProductId")
+                        .HasConstraintName("FK_ProductImages_Products")
+                        .OnDelete(DeleteBehavior.SetNull);
+                });
+
+            modelBuilder.Entity("Website.Data.EF.Models.ProductToCategory", b =>
+                {
+                    b.HasOne("Website.Data.EF.Models.Category", "Category")
+                        .WithMany("ProductCategory")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("Website.Data.EF.Models.Product", "Product")
+                        .WithMany("ProductCategory")
+                        .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 #pragma warning restore 612, 618
