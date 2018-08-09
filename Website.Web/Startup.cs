@@ -55,6 +55,18 @@ namespace Website.Web
                 .AddDefaultTokenProviders()
                 .AddErrorDescriber<RusIdentityErrorDescriberRes>();
 
+            services.Configure<SecurityStampValidatorOptions>(options =>
+                options.ValidationInterval = TimeSpan.FromMinutes(30)); //FromSeconds(10));
+
+            //services.ConfigureApplicationCookie(option =>
+            //{
+            //    //option.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+            //   // option.LoginPath = new PathString("/Login");
+            //   // option.LogoutPath = new PathString("/Logout");
+            //   // option.AccessDeniedPath = new PathString("/Login");
+            //    //option.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+            //});
+
             // Add application services.
             services.AddTransient<IEmailSender, EmailSender>();
 
@@ -71,21 +83,25 @@ namespace Website.Web
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IConfiguration configuration)
         {
-            if (env.IsDevelopment())
+            app.UseStatusCodePagesWithReExecute("/error/{0}");
+
+            var errorMode = configuration.GetValue<string>("ErrorHandlingMode"); //читаем конфиг
+            if (errorMode == "development" /*|| env.IsDevelopment()*/)
             {
                 app.UseDeveloperExceptionPage();
-                app.UseDatabaseErrorPage();
             }
+
             else
             {
-                app.UseExceptionHandler("/Home/Error");
+                app.UseExceptionHandler("/Error/exception");
                 app.UseHsts();
             }
 
             app.UseStaticFiles();
             app.UseHttpsRedirection();
+            app.UseCookiePolicy();
 
             app.UseAuthentication();
 
