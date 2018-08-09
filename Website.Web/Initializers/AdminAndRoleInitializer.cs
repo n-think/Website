@@ -11,7 +11,7 @@ namespace Website.Web.Initializers
         public static async Task InitializeAsync(UserManager<IdentityUser> userManager,
             RoleManager<IdentityRole> roleManager)
         {
-            string adminEmail = "admin@my.website";
+            string adminEmail = "admin@example.com";
             string password = "1qaz@WSX";
 
             if (await roleManager.FindByNameAsync("admin") == null)

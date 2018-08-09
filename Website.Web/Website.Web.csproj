@@ -22,4 +22,11 @@
   </ItemGroup>
 
 
+  <ItemGroup>
+    <Content Update="Views\Home\Index - Copy.cshtml">
+      <Pack>$(IncludeRazorContentInPack)</Pack>
+    </Content>
+  </ItemGroup>
+
+
 </Project>

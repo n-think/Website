@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Website.Data.EF.Models;
 using Website.Service.DTO;
 using Website.Service.Infrastructure;
@@ -10,29 +11,35 @@ using Website.Service.Interfaces;
 
 namespace Website.Service.Services
 {
-    //TODO concurrency checks (need client profile field first)
+    //TODO tests
+    //TODO concurrency checks 
     public class ClientProfileService : IClientProfileService, IDisposable
     {
         private DbContext _context;
         private UserManager<IdentityUser> _userManager;
-        public ClientProfileService(DbContext context, UserManager<IdentityUser> userManager)
+        private ILogger _logger;
+        public ClientProfileService(DbContext context, UserManager<IdentityUser> userManager, ILogger<ClientProfileService> logger)
         {
             _context = context;
             _userManager = userManager;
+            _logger = logger;
         }
         public async Task<OperationDetails> CreateOrUpdate(ClientProfileDTO clientProfileDto)
         {
             this.ThrowIfDisposed();
 
+            if (clientProfileDto?.Email == null)
+                return new OperationDetails(false, "Некорректная модель.", nameof(clientProfileDto));
+
             var user = await _userManager.FindByEmailAsync(clientProfileDto.Email);
-            if(user == null)
+            if (user == null)
                 return new OperationDetails(false, "Пользователь с таким e-mail не найден.", nameof(clientProfileDto.Email));
 
-            var mapper = new MapperConfiguration(cfg=> cfg.CreateMap<ClientProfileDTO,ClientProfile>()).CreateMapper();
+            var mapper = new MapperConfiguration(cfg => cfg.CreateMap<ClientProfileDTO, ClientProfile>()).CreateMapper();
             var profileDbSet = _context.Set<ClientProfile>();
             OperationDetails opDetails;
             var clProfile = await profileDbSet.FindAsync(user.Id);
-            
+
             if (clProfile != null)
             {
                 clProfile = mapper.Map<ClientProfile>(clientProfileDto);
@@ -42,6 +49,7 @@ namespace Website.Service.Services
             else
             {
                 clProfile = mapper.Map<ClientProfile>(clientProfileDto);
+                clProfile.Id = user.Id;
                 profileDbSet.Add(clProfile);
                 opDetails = new OperationDetails(true, "Профиль успешно создан.", "");
             }
@@ -52,11 +60,32 @@ namespace Website.Service.Services
             }
             catch (DbUpdateException e)
             {
-                //TODO LOG this E
+                _logger.Log(LogLevel.Error, e, "Возникла ошибка при обновлении профиля клиента.");
                 return new OperationDetails(false, "Возникла ошибка при обновлении профиля.", "");
             }
 
             return opDetails;
+        }
+
+        public async Task<string> GetFullName(string email)
+        {
+            this.ThrowIfDisposed();
+
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+                return null;
+
+            var set = _context.Set<ClientProfile>();
+            var client = await set.FindAsync(user.Id);
+            if (client == null)
+                return null;
+
+            var fullName = client.LastName + " " + client.FirstName + " " + client.PatrName;
+
+            if (fullName.Length > 3)
+                return fullName;
+
+            return null;
         }
 
 

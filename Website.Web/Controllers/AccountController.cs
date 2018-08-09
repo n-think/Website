@@ -10,6 +10,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Website.Service.DTO;
+using Website.Service.Interfaces;
 using Website.Web.Models;
 using Website.Web.Models.AccountViewModels;
 using Website.Web.Services;
@@ -24,17 +26,20 @@ namespace Website.Web.Controllers
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly IEmailSender _emailSender;
         private readonly ILogger _logger;
+        private IClientProfileService _profileService;
 
         public AccountController(
             UserManager<IdentityUser> userManager,
             SignInManager<IdentityUser> signInManager,
             IEmailSender emailSender,
-            ILogger<AccountController> logger)
+            ILogger<AccountController> logger,
+            IClientProfileService profileService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _emailSender = emailSender;
             _logger = logger;
+            _profileService = profileService;
         }
 
         [TempData]
@@ -231,7 +236,9 @@ namespace Website.Web.Controllers
                     await _emailSender.SendEmailConfirmationAsync(model.Email, callbackUrl);
 
                     await _signInManager.SignInAsync(user, isPersistent: false);
-                    _logger.LogInformation("User created a new account with password.");
+
+                    await _profileService.CreateOrUpdate(new ClientProfileDTO() { FirstName = model.FirstName, LastName = model.LastName,PatrName = model.PatrName,Email = model.Email});
+
                     return RedirectToLocal(returnUrl);
                 }
                 AddErrors(result);

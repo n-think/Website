@@ -4,8 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 
-namespace Website.Web.Models
+namespace Website.Web.Localization
 {
+    // локализация с сообщениями в коде
     public class RusIdentityErrorDescriber : IdentityErrorDescriber
     {
         public override IdentityError DefaultError()

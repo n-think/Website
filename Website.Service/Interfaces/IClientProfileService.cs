@@ -10,5 +10,6 @@ namespace Website.Service.Interfaces
     public interface IClientProfileService
     {
         Task<OperationDetails> CreateOrUpdate(ClientProfileDTO clientProfileDto);
+        Task<string> GetFullName(string email);
     }
 }

@@ -14,6 +14,9 @@ namespace Website.Data.EF.Models
         [ForeignKey("IdentityUser")]
         public string Id { get; set; }
 
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string PatrName { get; set; }
         public int Age { get; set; }
 
         public virtual IdentityUser IdentityUser { get; set; }

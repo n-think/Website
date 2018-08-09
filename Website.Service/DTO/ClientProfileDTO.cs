@@ -11,6 +11,8 @@ namespace Website.Service.DTO
         public string Email { get; set; }
 
         public int Age { get; set; }
-        public int FirstName { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string PatrName { get; set; }
     }
 }

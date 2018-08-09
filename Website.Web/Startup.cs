@@ -12,7 +12,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Website.Data.EF.Models;
+using Website.Service.Interfaces;
+using Website.Service.Services;
+using Website.Web.Localization;
 using Website.Web.Models;
+using Website.Web.Resources;
 using Website.Web.Services;
 
 namespace Website.Web
@@ -29,12 +33,15 @@ namespace Website.Web
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            //локализация атрибутов ошибок
+            //services.AddSingleton<Microsoft.AspNetCore.Mvc.DataAnnotations.IValidationAttributeAdapterProvider, LocalizedValidationAttributeAdapterProvider>();
+
             services.AddDbContext<WebsiteContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
             services.AddIdentity<IdentityUser, IdentityRole>(options =>
             {
-                options.User.RequireUniqueEmail = false; // тк пользователь==емейл или будет две ошибки на валидации
+                options.User.RequireUniqueEmail = true; // тк пользователь==емейл или будет две ошибки на валидации
                 options.Password.RequiredLength = 6;
                 options.Password.RequireDigit = false;
                 options.Password.RequiredUniqueChars = 2;
@@ -46,13 +53,21 @@ namespace Website.Web
             })
             .AddEntityFrameworkStores<WebsiteContext>()
                 .AddDefaultTokenProviders()
-                .AddErrorDescriber<RusIdentityErrorDescriber>();
+                .AddErrorDescriber<RusIdentityErrorDescriberRes>();
 
             // Add application services.
             services.AddTransient<IEmailSender, EmailSender>();
 
+            services.AddScoped<DbContext, WebsiteContext>();
+            services.AddScoped<IClientProfileService, ClientProfileService>();
+
             services.AddMvc()
-                .SetCompatibilityVersion(CompatibilityVersion.Version_2_1); ;
+                .AddDataAnnotationsLocalization(options =>
+                    {
+                        options.DataAnnotationLocalizerProvider = (type, factory) =>
+                            factory.Create(typeof(SharedResource));
+                    })
+                    .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

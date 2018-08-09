@@ -3,25 +3,35 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
+using Website.Web.Localization;
 
 namespace Website.Web.Models.AccountViewModels
 {
     public class RegisterViewModel
     {
-        [Required]
+        [Display(Name = "Имя")]
+        public string FirstName { get; set; }
+
+        [Display(Name = "Фамилия")]
+        public string LastName { get; set; }
+
+        [Display(Name = "Отчество")]
+        public string PatrName { get; set; }
+
+        [Required(ErrorMessage = "RequiredError")]
         [EmailAddress]
-        [Display(Name = "цEmail")]
+        [Display(Name = "Email")]
         public string Email { get; set; }
 
-        [Required]
-        [StringLength(100, ErrorMessage = "цThe {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+        [Required(ErrorMessage = "RequiredError")]
+        [StringLength(100, MinimumLength = 6, ErrorMessage = "StringLengthError")]
         [DataType(DataType.Password)]
-        [Display(Name = "Password")]
+        [Display(Name = "Пароль")]
         public string Password { get; set; }
 
         [DataType(DataType.Password)]
-        [Display(Name = "Confirm password")]
-        [Compare("Password", ErrorMessage = "цThe password and confirmation password do not match.")]
+        [Display(Name = "Подтверждение пароля")]
+        [Compare("Password", ErrorMessage = "Пароли не совпадают.")]
         public string ConfirmPassword { get; set; }
     }
 }
