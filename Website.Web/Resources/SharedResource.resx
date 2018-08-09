@@ -118,67 +118,67 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="ConcurrencyFailure" xml:space="preserve">
-    <value>//Optimistic concurrency failure, object has been modified.</value>
+    <value>Запись над которой вы работали была изменена другим пользователем. Изменения не были сохранены. Проверьте данные перед повторной отправкой.</value>
     <comment>Identity</comment>
   </data>
   <data name="DefaultError" xml:space="preserve">
-    <value>//An unknown failure has occurred.</value>
+    <value>Произошла непредвиденная ошибка.</value>
     <comment>Identity</comment>
   </data>
   <data name="DuplicateEmail" xml:space="preserve">
-    <value>//Email {0} is already taken.</value>
+    <value>Почта {0} уже зарегистрирована.</value>
     <comment>Identity</comment>
   </data>
   <data name="DuplicateRoleName" xml:space="preserve">
-    <value>//Role name {0} is already taken.</value>
+    <value>Роль {0} уже существует.</value>
     <comment>Identity</comment>
   </data>
   <data name="DuplicateUserName" xml:space="preserve">
-    <value>//Name {0} is already taken.</value>
+    <value>Имя пользователя {0} уже существует.</value>
     <comment>Identity</comment>
   </data>
   <data name="InvalidEmail" xml:space="preserve">
-    <value>//Email {0} is invalid.</value>
+    <value>Почта {0} некорректная.</value>
     <comment>Identity</comment>
   </data>
   <data name="InvalidRoleName" xml:space="preserve">
-    <value>//Role name {0} is invalid.</value>
+    <value>Некорретное название роли {0}.</value>
     <comment>Identity</comment>
   </data>
   <data name="InvalidToken" xml:space="preserve">
-    <value>//Invalid token.</value>
+    <value>Неверный токен.</value>
     <comment>Identity</comment>
   </data>
   <data name="InvalidUserName" xml:space="preserve">
-    <value>//User name {0} is invalid, can only contain letters or digits.</value>
+    <value>Имя пользователя {0} некорретное, имя должно содержать только буквы и цифры.</value>
     <comment>Identity</comment>
   </data>
-  <data name="LoginAlreadyAssociateogin" xml:space="preserve">
-    <value>//A user with this login already exists.</value>
+  <data name="LoginAlreadyAssociated" xml:space="preserve">
+    <value>Пользователь с таким же логином уже существует.</value>
     <comment>Identity</comment>
   </data>
   <data name="PasswordMismatch" xml:space="preserve">
-    <value>//Incorrect password.</value>
+    <value>Неправельный пароль.</value>
     <comment>Identity</comment>
   </data>
   <data name="PasswordRequiresDigit" xml:space="preserve">
-    <value>//Passwords must have at least one digit ('0'-'9').</value>
+    <value>Пароль должен содержать как минимум одну цифру ('0'-'9').</value>
     <comment>Identity</comment>
   </data>
   <data name="PasswordRequiresLower" xml:space="preserve">
-    <value>//Passwords must have at least one lowercase ('a'-'z').</value>
+    <value>Пароль должен содержать как минимум одну букву в нижнем регистре ('a'-'z').</value>
     <comment>Identity</comment>
   </data>
   <data name="PasswordRequiresNonAlphanumeric" xml:space="preserve">
-    <value>//Passwords must have at least one non alphanumeric character.</value>
+    <value>Пароль должен содержать как минимум один спец символ (!"№;%:?*@#$%^&amp;).</value>
     <comment>Identity</comment>
   </data>
   <data name="PasswordRequiresUpper" xml:space="preserve">
-    <value>//Passwords must have at least one uppercase ('A'-'Z').</value>
+    <value>Пароль должен содержать как минимум одну букву в верхнем регистре ('A'-'Z').</value>
     <comment>Identity</comment>
   </data>
   <data name="PasswordTooShort" xml:space="preserve">
-    <value>//Passwords must be at least {0} characters.</value>
+    <value>Пароль доджен содержать как минимум {0} символов.</value>
     <comment>Identity</comment>
   </data>
   <data name="RequiredError" xml:space="preserve">
@@ -190,19 +190,19 @@
     <comment>Attribute StringLength</comment>
   </data>
   <data name="UserAlreadyHasPassword" xml:space="preserve">
-    <value>//User already has a password set.</value>
+    <value>У пользователя уже задан пароль.</value>
     <comment>Identity</comment>
   </data>
   <data name="UserAlreadyInRole" xml:space="preserve">
-    <value>//"User already in role {0}.</value>
+    <value>Пользователь уже принадлежит роли {0}.</value>
     <comment>Identity</comment>
   </data>
   <data name="UserLockoutNotEnabled" xml:space="preserve">
-    <value>//Lockout is not enabled for this user.</value>
+    <value>Блокировка для этого пользователя не включена.</value>
     <comment>Identity</comment>
   </data>
   <data name="UserNotInRole" xml:space="preserve">
-    <value>//User is not in role {0}.</value>
+    <value>Пользователь не принадлежит роли {0}.</value>
     <comment>Identity</comment>
   </data>
   <data name="исходник ошибок атрибутов" xml:space="preserve">
