@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
+using Website.Data.EF.Models;
 
 namespace Website.Web.Initializers
 {
     public class AdminAndRoleInitializer
     {
-        public static async Task InitializeAsync(UserManager<IdentityUser> userManager,
+        public static async Task InitializeAsync(UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager)
         {
             string adminEmail = "admin@example.com";
@@ -31,7 +32,7 @@ namespace Website.Web.Initializers
 
             if (await userManager.FindByNameAsync(adminEmail) == null)
             {
-                IdentityUser admin = new IdentityUser {Email = adminEmail, UserName = adminEmail};
+                ApplicationUser admin = new ApplicationUser { Email = adminEmail, UserName = adminEmail};
                 IdentityResult result = await userManager.CreateAsync(admin, password);
                 if (result.Succeeded)
                 {

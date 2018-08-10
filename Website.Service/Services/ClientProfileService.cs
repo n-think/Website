@@ -16,9 +16,9 @@ namespace Website.Service.Services
     public class ClientProfileService : IClientProfileService, IDisposable
     {
         private DbContext _context;
-        private UserManager<IdentityUser> _userManager;
+        private UserManager<ApplicationUser> _userManager;
         private ILogger _logger;
-        public ClientProfileService(DbContext context, UserManager<IdentityUser> userManager, ILogger<ClientProfileService> logger)
+        public ClientProfileService(DbContext context, UserManager<ApplicationUser> userManager, ILogger<ClientProfileService> logger)
         {
             _context = context;
             _userManager = userManager;
@@ -71,18 +71,12 @@ namespace Website.Service.Services
         {
             this.ThrowIfDisposed();
 
+            if (email == null)
+                return null;
+
             var user = await _userManager.FindByEmailAsync(email);
-            if (user == null)
-                return null;
-
-            var set = _context.Set<ClientProfile>();
-            var client = await set.FindAsync(user.Id);
-            if (client == null)
-                return null;
-
-            var fullName = client.LastName + " " + client.FirstName + " " + client.PatrName;
-
-            if (fullName.Length > 3)
+            var fullName = user?.ClientProfile?.FullName;
+            if (fullName?.Length > 3)
                 return fullName;
 
             return null;

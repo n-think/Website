@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Website.Data.EF.Models;
 using Website.Web.Initializers;
 
 namespace Website.Web
@@ -28,7 +29,7 @@ namespace Website.Web
                 var services = scope.ServiceProvider;
                 try
                 {
-                    var userManager = services.GetRequiredService<UserManager<IdentityUser>>();
+                    var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
                     var rolesManager = services.GetRequiredService<RoleManager<IdentityRole>>();
                     await AdminAndRoleInitializer.InitializeAsync(userManager, rolesManager);
                 }

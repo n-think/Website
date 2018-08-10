@@ -14,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Website.Data.EF.Models;
 using Website.Service.Interfaces;
 using Website.Service.Services;
+using Website.Web.Infrasctructure;
 using Website.Web.Localization;
 using Website.Web.Models;
 using Website.Web.Resources;
@@ -33,15 +34,15 @@ namespace Website.Web
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            //локализация атрибутов ошибок
-            //services.AddSingleton<Microsoft.AspNetCore.Mvc.DataAnnotations.IValidationAttributeAdapterProvider, LocalizedValidationAttributeAdapterProvider>();
+
 
             services.AddDbContext<WebsiteContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"))
+                .UseLazyLoadingProxies());
 
-            services.AddIdentity<IdentityUser, IdentityRole>(options =>
+            services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
-                options.User.RequireUniqueEmail = true; // тк пользователь==емейл или будет две ошибки на валидации
+                options.User.RequireUniqueEmail = false; // тк пользователь==емейл или будет две ошибки на валидации
                 options.Password.RequiredLength = 6;
                 options.Password.RequireDigit = false;
                 options.Password.RequiredUniqueChars = 2;
@@ -51,9 +52,12 @@ namespace Website.Web
                 options.Lockout.MaxFailedAccessAttempts = 5;
                 //option.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
             })
+
             .AddEntityFrameworkStores<WebsiteContext>()
                 .AddDefaultTokenProviders()
                 .AddErrorDescriber<RusIdentityErrorDescriberRes>();
+
+            services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, MyUserClaimsPrincipalFactory>();
 
             services.Configure<SecurityStampValidatorOptions>(options =>
                 options.ValidationInterval = TimeSpan.FromMinutes(30)); //FromSeconds(10));

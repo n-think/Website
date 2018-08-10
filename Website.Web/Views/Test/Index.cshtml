@@ -1,0 +1,17 @@
+﻿@model List<System.Security.Claims.Claim>
+
+
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="container body-content">
+
+    <br />
+
+    @foreach (var item in Model)
+    {
+        @item.Type@:<br /> @item.Value <br /><br /><br />
+    }
+
+</div>

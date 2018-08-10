@@ -17,8 +17,14 @@
     </environment>
 </head>
 <body>
-    <nav class="navbar navbar-inverse navbar-fixed-top">
-        <div class="container">
+    <div class="jumbotron">
+        <div class="container text-center">
+            <h1>Сайт</h1>      
+            <p>пришел, увидел, купил</p>
+        </div>
+    </div>
+    <nav id="navbar" class="navbar navbar-inverse">
+        <div class="container-fluid">
             <div class="navbar-header">
                 <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
                     <span class="sr-only">Toggle navigation</span>
@@ -26,25 +32,27 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a asp-area="" asp-controller="Home" asp-action="Index" class="navbar-brand">[лого сайта]</a>
+                <a asp-area="" asp-controller="Home" asp-action="Index" class="navbar-brand"><span class="glyphicon glyphicon-home"></span></a>
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
-                    <li><a asp-area="" asp-controller="Home" asp-action="Index">Домой</a></li>
                     <li><a asp-area="" asp-controller="Home" asp-action="About">О нас</a></li>
                     <li><a asp-area="" asp-controller="Home" asp-action="Contact">Контакты</a></li>
+                    <li><a href="#"><span class="glyphicon glyphicon-search"></span> Поиск</a></li>
                 </ul>
                 @await Html.PartialAsync("_LoginPartial")
             </div>
         </div>
     </nav>
-    <div class="container body-content">
-        @RenderBody()
-        <hr />
-        <footer>
-            <p>&copy; 2018 - сайт</p>
-        </footer>
-    </div>
+<div class="main-body">
+    @RenderBody()
+</div>
+<div class="footer">
+    <hr />
+    <footer class="text-center">
+        <p>&copy; 2018 - сайт</p>
+    </footer>
+</div>
 
     <environment include="Development">
         <script src="~/lib/jquery/dist/jquery.js"></script>

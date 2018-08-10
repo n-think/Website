@@ -1,9 +1,11 @@
+@using Castle.Core.Internal
 @using Microsoft.AspNetCore.Identity
+@using Website.Data.EF.Models
 @using Website.Service.Interfaces
 @using Website.Web.Models
 
-@inject SignInManager<IdentityUser> SignInManager
-@inject UserManager<IdentityUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
 @inject IClientProfileService ClientProfileService
 
 @if (SignInManager.IsSignedIn(User))
@@ -11,26 +13,17 @@
     <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" id="logoutForm" class="navbar-right">
         <ul class="nav navbar-nav navbar-right">
             <li>
-                <a asp-area="" asp-controller="Profile" asp-action="Index" title="Profile">Профиль</a>
-            </li>
-            <li>
                 <a asp-area="" asp-controller="Manage" asp-action="Index" title="Управление">
-                    @{ //TODO вывод имени пользователя в углу экрана (снизу сделано плохо, надо в клеймы запихнуть все данные при логине и не тащится за ними в бд)
-                        var name = UserManager.GetUserName(User);
-                        var fullName = await ClientProfileService.GetFullName(name);
-                        if (fullName == null)
-                        {
-                            @UserManager.GetUserName(User)
-                        }
-                        else
-                        {
-                            @fullName;
-                        }
+                    <span class="glyphicon glyphicon-user"></span>
+                    @{
+                        string fullName = User.FindFirst(c => c.Type == "FullName")?.Value;
+                        @(fullName.IsNullOrEmpty() ? UserManager.GetUserName(User) : fullName)
                     }
                 </a>
             </li>
+            <li><a href="#"><span class="glyphicon glyphicon-shopping-cart"></span> Корзина</a></li>
             <li>
-                <button type="submit" class="btn btn-link navbar-btn navbar-link">Выход</button>
+                <button type="submit" class="btn btn-link navbar-btn navbar-link">Выход</button>&nbsp&nbsp
             </li>
         </ul>
     </form>

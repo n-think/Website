@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Website.Data.EF.Models;
 using Website.Service.DTO;
 using Website.Service.Interfaces;
 using Website.Web.Models;
@@ -22,15 +23,15 @@ namespace Website.Web.Controllers
     [Route("[controller]/[action]")]
     public class AccountController : Controller
     {
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IEmailSender _emailSender;
         private readonly ILogger _logger;
         private IClientProfileService _profileService;
 
         public AccountController(
-            UserManager<IdentityUser> userManager,
-            SignInManager<IdentityUser> signInManager,
+            UserManager<ApplicationUser> userManager,
+            SignInManager<ApplicationUser> signInManager,
             IEmailSender emailSender,
             ILogger<AccountController> logger,
             IClientProfileService profileService)
@@ -225,7 +226,7 @@ namespace Website.Web.Controllers
             ViewData["ReturnUrl"] = returnUrl;
             if (ModelState.IsValid)
             {
-                var user = new IdentityUser { UserName = model.Email, Email = model.Email };
+                var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
                 var result = await _userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
@@ -237,8 +238,16 @@ namespace Website.Web.Controllers
 
                     await _signInManager.SignInAsync(user, isPersistent: false);
 
-                    await _profileService.CreateOrUpdate(new ClientProfileDTO() { FirstName = model.FirstName, LastName = model.LastName,PatrName = model.PatrName,Email = model.Email});
+                    var clientProfile = new ClientProfileDTO()
+                    {
+                        FirstName = model.FirstName,
+                        LastName = model.LastName,
+                        PatrName = model.PatrName,
+                        Email = model.Email
+                    };
 
+                    await _profileService.CreateOrUpdate(clientProfile);
+                    
                     return RedirectToLocal(returnUrl);
                 }
                 AddErrors(result);
@@ -317,7 +326,7 @@ namespace Website.Web.Controllers
                 {
                     throw new ApplicationException("Error loading external login information during confirmation.");
                 }
-                var user = new IdentityUser { UserName = model.Email, Email = model.Email };
+                var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
                 var result = await _userManager.CreateAsync(user);
                 if (result.Succeeded)
                 {

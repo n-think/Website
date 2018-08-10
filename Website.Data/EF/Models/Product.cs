@@ -16,8 +16,8 @@ namespace Website.Data.EF.Models
         public string Name { get; set; }
         public string Description { get; set; }
 
-        public ICollection<Description> Descriptions { get; set; }
-        public ICollection<ProductImage> ProductImages { get; set; }
-        public ICollection<ProductToCategory> ProductCategory { get; set; }
+        public virtual ICollection<Description> Descriptions { get; set; }
+        public virtual ICollection<ProductImage> ProductImages { get; set; }
+        public virtual ICollection<ProductToCategory> ProductCategory { get; set; }
     }
 }

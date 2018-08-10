@@ -6,6 +6,20 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.DataAnnotations;
 using Microsoft.Extensions.Localization;
 
+
+
+//локализация атрибутов ошибок , перехватывает итоговые сообщения ошибок
+
+
+// не используется, если юзать добавить  в стартап
+
+
+//services.AddSingleton<Microsoft.AspNetCore.Mvc.DataAnnotations.IValidationAttributeAdapterProvider, LocalizedValidationAttributeAdapterProvider>();
+
+
+
+
+
 namespace Website.Web.Localization
 {
     public class LocalizedValidationAttributeAdapterProvider : IValidationAttributeAdapterProvider

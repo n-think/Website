@@ -15,6 +15,6 @@ namespace Website.Data.EF.Models
         public string Name { get; set; }
         public string Description { get; set; }
 
-        public ICollection<ProductToCategory> ProductCategory { get; set; }
+        public virtual ICollection<ProductToCategory> ProductCategory { get; set; }
     }
 }

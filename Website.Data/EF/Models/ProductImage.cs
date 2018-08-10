@@ -11,6 +11,6 @@ namespace Website.Data.EF.Models
         public string Description { get; set; }
         public byte[] Data { get; set; }
 
-        public Product Product { get; set; }
+        public virtual Product Product { get; set; }
     }
 }

@@ -11,7 +11,7 @@ namespace Website.Data.EF.Models
         public int? DescriptionGroup { get; set; }
         public int? SubDescrGroup { get; set; }
 
-        public DescriptionGroup DescriptionGroupNavigation { get; set; }
-        public Product Product { get; set; }
+        public virtual DescriptionGroup DescriptionGroupNavigation { get; set; }
+        public virtual Product Product { get; set; }
     }
 }

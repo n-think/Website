@@ -1,5 +1,5 @@
 ﻿body {
-    padding-top: 50px;
+    padding-top: 0px;
     padding-bottom: 20px;
 }
 
@@ -40,4 +40,61 @@
     font-weight: bold;
     font-size: 125%;
     color: red;
+}
+
+/* Remove the navbar's default rounded borders */
+#navbar {
+    border-radius: 0;
+    margin-bottom: 0;
+}
+
+/* Remove the jumbotron's default bottom margin */
+.jumbotron {
+    margin-bottom: 0;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+
+/*#navbar a:hover {
+    background-color: #ddd;
+    color: black;
+}*/
+
+#navbar a.active {
+    background-color: #4CAF50;
+    color: white;
+}
+
+/* The sticky class is added to the navbar with JS when it reaches its scroll position */
+/* Add some top padding to the page content to prevent sudden quick movement (as the navigation bar gets a new position at the top of the page (position:fixed and top:0) */
+.navbar-fixed-top + .main-body {
+    padding-top: 55px;
+}
+
+.sidebar {
+    float: left;
+    width: 20%;
+    padding-top: 15px;
+}
+
+.middle-content {
+    border-left: 1px solid #ccc;
+    margin-left: 20%;
+    padding: 15px;
+    width: 80%;
+}
+
+#middle-content:after {
+    clear: both;
+    display: table;
+    content: '';
+}
+
+.main-body {
+    padding-right: 0;
+    padding-left: 0;
+    margin-right: 0;
+    margin-left: 0;
+    width: 100%;
 }

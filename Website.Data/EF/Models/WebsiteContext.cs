@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Website.Data.EF.Models
 {
-    public partial class WebsiteContext : IdentityDbContext<IdentityUser>
+    public partial class WebsiteContext : IdentityDbContext<ApplicationUser>
     {
         public WebsiteContext()
         {
@@ -86,6 +86,10 @@ namespace Website.Data.EF.Models
                     .HasMaxLength(50);
             });
 
+            modelBuilder.Entity<ApplicationUser>()
+                .HasOne(x => x.ClientProfile)
+                .WithOne(x => x.User)
+                .HasForeignKey<ClientProfile>(x => x.Id);
 
             //many to many ef core woohoo
             modelBuilder.Entity<ProductToCategory>()
