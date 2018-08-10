@@ -48,6 +48,15 @@
     margin-bottom: 0;
 }
 
+/* sticky navbar scrolling horizontal jump fix */
+#navbar > .container-fluid {
+    padding-right: 0;
+}
+.navbar-fixed-top > .container-fluid {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+}
+
 /* Remove the jumbotron's default bottom margin */
 .jumbotron {
     margin-bottom: 0;
@@ -55,11 +64,19 @@
     padding-bottom: 5px;
 }
 
+#logoutForm button {
+    margin-right: 15px;
+    margin-top: 0;
+    margin-bottom: 0;
+    height: 50px;
+    text-decoration: none;
+}
 
-/*#navbar a:hover {
+
+#navbar a:hover, #logoutForm button:hover {
     background-color: #ddd;
     color: black;
-}*/
+}
 
 #navbar a.active {
     background-color: #4CAF50;

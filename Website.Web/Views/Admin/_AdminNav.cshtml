@@ -1,0 +1,9 @@
+﻿@using Website.Data.EF.Models
+@using Website.Web.Views.Manage
+
+<ul class="nav nav-pills nav-stacked">
+    <li class="@AdminNavPages.IndexNavClass(ViewContext)"><a asp-action="Index">Index</a></li>
+    <li class="@AdminNavPages.UsersNavClass(ViewContext)"><a asp-action="Users">Пользователи</a></li>
+    <li class="@AdminNavPages.ItemsNavClass(ViewContext)"><a asp-action="Items">Товары</a></li>
+</ul>
+

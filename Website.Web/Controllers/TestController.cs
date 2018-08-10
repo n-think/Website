@@ -15,9 +15,4 @@ namespace Website.Web.Controllers
             return View(claimList);
         }
     }
-
-    public class TestModel
-    {
-
-    }
 }

@@ -2,20 +2,16 @@
     ViewData["Title"] = "Контакты";
 }
 
-<div class="container body-content">
+<h2>@ViewData["Title"]</h2>
+<h3>@ViewData["Message"]</h3>
 
-    <h2>@ViewData["Title"]</h2>
-    <h3>@ViewData["Message"]</h3>
+<address>
+    улица<br />
+    дом<br />
+    9(000)123-45-67
+</address>
 
-    <address>
-        улица<br />
-        дом<br />
-        9(000)123-45-67
-    </address>
-
-    <address>
-        <strong>Поддержка:</strong> <a href="mailto:Support@example.com">Support@example.com</a><br />
-        <strong>Продажи:</strong> <a href="mailto:Marketing@example.com">Marketing@example.com</a>
-    </address>
-
-</div>
+<address>
+    <strong>Поддержка:</strong> <a href="mailto:Support@example.com">Support@example.com</a><br />
+    <strong>Продажи:</strong> <a href="mailto:Marketing@example.com">Marketing@example.com</a>
+</address>

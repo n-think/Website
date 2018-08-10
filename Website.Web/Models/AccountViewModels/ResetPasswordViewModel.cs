@@ -8,11 +8,11 @@ namespace Website.Web.Models.AccountViewModels
 {
     public class ResetPasswordViewModel
     {
-        [Required]
+        [Required(ErrorMessage = "RequiredError")]
         [EmailAddress]
         public string Email { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "RequiredError")]
         [StringLength(100, ErrorMessage = "{0} должен быть от {2} до {1} символов.", MinimumLength = 6)]
         [DataType(DataType.Password)]
         public string Password { get; set; }

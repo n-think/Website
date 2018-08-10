@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 
 namespace Website.Web.Models.ManageViewModels
 {
-    public class IndexViewModel
+    public class ProfileViewModel
     {
+        [Display(Name = "Логин")]
         public string Username { get; set; }
 
         public bool IsEmailConfirmed { get; set; }

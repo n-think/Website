@@ -34,15 +34,13 @@ namespace Website.Web
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
-
             services.AddDbContext<WebsiteContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"))
                 .UseLazyLoadingProxies());
 
             services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
-                options.User.RequireUniqueEmail = false; // тк пользователь==емейл или будет две ошибки на валидации
+                options.User.RequireUniqueEmail = false; // false тк пользователь==емейл или будет две ошибки на валидации //TODO если можно менять имя надо true
                 options.Password.RequiredLength = 6;
                 options.Password.RequireDigit = false;
                 options.Password.RequiredUniqueChars = 2;
@@ -62,16 +60,15 @@ namespace Website.Web
             services.Configure<SecurityStampValidatorOptions>(options =>
                 options.ValidationInterval = TimeSpan.FromMinutes(30)); //FromSeconds(10));
 
-            //services.ConfigureApplicationCookie(option =>
-            //{
-            //    //option.ExpireTimeSpan = TimeSpan.FromMinutes(30);
-            //   // option.LoginPath = new PathString("/Login");
-            //   // option.LogoutPath = new PathString("/Logout");
-            //   // option.AccessDeniedPath = new PathString("/Login");
-            //    //option.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-            //});
+            services.ConfigureApplicationCookie(option =>
+            {
+                //option.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+                // option.LoginPath = new PathString("/Login");
+                // option.LogoutPath = new PathString("/Logout");
+                option.AccessDeniedPath = new PathString("/error/403");
+                //option.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+            });
 
-            // Add application services.
             services.AddTransient<IEmailSender, EmailSender>();
 
             services.AddScoped<DbContext, WebsiteContext>();
@@ -99,7 +96,8 @@ namespace Website.Web
 
             else
             {
-                app.UseExceptionHandler("/Error/exception");
+                //TODO тут надо логировать както или мб уже логируется
+                app.UseExceptionHandler("/error/exception");
                 app.UseHsts();
             }
 

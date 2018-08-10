@@ -12,18 +12,22 @@
 {
     <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" id="logoutForm" class="navbar-right">
         <ul class="nav navbar-nav navbar-right">
+            @if (User.IsInRole("manager") || User.IsInRole("admin"))
+            {
+                <li><a asp-area="" asp-controller="Admin" asp-action="Index" title="Панель управления"><span class="glyphicon glyphicon glyphicon-cog"></span> Администирование</a></li>
+            }
             <li>
-                <a asp-area="" asp-controller="Manage" asp-action="Index" title="Управление">
+                <a asp-area="" asp-controller="Manage" asp-action="Profile" title="Управление аккаунтом">
                     <span class="glyphicon glyphicon-user"></span>
                     @{
                         string fullName = User.FindFirst(c => c.Type == "FullName")?.Value;
-                        @(fullName.IsNullOrEmpty() ? UserManager.GetUserName(User) : fullName)
+                        @(fullName?.Length > 3 ? fullName : UserManager.GetUserName(User))
                     }
                 </a>
             </li>
             <li><a href="#"><span class="glyphicon glyphicon-shopping-cart"></span> Корзина</a></li>
             <li>
-                <button type="submit" class="btn btn-link navbar-btn navbar-link">Выход</button>&nbsp&nbsp
+                <button type="submit" class="btn btn-link navbar-btn navbar-link">Выход</button>
             </li>
         </ul>
     </form>

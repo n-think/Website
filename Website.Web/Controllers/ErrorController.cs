@@ -4,39 +4,49 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.Logging;
 
 namespace Website.Web.Controllers
 {
     public class ErrorController : Controller
     {
-        //если напрямую вызвали страницы ошибки переадресуем на 404
-        public override void OnActionExecuting(ActionExecutingContext context)
-        {
-            if (Response.StatusCode == 200)
-            {
-                Response.StatusCode = 404;
-                context.Result = View("Error404");
-            }
-        }
+        //private ILogger _logger;
 
+        ////если напрямую вызвали страницы ошибки переадресуем на 404, upd. не работает с 403
+        //public override void OnActionExecuting(ActionExecutingContext context)
+        //{
+        //    if (Response.StatusCode == 200)
+        //    {
+        //        Response.StatusCode = 404;
+        //        context.Result = View("Error404");
+        //    }
+        //}
+
+        //public ErrorController(ILogger logger)
+        //{
+        //    _logger = logger;
+        //}
 
         //если страница ошибки не определена то сюда
+        [HttpGet]
         [Route("/error/{statusCode}")]
         public IActionResult Error(int statusCode)
         {
-            return Content($"errorrrrrr {statusCode}");
-            //return View(statusCode);
+            //return Content($"errorrrrrr {statusCode}");
+            return View(statusCode);
         }
 
         //если определена то ее
 
+        [HttpGet]
         [Route("/error/exception")]
         public IActionResult ErrorException()
         {
-            //TODO LOG !
+            //TODO LOG ?
             return View("Error500");
         }
 
+        [HttpGet]
         [Route("/error/500")]
         public IActionResult Error500()
         {
@@ -44,13 +54,22 @@ namespace Website.Web.Controllers
             return View();
         }
 
-
+        [HttpGet]
         [Route("/error/404")]
         public IActionResult Error404()
         {
             return View();
         }
 
+        [HttpGet]
+        [Route("/error/403")]
+        public IActionResult Error403()
+        {
+            Response.StatusCode = 403;
+            return View();
+        }
+
+        [HttpGet]
         [Route("/error/401")]
         public IActionResult Error401()
         {

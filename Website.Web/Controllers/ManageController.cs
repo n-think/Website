@@ -48,7 +48,7 @@ namespace Website.Web.Controllers
         public string StatusMessage { get; set; }
 
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Profile()
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
@@ -56,7 +56,7 @@ namespace Website.Web.Controllers
                 throw new ApplicationException($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
             }
 
-            var model = new IndexViewModel
+            var model = new ProfileViewModel
             {
                 Username = user.UserName,
                 Email = user.Email,
@@ -64,13 +64,13 @@ namespace Website.Web.Controllers
                 IsEmailConfirmed = user.EmailConfirmed,
                 StatusMessage = StatusMessage
             };
-
+            
             return View(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Index(IndexViewModel model)
+        public async Task<IActionResult> Profile(ProfileViewModel model)
         {
             if (!ModelState.IsValid)
             {
@@ -103,18 +103,18 @@ namespace Website.Web.Controllers
                 }
             }
 
-            StatusMessage = "Your profile has been updated";
-            return RedirectToAction(nameof(Index));
+            StatusMessage = "Ваш профиль был изменен.";
+            return RedirectToAction(nameof(Profile));
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SendVerificationEmail(IndexViewModel model)
+        public async Task<IActionResult> SendVerificationEmail(ProfileViewModel model)
         {
             if (!ModelState.IsValid)
             {
                 // return View(model);
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Profile));
             }
 
             var user = await _userManager.GetUserAsync(User);
@@ -128,8 +128,8 @@ namespace Website.Web.Controllers
             var email = user.Email;
             await _emailSender.SendEmailConfirmationAsync(email, callbackUrl);
 
-            StatusMessage = "Verification email sent. Please check your email.";
-            return RedirectToAction(nameof(Index));
+            StatusMessage = "Письмо для подтверждения email отправлено на указанный адрес.";
+            return RedirectToAction(nameof(Profile));
         }
 
         [HttpGet]

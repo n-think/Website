@@ -1,7 +1,7 @@
-﻿@model IndexViewModel
+﻿@model ProfileViewModel
 @{
-    ViewData["Title"] = "Profile";
-    ViewData.AddActivePage(ManageNavPages.Index);
+    ViewData["Title"] = "Профиль";
+    ViewData.AddActivePage(ManageNavPages.Profile);
 }
 
 <h4>@ViewData["Title"]</h4>
@@ -26,7 +26,7 @@
                 else
                 {
                     <input asp-for="Email" class="form-control" />
-                    <button asp-action="SendVerificationEmail" class="btn btn-link">Send verification email</button>
+                    <button asp-action="SendVerificationEmail" class="btn btn-link">Отправить письмо для подтверждения email.</button>
                 }
                 <span asp-validation-for="Email" class="text-danger"></span>
             </div>
@@ -35,7 +35,7 @@
                 <input asp-for="PhoneNumber" class="form-control" />
                 <span asp-validation-for="PhoneNumber" class="text-danger"></span>
             </div>
-            <button type="submit" class="btn btn-default">Save</button>
+            <button type="submit" class="btn btn-default">Сохранить</button>
         </form>
     </div>
 </div>

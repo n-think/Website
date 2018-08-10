@@ -8,7 +8,7 @@ namespace Website.Web.Models.AccountViewModels
 {
     public class LoginWith2faViewModel
     {
-        [Required]
+        [Required(ErrorMessage = "RequiredError")]
         [StringLength(7, ErrorMessage = "{0} должен быть от {2} до {1} символов.", MinimumLength = 6)]
         [DataType(DataType.Text)]
         [Display(Name = "Код двухэтапной аутентификации")]

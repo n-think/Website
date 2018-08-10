@@ -8,7 +8,7 @@ namespace Website.Web.Models.AccountViewModels
 {
     public class ForgotPasswordViewModel
     {
-        [Required]
+        [Required(ErrorMessage = "RequiredError")]
         [EmailAddress]
         public string Email { get; set; }
     }

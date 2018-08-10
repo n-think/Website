@@ -1,0 +1,17 @@
+﻿@model AdminIndexViewModel
+@{
+    ViewData["Title"] = "Администрирование";
+    ViewData.AddActivePage(AdminNavPages.Index);
+}
+
+<h4>@ViewData["Title"]</h4>
+@*@Html.Partial("_StatusMessage", Model.StatusMessage)*@
+<div class="row">
+    <div class="col-md-6">
+        
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

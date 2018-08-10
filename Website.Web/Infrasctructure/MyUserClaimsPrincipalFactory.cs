@@ -27,7 +27,10 @@ namespace Website.Web.Infrasctructure
             //Ниже добавлять свои клеймы которые добавятся при логине в куки
             //
 
+            identity.AddClaim(new Claim("Email", user.Email));
+
             //тут лениво загружается профиль, чтобы убрать ленивую загрузку надо сделать свой user manager который будет явно загружать профиль
+            //или хранить данные профиля вместо с логинами
             identity.AddClaim(new Claim("FullName", user.ClientProfile?.FullName ?? ""));
 
 
