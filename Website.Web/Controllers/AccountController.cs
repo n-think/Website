@@ -27,20 +27,20 @@ namespace Website.Web.Controllers
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IEmailSender _emailSender;
         private readonly ILogger _logger;
-        private IClientProfileService _profileService;
+        private IClientService _service;
 
         public AccountController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
             IEmailSender emailSender,
             ILogger<AccountController> logger,
-            IClientProfileService profileService)
+            IClientService service)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _emailSender = emailSender;
             _logger = logger;
-            _profileService = profileService;
+            _service = service;
         }
 
         [TempData]
@@ -67,10 +67,10 @@ namespace Website.Web.Controllers
             {
                 // This doesn't count login failures towards account lockout
                 // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
+                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: true);
                 if (result.Succeeded)
                 {
-                    _logger.LogInformation("User logged in.");
+                    _logger.LogInformation("Пользователь авторизовался.");
                     return RedirectToLocal(returnUrl);
                 }
                 if (result.RequiresTwoFactor)
@@ -79,12 +79,12 @@ namespace Website.Web.Controllers
                 }
                 if (result.IsLockedOut)
                 {
-                    _logger.LogWarning("User account locked out.");
-                    return RedirectToAction(nameof(Lockout));
+                    _logger.LogWarning("Аккаунт пользователя заблокирован из за большого количества неудачных попыток авторизации.");
+                    return RedirectToAction("Lockout","Error");
                 }
                 else
                 {
-                    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                    ModelState.AddModelError(string.Empty, $"Неправильный логин/email или пароль.");
                     return View(model);
                 }
             }
@@ -139,7 +139,7 @@ namespace Website.Web.Controllers
             else if (result.IsLockedOut)
             {
                 _logger.LogWarning("User with ID {UserId} account locked out.", user.Id);
-                return RedirectToAction(nameof(Lockout));
+                return RedirectToAction("Lockout","Error");
             }
             else
             {
@@ -193,7 +193,7 @@ namespace Website.Web.Controllers
             if (result.IsLockedOut)
             {
                 _logger.LogWarning("User with ID {UserId} account locked out.", user.Id);
-                return RedirectToAction(nameof(Lockout));
+                return RedirectToAction("Lockout", "Error");
             }
             else
             {
@@ -201,13 +201,6 @@ namespace Website.Web.Controllers
                 ModelState.AddModelError(string.Empty, "Invalid recovery code entered.");
                 return View();
             }
-        }
-
-        [HttpGet]
-        [AllowAnonymous]
-        public IActionResult Lockout()
-        {
-            return View();
         }
 
         [HttpGet]
@@ -243,10 +236,11 @@ namespace Website.Web.Controllers
                         FirstName = model.FirstName,
                         LastName = model.LastName,
                         PatrName = model.PatrName,
-                        Email = model.Email
+                        Email = model.Email,
+                        RegistrationDate = DateTimeOffset.Now
                     };
 
-                    await _profileService.CreateOrUpdate(clientProfile);
+                    await _service.CreateOrUpdateProfileAsync(clientProfile);
                     
                     return RedirectToLocal(returnUrl);
                 }
@@ -301,7 +295,7 @@ namespace Website.Web.Controllers
             }
             if (result.IsLockedOut)
             {
-                return RedirectToAction(nameof(Lockout));
+                return RedirectToAction("Lockout", "Error");
             }
             else
             {

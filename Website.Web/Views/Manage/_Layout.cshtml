@@ -2,13 +2,13 @@
     Layout = "/Views/Shared/_Layout.cshtml";
 }
 
-<div>
+<div class="row row-eq-height row-wrapper">
 
-    <div class="sidebar">
+    <div class="sidebar col-md-2">
         @await Html.PartialAsync("_ManageNav")
     </div>
 
-    <div class="middle-content">
+    <div class="middle-content col-md-10">
         @RenderBody()
     </div>
 

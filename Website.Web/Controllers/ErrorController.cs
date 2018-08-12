@@ -29,8 +29,8 @@ namespace Website.Web.Controllers
 
         //если страница ошибки не определена то сюда
         [HttpGet]
-        [Route("/error/{statusCode}")]
-        public IActionResult Error(int statusCode)
+        [Route("/Error/{statusCode:int}")]
+        public IActionResult ErrorDefault(int statusCode)
         {
             //return Content($"errorrrrrr {statusCode}");
             return View(statusCode);
@@ -39,15 +39,15 @@ namespace Website.Web.Controllers
         //если определена то ее
 
         [HttpGet]
-        [Route("/error/exception")]
+        [Route("/Error/Exception")]
         public IActionResult ErrorException()
         {
             //TODO LOG ?
-            return View("Error500");
+            return View("Error");
         }
 
         [HttpGet]
-        [Route("/error/500")]
+        [Route("/Error/500")]
         public IActionResult Error500()
         {
             //log?
@@ -55,14 +55,14 @@ namespace Website.Web.Controllers
         }
 
         [HttpGet]
-        [Route("/error/404")]
+        [Route("/Error/404")]
         public IActionResult Error404()
         {
             return View();
         }
 
         [HttpGet]
-        [Route("/error/403")]
+        [Route("/Error/403")]
         public IActionResult Error403()
         {
             Response.StatusCode = 403;
@@ -70,8 +70,14 @@ namespace Website.Web.Controllers
         }
 
         [HttpGet]
-        [Route("/error/401")]
+        [Route("/Error/401")]
         public IActionResult Error401()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult Lockout()
         {
             return View();
         }

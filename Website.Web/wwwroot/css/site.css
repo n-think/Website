@@ -1,4 +1,9 @@
-﻿body {
+﻿/*removing rounded borders*/
+* {
+    border-radius: 0 !important;
+}
+
+body {
     padding-top: 0px;
     padding-bottom: 20px;
 }
@@ -42,44 +47,78 @@
     color: red;
 }
 
-/* Remove the navbar's default rounded borders */
-#navbar {
-    border-radius: 0;
-    margin-bottom: 0;
-}
-
-/* sticky navbar scrolling horizontal jump fix */
-#navbar > .container-fluid {
-    padding-right: 0;
-}
-.navbar-fixed-top > .container-fluid {
-    padding-left: 16px !important;
-    padding-right: 16px !important;
-}
-
 /* Remove the jumbotron's default bottom margin */
 .jumbotron {
     margin-bottom: 0;
-    padding-top: 5px;
-    padding-bottom: 5px;
+    height: 160px;
+    padding-top: 0px;
+    padding-bottom: 0px;
 }
 
+    .jumbotron > div {
+        color: #252839;
+    }
+
 #logoutForm button {
-    margin-right: 15px;
+    margin-right: -15px;
     margin-top: 0;
     margin-bottom: 0;
     height: 50px;
     text-decoration: none;
 }
 
+/* Remove the navbar's default rounded borders */
+#navbar {
+    border-radius: 0;
+    margin-bottom: 0;
+    background-color: #252839;
+}
 
-#navbar a:hover, #logoutForm button:hover {
-    background-color: #ddd;
-    color: black;
+    /* sticky navbar scrolling horizontal jump fix */
+    #navbar > .container-fluid {
+        padding-right: 0;
+    }
+
+    #navbar a:hover, #logoutForm button:hover {
+        background-color: #b5b5b7;
+        color: black;
+    }
+
+.navbar-fixed-top > .container-fluid {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
 }
 
 #navbar a.active {
     background-color: #4CAF50;
+    color: white;
+}
+
+#navbar a:hover, #logoutForm button:hover {
+    background-color: #b5b5b7;
+    color: black;
+}
+
+.navbar-right {
+    margin-right: 0;
+}
+
+.nav-pills > li > a {
+    text-decoration: none;
+    color: #252839;
+}
+
+.nav-pills > li.active > a {
+    background-color: #b5b5b7;
+    color: #252839;
+}
+
+    .nav-pills > li.active > a:hover {
+        background-color: #252839;
+    }
+
+.nav-pills > li > a:hover {
+    background-color: #252839;
     color: white;
 }
 
@@ -90,22 +129,24 @@
 }
 
 .sidebar {
-    float: left;
-    width: 20%;
-    padding-top: 15px;
+    border-right: 1px solid #ccc;
+    padding: 15px;
 }
 
 .middle-content {
-    border-left: 1px solid #ccc;
-    margin-left: 20%;
     padding: 15px;
-    width: 80%;
 }
 
-#middle-content:after {
-    clear: both;
-    display: table;
-    content: '';
+.row-eq-height {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+}
+
+.row-wrapper {
+    margin-left: 0;
+    margin-right: 0;
 }
 
 .main-body {
@@ -114,4 +155,13 @@
     margin-right: 0;
     margin-left: 0;
     width: 100%;
+}
+
+.footer hr {
+    margin-top: 0px;
+    border-top: 1px solid #ccc
+}
+
+.account {
+    margin-bottom: 15px;
 }

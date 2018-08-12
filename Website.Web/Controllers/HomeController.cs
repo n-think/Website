@@ -18,7 +18,7 @@ namespace Website.Web.Controllers
         public ActionResult Index()
         {
             return RedirectToAction("Index", "Test");
-            return View();
+            //return View();
         }
 
         public IActionResult About()

@@ -47,7 +47,7 @@ namespace Website.Web
                 options.Password.RequireLowercase = false;
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequireUppercase = false;
-                options.Lockout.MaxFailedAccessAttempts = 5;
+                options.Lockout.MaxFailedAccessAttempts = 10;
                 //option.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
             })
 
@@ -72,7 +72,7 @@ namespace Website.Web
             services.AddTransient<IEmailSender, EmailSender>();
 
             services.AddScoped<DbContext, WebsiteContext>();
-            services.AddScoped<IClientProfileService, ClientProfileService>();
+            services.AddScoped<IClientService, ClientService>();
 
             services.AddMvc()
                 .AddDataAnnotationsLocalization(options =>

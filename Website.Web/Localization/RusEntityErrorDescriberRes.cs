@@ -170,6 +170,16 @@ namespace Website.Web.Localization
             };
         }
 
+        public override IdentityError PasswordRequiresUniqueChars(int uniqueChars)
+        {
+            return new IdentityError
+            {
+                Code = nameof(PasswordRequiresUniqueChars),
+                Description = string.Format(_localizer["PasswordRequiresUniqueChars"], uniqueChars)
+                //Passwords must use at least {0} different characters.
+            };
+        }
+
         public override IdentityError PasswordTooShort(int length)
         {
             return new IdentityError

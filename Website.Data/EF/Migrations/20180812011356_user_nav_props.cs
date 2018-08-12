@@ -2,7 +2,7 @@
 
 namespace Website.Data.EF.Migrations
 {
-    public partial class AppUserAdd : Migration
+    public partial class user_nav_props : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

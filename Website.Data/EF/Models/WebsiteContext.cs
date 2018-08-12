@@ -91,6 +91,35 @@ namespace Website.Data.EF.Models
                 .WithOne(x => x.User)
                 .HasForeignKey<ClientProfile>(x => x.Id);
 
+            modelBuilder.Entity<ApplicationUser>()
+                .HasMany(e => e.Claims)
+                .WithOne()
+                .HasForeignKey(e => e.UserId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade);
+
+            //modelBuilder.Entity<ApplicationUser>()
+            //    .HasMany(e => e.Logins)
+            //    .WithOne()
+            //    .HasForeignKey(e => e.UserId)
+            //    .IsRequired()
+            //    .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ApplicationUser>()
+                .HasMany(e => e.Roles)
+                .WithOne()
+                .HasForeignKey(e => e.UserId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<IdentityUserRole<string>>()
+                .ToTable("AspNetUserRoles")
+                .HasKey(r => new { r.UserId, r.RoleId });
+
+            //modelBuilder.Entity<IdentityUserLogin<string>>()
+            //    .ToTable("AspNetUserLogins")
+            //    .HasKey(l => new { l.LoginProvider, l.ProviderKey, l.UserId });
+
             //many to many ef core woohoo
             modelBuilder.Entity<ProductToCategory>()
                 .HasKey(pc => new {pc.ProductId, pc.CategoryId });

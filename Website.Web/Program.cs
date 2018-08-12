@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -20,7 +21,7 @@ namespace Website.Web
         {
             //CreateWebHostBuilder(args).Build().Run();
 
-            #region Инициализация ролями и аккаунтом админа
+            #region Инициализация ролями и аккаунтом администратора
 
             var host = CreateWebHostBuilder(args).Build();
 
@@ -31,7 +32,12 @@ namespace Website.Web
                 {
                     var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
                     var rolesManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+                    var context = services.GetRequiredService<DbContext>();
+
                     await AdminAndRoleInitializer.InitializeAsync(userManager, rolesManager);
+                    
+                    //TODO УБРАТЬ
+                    //await DbUserProfileSeed.InitializeAsync(userManager, rolesManager,context);
                 }
                 catch (Exception ex)
                 {

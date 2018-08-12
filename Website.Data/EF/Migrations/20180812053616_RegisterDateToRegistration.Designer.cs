@@ -10,8 +10,8 @@ using Website.Data.EF.Models;
 namespace Website.Data.EF.Migrations
 {
     [DbContext(typeof(WebsiteContext))]
-    [Migration("20180809181941_AppUserAdd")]
-    partial class AppUserAdd
+    [Migration("20180812053616_RegisterDateToRegistration")]
+    partial class RegisterDateToRegistration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -202,13 +202,17 @@ namespace Website.Data.EF.Migrations
                 {
                     b.Property<string>("Id");
 
-                    b.Property<int>("Age");
+                    b.Property<string>("Address");
+
+                    b.Property<string>("City");
 
                     b.Property<string>("FirstName");
 
                     b.Property<string>("LastName");
 
                     b.Property<string>("PatrName");
+
+                    b.Property<DateTimeOffset>("RegistrationDate");
 
                     b.HasKey("Id");
 
@@ -261,11 +265,17 @@ namespace Website.Data.EF.Migrations
                         .ValueGeneratedOnAdd()
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
+                    b.Property<int>("Code");
+
                     b.Property<string>("Description");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50);
+
+                    b.Property<int>("Price");
+
+                    b.Property<int>("Quantity");
 
                     b.HasKey("Id");
 
@@ -319,7 +329,7 @@ namespace Website.Data.EF.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
                     b.HasOne("Website.Data.EF.Models.ApplicationUser")
-                        .WithMany()
+                        .WithMany("Claims")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
@@ -340,7 +350,7 @@ namespace Website.Data.EF.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("Website.Data.EF.Models.ApplicationUser")
-                        .WithMany()
+                        .WithMany("Roles")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });

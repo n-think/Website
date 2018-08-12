@@ -13,7 +13,7 @@ namespace Website.Web.Models.ManageViewModels
 
         public bool IsEmailConfirmed { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "RequiredError")]
         [EmailAddress]
         public string Email { get; set; }
 

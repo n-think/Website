@@ -3,7 +3,10 @@
     ViewData["Title"] = "Users";
     ViewData.AddActivePage(AdminNavPages.Users);
 }
-
-<h2>Users</h2>
-<h2>Users</h2>
+@model IEnumerable<ClientDTO>
+@foreach (var user in Model)
+{
+    @Html.DisplayFor(model=>user)
+    <hr/>
+}
 

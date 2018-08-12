@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
@@ -8,47 +10,57 @@ using Website.Data.EF.Models;
 using Website.Service.DTO;
 using Website.Service.Infrastructure;
 using Website.Service.Interfaces;
+using Website.Service.Mapper;
+using ClientProfile = Website.Data.EF.Models.ClientProfile;
 
 namespace Website.Service.Services
 {
     //TODO tests
     //TODO concurrency checks 
-    public class ClientProfileService : IClientProfileService, IDisposable
+    public class ClientService : IClientService, IDisposable
     {
         private DbContext _context;
-        private UserManager<ApplicationUser> _userManager;
+        //private UserManager<ApplicationUser> _userManager;
         private ILogger _logger;
-        public ClientProfileService(DbContext context, UserManager<ApplicationUser> userManager, ILogger<ClientProfileService> logger)
+        private IMapper _mapper;
+
+        public ClientService(DbContext context, /*UserManager<ApplicationUser> userManager,*/ ILogger<ClientService> logger)
         {
             _context = context;
-            _userManager = userManager;
+            //_userManager = userManager;
             _logger = logger;
+           
+            _mapper = new MapperConfiguration(cfg=>
+            {
+                cfg.AddProfile<ClientProfileMapperProfile>();
+                cfg.AddProfile<ClientMapperProfile>();
+            }).CreateMapper();
         }
-        public async Task<OperationDetails> CreateOrUpdate(ClientProfileDTO clientProfileDto)
+        public async Task<OperationDetails> CreateOrUpdateProfileAsync(ClientProfileDTO clientProfileDto)
         {
             this.ThrowIfDisposed();
 
             if (clientProfileDto?.Email == null)
                 return new OperationDetails(false, "Некорректная модель.", nameof(clientProfileDto));
 
-            var user = await _userManager.FindByEmailAsync(clientProfileDto.Email);
+            //var user = await _userManager.FindByEmailAsync(clientProfileDto.Email);
+            var userDbSet = _context.Set<ApplicationUser>();
+            var user = await userDbSet.Where(x => x.NormalizedEmail == clientProfileDto.Email.ToUpper()).Include(x => x.ClientProfile).FirstOrDefaultAsync();
             if (user == null)
                 return new OperationDetails(false, "Пользователь с таким e-mail не найден.", nameof(clientProfileDto.Email));
 
-            var mapper = new MapperConfiguration(cfg => cfg.CreateMap<ClientProfileDTO, ClientProfile>()).CreateMapper();
-            var profileDbSet = _context.Set<ClientProfile>();
             OperationDetails opDetails;
-            var clProfile = await profileDbSet.FindAsync(user.Id);
-
+            var clProfile = user.ClientProfile;
+            var profileDbSet = _context.Set<ClientProfile>();
             if (clProfile != null)
             {
-                clProfile = mapper.Map<ClientProfile>(clientProfileDto);
+                clProfile = _mapper.Map<ClientProfile>(clientProfileDto);
                 profileDbSet.Update(clProfile);
                 opDetails = new OperationDetails(true, "Профиль успешно изменен.", "");
             }
             else
             {
-                clProfile = mapper.Map<ClientProfile>(clientProfileDto);
+                clProfile = _mapper.Map<ClientProfile>(clientProfileDto);
                 clProfile.Id = user.Id;
                 profileDbSet.Add(clProfile);
                 opDetails = new OperationDetails(true, "Профиль успешно создан.", "");
@@ -67,20 +79,41 @@ namespace Website.Service.Services
             return opDetails;
         }
 
-        public async Task<string> GetFullName(string email)
+        public async Task<IEnumerable<ClientDTO>> GetUsersAsync()
         {
             this.ThrowIfDisposed();
 
-            if (email == null)
-                return null;
+            var set = _context.Set<ApplicationUser>();
+            var users = await set
+                .Include(x => x.ClientProfile)
+                .Include(x=>x.Claims)
+                .ToListAsync();
 
-            var user = await _userManager.FindByEmailAsync(email);
-            var fullName = user?.ClientProfile?.FullName;
-            if (fullName?.Length > 3)
-                return fullName;
+            var clientList = new List<ClientDTO>();
+            var client = new ClientDTO();
+            foreach (var user in users)
+            {
+                client = _mapper.Map<ClientDTO>(user);
+                clientList.Add(client);
+            }
 
-            return null;
+            return clientList;
         }
+
+        //public async Task<string> GetFullName(string email)
+        //{
+        //    this.ThrowIfDisposed();
+
+        //    if (email == null)
+        //        return null;
+
+        //    var user = await _userManager.FindByEmailAsync(email);
+        //    var fullName = user?.ClientProfile?.FullName;
+        //    if (fullName?.Length > 3)
+        //        return fullName;
+
+        //    return null;
+        //}
 
 
         protected void ThrowIfDisposed()
@@ -109,7 +142,7 @@ namespace Website.Service.Services
         }
 
         // override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
-        // ~ClientProfileService() {
+        // ~ClientService() {
         //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
         //   Dispose(false);
         // }
@@ -122,6 +155,7 @@ namespace Website.Service.Services
             // uncomment the following line if the finalizer is overridden above.
             // GC.SuppressFinalize(this);
         }
+
         #endregion
     }
 }

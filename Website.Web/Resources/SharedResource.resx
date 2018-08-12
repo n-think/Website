@@ -173,6 +173,9 @@
     <value>Пароль должен содержать как минимум один спец символ (!"№;%:?*@#$%^&amp;).</value>
     <comment>Identity</comment>
   </data>
+  <data name="PasswordRequiresUniqueChars" xml:space="preserve">
+    <value>Пароль должен содержать как минимум {0} уникальных символа(ов).</value>
+  </data>
   <data name="PasswordRequiresUpper" xml:space="preserve">
     <value>Пароль должен содержать как минимум одну букву в верхнем регистре ('A'-'Z').</value>
     <comment>Identity</comment>
