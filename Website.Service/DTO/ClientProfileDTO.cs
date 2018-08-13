@@ -8,11 +8,17 @@ namespace Website.Service.DTO
     public class ClientProfileDTO
     {
         public string Email { get; set; }
+        [Display(Name = "Имя")]
         public string FirstName { get; set; }
+        [Display(Name = "Фамилия")]
         public string LastName { get; set; }
+        [Display(Name = "Отчество")]
         public string PatrName { get; set; }
+        [Display(Name = "Адрес")]
         public string Address { get; set; }
+        [Display(Name = "Город")]
         public string City { get; set; }
+        [Display(Name = "Дата регистрации")]
         public DateTimeOffset RegistrationDate { get; set; }
     }
 }

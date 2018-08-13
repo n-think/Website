@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -18,12 +19,13 @@ namespace xUnitTests
         public void CreateOrUpdateTest()
         {
             var mockLogger = new Mock<ILogger<ClientService>>();
+            var mockHttpContext = new Mock<IHttpContextAccessor>();
             //mockLogger.Setup(x => x.Log());
             var memoryContext = GetContext();
             var testUser = new ApplicationUser(){UserName = "test@email", NormalizedEmail = "TEST@EMAIL"};
             var profile = new ClientProfileDTO() {Email = "test@email", FirstName = "testName"};
             var fakeProfile = new ClientProfileDTO() { Email = "test@email1", FirstName = "testName" };
-            var clientServ = new ClientService(memoryContext, mockLogger.Object);
+            var clientServ = new ClientService(memoryContext, mockLogger.Object, mockHttpContext.Object);
             var set = memoryContext.Set<ApplicationUser>();
 
 
@@ -46,14 +48,20 @@ namespace xUnitTests
         private DbContext GetContext() => SqlLiteMemoryContext();
         private DbContext SqlLiteMemoryContext()
         {
-            var options = new DbContextOptionsBuilder<WebsiteContext>()
+            var options = new DbContextOptionsBuilder<WebsiteDbContext>()
                 .UseSqlite("DataSource=:memory:")
                 .Options;
 
-            var context = new WebsiteContext(options);
+            var context = new WebsiteDbContext(options);
             context.Database.OpenConnection();
             context.Database.EnsureCreated();
             return context;
+        }
+        private Mock<UserManager<ApplicationUser>> GetMockUserManager()
+        {
+            var userStoreMock = new Mock<IUserStore<ApplicationUser>>();
+            return new Mock<UserManager<ApplicationUser>>(
+                userStoreMock.Object, null, null, null, null, null, null, null, null);
         }
     }
 }

@@ -9,7 +9,7 @@ using Website.Data.EF.Models;
 
 namespace Website.Data.EF.Migrations
 {
-    [DbContext(typeof(WebsiteContext))]
+    [DbContext(typeof(WebsiteDbContext))]
     [Migration("20180812053616_RegisterDateToRegistration")]
     partial class RegisterDateToRegistration
     {

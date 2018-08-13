@@ -9,7 +9,7 @@ using Website.Data.EF.Models;
 
 namespace Website.Data.EF.Migrations
 {
-    [DbContext(typeof(WebsiteContext))]
+    [DbContext(typeof(WebsiteDbContext))]
     [Migration("20180811010227_Prod_Profile_upd")]
     partial class Prod_Profile_upd
     {

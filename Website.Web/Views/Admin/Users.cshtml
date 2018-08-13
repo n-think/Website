@@ -1,12 +1,43 @@
-﻿
-@{
+﻿@{
     ViewData["Title"] = "Users";
     ViewData.AddActivePage(AdminNavPages.Users);
 }
+
+@using System.Globalization
 @model IEnumerable<ClientDTO>
-@foreach (var user in Model)
-{
-    @Html.DisplayFor(model=>user)
-    <hr/>
-}
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(model => model.UserLogin)</th>
+            <th>@Html.DisplayNameFor(model => model.Email)</th>
+            <th>@Html.DisplayNameFor(model => model.PhoneNumber)</th>
+            <th>@Html.DisplayNameFor(model => model.ProfileDto.LastName)</th>
+            <th>@Html.DisplayNameFor(model => model.ProfileDto.FirstName)</th>
+            <th>@Html.DisplayNameFor(model => model.ProfileDto.City)</th>
+            <th>Количество заказов</th>
+            <th>@Html.DisplayNameFor(model => model.ProfileDto.RegistrationDate)</th>
+            <th>@Html.DisplayNameFor(model => model.LastActivityDate)</th>
+        </tr>
+    </thead>
+    <tbody class="tab-content">
+        @foreach (var user in Model)
+        {
+            <tr>
+                <td>@Html.DisplayFor(m => user.UserLogin)</td>
+                <td>@Html.DisplayFor(m => user.Email)</td>
+                <td>@Html.DisplayFor(m => user.PhoneNumber)</td>
+                <td>@Html.DisplayFor(m => user.ProfileDto.LastName)</td>
+                <td>@Html.DisplayFor(m => user.ProfileDto.FirstName)</td>
+                <td>@Html.DisplayFor(m => user.ProfileDto.City)</td>
+                <td>100500</td>
+                <td>@Html.DisplayFor(m => user.ProfileDto.RegistrationDate)</td>
+                <td>@Html.DisplayFor(m => user.LastActivityDate)</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+
 

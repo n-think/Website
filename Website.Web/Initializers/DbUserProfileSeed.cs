@@ -11,7 +11,7 @@ namespace Website.Web.Initializers
     public class DbUserProfileSeed
     {
         public static async Task InitializeAsync(UserManager<ApplicationUser> userManager,
-            RoleManager<IdentityRole> roleManager,DbContext context)
+            RoleManager<IdentityRole> roleManager, DbContext context)
         {
             string email = "email@example.com";
             string password = "123123";
@@ -45,12 +45,20 @@ namespace Website.Web.Initializers
             {
                 var name = item.Split();
 
-                var clProf = new ClientProfile() { FirstName = name[1], LastName = name[0], PatrName = name[2], City =
-                    ((Cities)random.Next(3)).ToString(), RegistrationDate = DateTimeOffset.Now};
+                var clProf = new ClientProfile()
+                {
+                    FirstName = name[1],
+                    LastName = name[0],
+                    PatrName = name[2],
+                    City =
+                    ((Cities)random.Next(3)).ToString(),
+                    RegistrationDate = DateTimeOffset.Now
+                };
 
-                var phone = "+7-"+random.Next(100,999)+"-"+ random.Next(100, 999)+"-"+ random.Next(10, 99)+"-" + random.Next(10, 99);
-                ApplicationUser user = new ApplicationUser { Email = i + email, UserName = i + email, ClientProfile = clProf ,PhoneNumber = phone };
+                var phone = "+7-" + random.Next(100, 999) + "-" + random.Next(100, 999) + "-" + random.Next(10, 99) + "-" + random.Next(10, 99);
+                ApplicationUser user = new ApplicationUser { Email = i + email, UserName = i + email, ClientProfile = clProf, PhoneNumber = phone, LastActivityDate = DateTimeOffset.Now };
                 await userManager.CreateAsync(user, password);
+                await userManager.AddToRoleAsync(user, "user");
                 i++;
             }
         }

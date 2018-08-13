@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,7 +37,7 @@ namespace Website.Web
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<WebsiteContext>(options =>
+            services.AddDbContext<WebsiteDbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"))
                 .UseLazyLoadingProxies());
 
@@ -50,15 +53,21 @@ namespace Website.Web
                 options.Lockout.MaxFailedAccessAttempts = 10;
                 //option.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
             })
-
-            .AddEntityFrameworkStores<WebsiteContext>()
+            .AddEntityFrameworkStores<WebsiteDbContext>()
                 .AddDefaultTokenProviders()
                 .AddErrorDescriber<RusIdentityErrorDescriberRes>();
+
+            //custom sign in manager. пока не нужен
+            //services.AddScoped<SignInManager<ApplicationUser>, ApplicationSignInManager<ApplicationUser>>();
 
             services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, MyUserClaimsPrincipalFactory>();
 
             services.Configure<SecurityStampValidatorOptions>(options =>
-                options.ValidationInterval = TimeSpan.FromMinutes(30)); //FromSeconds(10));
+            {
+                //options.ValidationInterval = TimeSpan.FromSeconds(1);
+                options.ValidationInterval = TimeSpan.FromMinutes(10);
+            });
+
 
             services.ConfigureApplicationCookie(option =>
             {
@@ -66,12 +75,13 @@ namespace Website.Web
                 // option.LoginPath = new PathString("/Login");
                 // option.LogoutPath = new PathString("/Logout");
                 option.AccessDeniedPath = new PathString("/error/403");
+                //option.SlidingExpiration = 
                 //option.Cookie.SecurePolicy = CookieSecurePolicy.Always;
             });
 
             services.AddTransient<IEmailSender, EmailSender>();
 
-            services.AddScoped<DbContext, WebsiteContext>();
+            services.AddScoped<DbContext, WebsiteDbContext>();
             services.AddScoped<IClientService, ClientService>();
 
             services.AddMvc()
@@ -86,6 +96,10 @@ namespace Website.Web
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, IConfiguration configuration)
         {
+            var cultureInfo = new CultureInfo("ru-RU");// { NumberFormat = { CurrencySymbol = "₽" } };
+            CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
+            CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
+
             app.UseStatusCodePagesWithReExecute("/error/{0}");
 
             var errorMode = configuration.GetValue<string>("ErrorHandlingMode"); //читаем конфиг

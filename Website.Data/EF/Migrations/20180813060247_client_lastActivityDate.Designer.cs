@@ -10,8 +10,8 @@ using Website.Data.EF.Models;
 namespace Website.Data.EF.Migrations
 {
     [DbContext(typeof(WebsiteDbContext))]
-    [Migration("20180812044113_RegisterDate")]
-    partial class RegisterDate
+    [Migration("20180813060247_client_lastActivityDate")]
+    partial class client_lastActivityDate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -146,6 +146,8 @@ namespace Website.Data.EF.Migrations
 
                     b.Property<bool>("EmailConfirmed");
 
+                    b.Property<DateTimeOffset>("LastActivityDate");
+
                     b.Property<bool>("LockoutEnabled");
 
                     b.Property<DateTimeOffset?>("LockoutEnd");
@@ -212,7 +214,11 @@ namespace Website.Data.EF.Migrations
 
                     b.Property<string>("PatrName");
 
-                    b.Property<DateTimeOffset>("RegisterDate");
+                    b.Property<DateTimeOffset>("RegistrationDate");
+
+                    b.Property<byte[]>("Timestamp")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate();
 
                     b.HasKey("Id");
 
@@ -276,6 +282,12 @@ namespace Website.Data.EF.Migrations
                     b.Property<int>("Price");
 
                     b.Property<int>("Quantity");
+
+                    b.Property<byte[]>("ThumbImage");
+
+                    b.Property<byte[]>("Timestamp")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate();
 
                     b.HasKey("Id");
 

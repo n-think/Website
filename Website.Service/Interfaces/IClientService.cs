@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Website.Data.EF.Models;
 using Website.Service.DTO;
+using Website.Service.Enums;
 using Website.Service.Infrastructure;
 
 namespace Website.Service.Interfaces
@@ -12,6 +13,8 @@ namespace Website.Service.Interfaces
     {
         Task<OperationDetails> CreateOrUpdateProfileAsync(ClientProfileDTO clientProfileDto);
 
-        Task<IEnumerable<ClientDTO>> GetUsersAsync();
+        Task<ICollection<ClientDTO>> GetUsersAsync(RoleSelector rolePick, int skip, int take);
+        Task <ICollection<ClientDTO>> GetSortFilterPageAsync(string sortOrder, string currentFilter, string searchString, int? page, int? count);
+        Task LogUserActivity(string userLogin);
     }
 }

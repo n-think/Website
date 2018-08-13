@@ -7,13 +7,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Website.Data.EF.Models
 {
-    public partial class WebsiteContext : IdentityDbContext<ApplicationUser>
+    public partial class WebsiteDbContext : IdentityDbContext<ApplicationUser>
     {
-        public WebsiteContext()
+        public WebsiteDbContext()
         {
         }
 
-        public WebsiteContext(DbContextOptions<WebsiteContext> options)
+        public WebsiteDbContext(DbContextOptions<WebsiteDbContext> options)
             : base(options)
         {
         }
@@ -84,33 +84,41 @@ namespace Website.Data.EF.Models
                 entity.Property(e => e.Name)
                     .IsRequired()
                     .HasMaxLength(50);
+
+                entity.Property(x => x.Timestamp)
+                    .IsRowVersion();
             });
 
-            modelBuilder.Entity<ApplicationUser>()
-                .HasOne(x => x.ClientProfile)
-                .WithOne(x => x.User)
-                .HasForeignKey<ClientProfile>(x => x.Id);
+            modelBuilder.Entity<ApplicationUser>(entity =>
+            {
+                entity.HasOne(x => x.ClientProfile)
+                    .WithOne(x => x.User)
+                    .HasForeignKey<ClientProfile>(x => x.Id);
 
-            modelBuilder.Entity<ApplicationUser>()
-                .HasMany(e => e.Claims)
-                .WithOne()
-                .HasForeignKey(e => e.UserId)
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Cascade);
+                entity.HasMany(e => e.Claims)
+                    .WithOne()
+                    .HasForeignKey(e => e.UserId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Cascade);
 
-            //modelBuilder.Entity<ApplicationUser>()
-            //    .HasMany(e => e.Logins)
-            //    .WithOne()
-            //    .HasForeignKey(e => e.UserId)
-            //    .IsRequired()
-            //    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasMany(e => e.Roles)
+                    .WithOne()
+                    .HasForeignKey(e => e.UserId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<ApplicationUser>()
-                .HasMany(e => e.Roles)
-                .WithOne()
-                .HasForeignKey(e => e.UserId)
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Cascade);
+                //entity.HasMany(e => e.Logins)
+                //    .WithOne()
+                //    .HasForeignKey(e => e.UserId)
+                //    .IsRequired()
+                //    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<ClientProfile>(entity =>
+            {
+                entity.Property(x => x.Timestamp)
+                    .IsRowVersion();
+            });
 
             modelBuilder.Entity<IdentityUserRole<string>>()
                 .ToTable("AspNetUserRoles")
@@ -121,19 +129,18 @@ namespace Website.Data.EF.Models
             //    .HasKey(l => new { l.LoginProvider, l.ProviderKey, l.UserId });
 
             //many to many ef core woohoo
-            modelBuilder.Entity<ProductToCategory>()
-                .HasKey(pc => new {pc.ProductId, pc.CategoryId });
+            modelBuilder.Entity<ProductToCategory>(entity =>
+            {
+                entity.HasKey(pc => new { pc.ProductId, pc.CategoryId });
 
-            modelBuilder.Entity<ProductToCategory>()
-                .HasOne(x => x.Product)
-                .WithMany(x => x.ProductCategory)
-                .HasForeignKey(x => x.ProductId);
+                entity.HasOne(x => x.Product)
+                    .WithMany(x => x.ProductCategory)
+                    .HasForeignKey(x => x.ProductId);
 
-            modelBuilder.Entity<ProductToCategory>()
-                .HasOne(x => x.Category)
-                .WithMany(x => x.ProductCategory)
-                .HasForeignKey(x=> x.CategoryId);
-
+                entity.HasOne(x => x.Category)
+                    .WithMany(x => x.ProductCategory)
+                    .HasForeignKey(x => x.CategoryId);
+            });
         }
     }
 }

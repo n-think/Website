@@ -18,6 +18,8 @@ namespace Website.Data.EF.Models
         public int Code { get; set; }
         public int Price { get; set; }
         public int Quantity { get; set; }
+        public byte[] ThumbImage { get; set; }
+        public byte[] Timestamp { get; set; }
 
         public virtual ICollection<Description> Descriptions { get; set; }
         public virtual ICollection<ProductImage> ProductImages { get; set; }

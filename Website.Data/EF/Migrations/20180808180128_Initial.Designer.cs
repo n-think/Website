@@ -9,7 +9,7 @@ using Website.Data.EF.Models;
 
 namespace Website.Data.EF.Migrations
 {
-    [DbContext(typeof(WebsiteContext))]
+    [DbContext(typeof(WebsiteDbContext))]
     [Migration("20180808180128_Initial")]
     partial class Initial
     {

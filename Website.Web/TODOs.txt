@@ -1,0 +1,10 @@
+﻿1. Написать свой UserManagerService , вся суть трех слоев в том что слой презентации(сайт - web) ничего не знает о слое БД(Data) и не использует ничего оттуда, но тк в проекте используется
+Identity со встроенным UserManager то он выплевывает из себя модели бд а не DTO модели.
+
+
+2. Пункт 1 потянет за собой переписывание почти всего Identity
+
+
+как тут сделать 
+https://timschreiber.com/2018/05/08/aspnet-core-identity-with-patterns-3/
+http://mirchetoshevski.com/blog/2017/12/02/identity-in-data-layer-asp-net-core/

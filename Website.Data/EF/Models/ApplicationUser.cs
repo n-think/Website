@@ -23,6 +23,7 @@ namespace Website.Data.EF.Models
         /// </summary>
         public virtual ICollection<IdentityUserClaim<string>> Claims { get; } = new List<IdentityUserClaim<string>>();
 
+        public virtual DateTimeOffset? LastActivityDate { get; set; }
         //надо проверить с пк в билдере.
         ///// <summary>
         ///// Navigation property for this users login accounts.

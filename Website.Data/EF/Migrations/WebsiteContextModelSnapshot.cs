@@ -8,7 +8,7 @@ using Website.Data.EF.Models;
 
 namespace Website.Data.EF.Migrations
 {
-    [DbContext(typeof(WebsiteContext))]
+    [DbContext(typeof(WebsiteDbContext))]
     partial class WebsiteContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
@@ -144,6 +144,8 @@ namespace Website.Data.EF.Migrations
 
                     b.Property<bool>("EmailConfirmed");
 
+                    b.Property<DateTimeOffset?>("LastActivityDate");
+
                     b.Property<bool>("LockoutEnabled");
 
                     b.Property<DateTimeOffset?>("LockoutEnd");
@@ -212,6 +214,10 @@ namespace Website.Data.EF.Migrations
 
                     b.Property<DateTimeOffset>("RegistrationDate");
 
+                    b.Property<byte[]>("Timestamp")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate();
+
                     b.HasKey("Id");
 
                     b.ToTable("ClientProfiles");
@@ -274,6 +280,12 @@ namespace Website.Data.EF.Migrations
                     b.Property<int>("Price");
 
                     b.Property<int>("Quantity");
+
+                    b.Property<byte[]>("ThumbImage");
+
+                    b.Property<byte[]>("Timestamp")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate();
 
                     b.HasKey("Id");
 

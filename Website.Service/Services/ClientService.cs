@@ -1,13 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Website.Data.EF.Models;
 using Website.Service.DTO;
+using Website.Service.Enums;
 using Website.Service.Infrastructure;
 using Website.Service.Interfaces;
 using Website.Service.Mapper;
@@ -19,18 +23,19 @@ namespace Website.Service.Services
     //TODO concurrency checks 
     public class ClientService : IClientService, IDisposable
     {
-        private DbContext _context;
+        private DbContext _dbContext;
         //private UserManager<ApplicationUser> _userManager;
-        private ILogger _logger;
-        private IMapper _mapper;
+        private readonly ILogger _logger;
+        private readonly IMapper _mapper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public ClientService(DbContext context, /*UserManager<ApplicationUser> userManager,*/ ILogger<ClientService> logger)
+        public ClientService(DbContext dbContext, /*UserManager<ApplicationUser> userManager,*/ ILogger<ClientService> logger, IHttpContextAccessor httpContextAccessorAccessor)
         {
-            _context = context;
+            _dbContext = dbContext;
             //_userManager = userManager;
             _logger = logger;
-           
-            _mapper = new MapperConfiguration(cfg=>
+            _httpContextAccessor = httpContextAccessorAccessor;
+            _mapper = new MapperConfiguration(cfg =>
             {
                 cfg.AddProfile<ClientProfileMapperProfile>();
                 cfg.AddProfile<ClientMapperProfile>();
@@ -44,14 +49,14 @@ namespace Website.Service.Services
                 return new OperationDetails(false, "Некорректная модель.", nameof(clientProfileDto));
 
             //var user = await _userManager.FindByEmailAsync(clientProfileDto.Email);
-            var userDbSet = _context.Set<ApplicationUser>();
+            var userDbSet = _dbContext.Set<ApplicationUser>();
             var user = await userDbSet.Where(x => x.NormalizedEmail == clientProfileDto.Email.ToUpper()).Include(x => x.ClientProfile).FirstOrDefaultAsync();
             if (user == null)
                 return new OperationDetails(false, "Пользователь с таким e-mail не найден.", nameof(clientProfileDto.Email));
 
             OperationDetails opDetails;
             var clProfile = user.ClientProfile;
-            var profileDbSet = _context.Set<ClientProfile>();
+            var profileDbSet = _dbContext.Set<ClientProfile>();
             if (clProfile != null)
             {
                 clProfile = _mapper.Map<ClientProfile>(clientProfileDto);
@@ -68,7 +73,7 @@ namespace Website.Service.Services
 
             try
             {
-                await _context.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync();
             }
             catch (DbUpdateException e)
             {
@@ -79,42 +84,93 @@ namespace Website.Service.Services
             return opDetails;
         }
 
-        public async Task<IEnumerable<ClientDTO>> GetUsersAsync()
+        public async Task<ICollection<ClientDTO>> GetUsersAsync(RoleSelector rolePick, int skip, int take)
         {
             this.ThrowIfDisposed();
 
-            var set = _context.Set<ApplicationUser>();
-            var users = await set
-                .Include(x => x.ClientProfile)
-                .Include(x=>x.Claims)
-                .ToListAsync();
+            var query = GetUsersAsQuery(rolePick, skip, take);
+
+            List<ApplicationUser> users = await query.ToListAsync();
 
             var clientList = new List<ClientDTO>();
-            var client = new ClientDTO();
             foreach (var user in users)
             {
-                client = _mapper.Map<ClientDTO>(user);
+                var client = _mapper.Map<ClientDTO>(user);
                 clientList.Add(client);
             }
 
             return clientList;
         }
 
-        //public async Task<string> GetFullName(string email)
-        //{
-        //    this.ThrowIfDisposed();
+        private IQueryable<ApplicationUser> GetUsersAsQuery(RoleSelector rolePick, int skip, int take)
+        {
+            this.ThrowIfDisposed();
 
-        //    if (email == null)
-        //        return null;
+            var userSet = _dbContext.Set<ApplicationUser>();
+            var roleSet = _dbContext.Set<IdentityRole>();
+            var userRoleSet = _dbContext.Set<IdentityUserRole<string>>();
 
-        //    var user = await _userManager.FindByEmailAsync(email);
-        //    var fullName = user?.ClientProfile?.FullName;
-        //    if (fullName?.Length > 3)
-        //        return fullName;
+            var anonymQuery = userRoleSet
+                .Join(userSet, userRole => userRole.UserId, user => user.Id, (userRole, user) => new { user, userRole })
+                .Join(roleSet, userRole => userRole.userRole.RoleId, role => role.Id, (userToUserRole, role) => new { userToUserRole.user, role });
 
-        //    return null;
-        //}
+            IQueryable<ApplicationUser> finalQuery;
 
+            switch (rolePick)
+            {
+                case RoleSelector.Administrators:
+                    finalQuery = anonymQuery
+                        .Where(x => x.role.Name == "admin" || x.role.Name == "manager")
+                        .Select(x => x.user)
+                        .Include(x => x.ClientProfile);
+                    break;
+
+                case RoleSelector.Clients:
+                    finalQuery = anonymQuery
+                        .Where(x => x.role.Name == "user")
+                        .Select(x => x.user)
+                        .Include(x => x.ClientProfile);
+                    break;
+
+                default:
+                    finalQuery = userSet;
+                    break;
+            }
+
+            finalQuery = finalQuery
+                .Skip(skip)
+                .Take(take)
+                .Include(x => x.Claims)
+                .Include(x => x.ClientProfile);
+
+            return finalQuery;
+
+        }
+        public async Task<ICollection<ClientDTO>> GetSortFilterPageAsync(string sortOrder, string currentFilter, string searchString, int? page, int? count)
+        {
+            await Task.CompletedTask;
+            return new List<ClientDTO>();
+        }
+        /// <summary>
+        /// Сохраняет в бд текущее время как дату последней активности (LastActivityDate)
+        /// </summary>
+        /// <param name="userLogin">Логин пользователя</param>
+        /// <returns></returns>
+        public async Task LogUserActivity(string userLogin)
+        {
+            this.ThrowIfDisposed();
+
+            var set = _dbContext.Set<ApplicationUser>();
+            var user = set.FirstOrDefault(x => x.UserName == userLogin);
+            if (user == null)
+            {
+                _logger.LogError("Попытка зарегистрировать активносить несущуствующего пользователя");
+                return;
+            }
+            user.LastActivityDate = DateTimeOffset.Now;
+            set.Update(user);
+            await _dbContext.SaveChangesAsync();
+        }
 
         protected void ThrowIfDisposed()
         {
@@ -131,7 +187,7 @@ namespace Website.Service.Services
             {
                 if (disposing)
                 {
-                    _context?.Dispose();
+                    _dbContext?.Dispose();
                 }
 
                 // free unmanaged resources (unmanaged objects) and override a finalizer below.
