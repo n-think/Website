@@ -14,6 +14,8 @@ namespace Website.Service.DTO
         public string LastName { get; set; }
         [Display(Name = "Отчество")]
         public string PatrName { get; set; }
+        [Display(Name = "ФИО")]
+        public string FullName => $"{LastName} {FirstName} {PatrName}";
         [Display(Name = "Адрес")]
         public string Address { get; set; }
         [Display(Name = "Город")]

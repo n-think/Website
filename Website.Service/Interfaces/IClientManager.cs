@@ -9,7 +9,7 @@ using Website.Service.Infrastructure;
 
 namespace Website.Service.Interfaces
 {
-    public interface IClientService
+    public interface IClientManager
     {
         Task<OperationDetails> CreateOrUpdateProfileAsync(ClientProfileDTO clientProfileDto);
 

@@ -2,9 +2,9 @@
 @using System.Linq
 @using Microsoft.AspNetCore.Http
 @using Microsoft.AspNetCore.Http.Authentication
-@using Website.Data.EF.Models
+@using Website.Service.Services
 @model LoginViewModel
-@inject SignInManager<ApplicationUser> SignInManager
+@inject SignInManager SignInManager
 
 @{
     ViewData["Title"] = "Войти";

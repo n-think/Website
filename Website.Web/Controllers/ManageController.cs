@@ -10,7 +10,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Website.Data.EF.Models;
+using Website.Service.DTO;
+using Website.Service.Interfaces;
+using Website.Service.Services;
 using Website.Web.Models;
 using Website.Web.Models.ManageViewModels;
 using Website.Web.Services;
@@ -21,8 +23,8 @@ namespace Website.Web.Controllers
     [Route("[controller]/[action]")]
     public class ManageController : Controller
     {
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly UserManager _userManager;
+        private readonly SignInManager _signInManager;
         private readonly IEmailSender _emailSender;
         private readonly ILogger _logger;
         private readonly UrlEncoder _urlEncoder;
@@ -31,8 +33,8 @@ namespace Website.Web.Controllers
         private const string RecoveryCodesKey = nameof(RecoveryCodesKey);
 
         public ManageController(
-          UserManager<ApplicationUser> userManager,
-          SignInManager<ApplicationUser> signInManager,
+          UserManager userManager,
+          SignInManager signInManager,
           IEmailSender emailSender,
           ILogger<ManageController> logger,
           UrlEncoder urlEncoder)
@@ -529,7 +531,7 @@ namespace Website.Web.Controllers
                 unformattedKey);
         }
 
-        private async Task LoadSharedKeyAndQrCodeUriAsync(ApplicationUser user, EnableAuthenticatorViewModel model)
+        private async Task LoadSharedKeyAndQrCodeUriAsync(UserDTO user, EnableAuthenticatorViewModel model)
         {
             var unformattedKey = await _userManager.GetAuthenticatorKeyAsync(user);
             if (string.IsNullOrEmpty(unformattedKey))

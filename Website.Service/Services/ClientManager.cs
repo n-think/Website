@@ -21,7 +21,7 @@ namespace Website.Service.Services
 {
     //TODO tests
     //TODO concurrency checks 
-    public class ClientService : IClientService, IDisposable
+    public class ClientManager : IClientManager, IDisposable
     {
         private DbContext _dbContext;
         //private UserManager<ApplicationUser> _userManager;
@@ -29,7 +29,7 @@ namespace Website.Service.Services
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public ClientService(DbContext dbContext, /*UserManager<ApplicationUser> userManager,*/ ILogger<ClientService> logger, IHttpContextAccessor httpContextAccessorAccessor)
+        public ClientManager(DbContext dbContext, /*UserManager<ApplicationUser> userManager,*/ ILogger<ClientManager> logger, IHttpContextAccessor httpContextAccessorAccessor)
         {
             _dbContext = dbContext;
             //_userManager = userManager;
@@ -37,8 +37,7 @@ namespace Website.Service.Services
             _httpContextAccessor = httpContextAccessorAccessor;
             _mapper = new MapperConfiguration(cfg =>
             {
-                cfg.AddProfile<ClientProfileMapperProfile>();
-                cfg.AddProfile<ClientMapperProfile>();
+                cfg.AddProfile<MapperProfile>();
             }).CreateMapper();
         }
         public async Task<OperationDetails> CreateOrUpdateProfileAsync(ClientProfileDTO clientProfileDto)
@@ -112,7 +111,7 @@ namespace Website.Service.Services
 
             var anonymQuery = userRoleSet
                 .Join(userSet, userRole => userRole.UserId, user => user.Id, (userRole, user) => new { user, userRole })
-                .Join(roleSet, userRole => userRole.userRole.RoleId, role => role.Id, (userToUserRole, role) => new { userToUserRole.user, role });
+                .Join(roleSet, userToUserRole => userToUserRole.userRole.RoleId, role => role.Id, (userToUserRole, role) => new { userToUserRole.user, role });
 
             IQueryable<ApplicationUser> finalQuery;
 
@@ -146,7 +145,7 @@ namespace Website.Service.Services
             return finalQuery;
 
         }
-        public async Task<ICollection<ClientDTO>> GetSortFilterPageAsync(string sortOrder, string currentFilter, string searchString, int? page, int? count)
+        public async Task<ICollection<ClientDTO>> GetSortFilterPageAsync(string sortPropName, string currentFilter, string searchString, int? page, int? count)
         {
             await Task.CompletedTask;
             return new List<ClientDTO>();
@@ -198,7 +197,7 @@ namespace Website.Service.Services
         }
 
         // override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
-        // ~ClientService() {
+        // ~ClientManager() {
         //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
         //   Dispose(false);
         // }

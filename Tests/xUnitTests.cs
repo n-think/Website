@@ -18,14 +18,14 @@ namespace xUnitTests
         [Fact]
         public void CreateOrUpdateTest()
         {
-            var mockLogger = new Mock<ILogger<ClientService>>();
+            var mockLogger = new Mock<ILogger<ClientManager>>();
             var mockHttpContext = new Mock<IHttpContextAccessor>();
             //mockLogger.Setup(x => x.Log());
             var memoryContext = GetContext();
             var testUser = new ApplicationUser(){UserName = "test@email", NormalizedEmail = "TEST@EMAIL"};
             var profile = new ClientProfileDTO() {Email = "test@email", FirstName = "testName"};
             var fakeProfile = new ClientProfileDTO() { Email = "test@email1", FirstName = "testName" };
-            var clientServ = new ClientService(memoryContext, mockLogger.Object, mockHttpContext.Object);
+            var clientServ = new ClientManager(memoryContext, mockLogger.Object, mockHttpContext.Object);
             var set = memoryContext.Set<ApplicationUser>();
 
 

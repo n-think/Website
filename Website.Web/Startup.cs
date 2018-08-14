@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authentication.Cookies;
+using AutoMapper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -12,16 +12,18 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Website.Data.EF.Models;
+using Website.Service.DTO;
 using Website.Service.Interfaces;
+using Website.Service.Mapper;
 using Website.Service.Services;
-using Website.Web.Infrasctructure;
 using Website.Web.Localization;
-using Website.Web.Models;
 using Website.Web.Resources;
-using Website.Web.Services;
+using Website.Service.IdentityStores;
+
 
 namespace Website.Web
 {
@@ -41,7 +43,10 @@ namespace Website.Web
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"))
                 .UseLazyLoadingProxies());
 
-            services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+            services.AddDbContext<WebsiteDbContext>();
+            services.AddAutoMapper(opt => opt.AddProfile<MapperProfile>());
+
+            services.AddIdentity<UserDTO, RoleDTO>(options =>
             {
                 options.User.RequireUniqueEmail = false; // false тк пользователь==емейл или будет две ошибки на валидации //TODO если можно менять имя надо true
                 options.Password.RequiredLength = 6;
@@ -53,14 +58,18 @@ namespace Website.Web
                 options.Lockout.MaxFailedAccessAttempts = 10;
                 //option.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
             })
-            .AddEntityFrameworkStores<WebsiteDbContext>()
+                //.AddEntityFrameworkStores<WebsiteDbContext>()
+                .AddUserManager<UserManager>()
+                .AddRoleManager<RoleManager>()
+                .AddSignInManager<SignInManager>()
                 .AddDefaultTokenProviders()
                 .AddErrorDescriber<RusIdentityErrorDescriberRes>();
+            FixInterfaces(services);
 
             //custom sign in manager. пока не нужен
-            //services.AddScoped<SignInManager<ApplicationUser>, ApplicationSignInManager<ApplicationUser>>();
+            //services.AddScoped<SignInManager<UserDTO>, ApplicationSignInManager<UserDTO>>();
 
-            services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, MyUserClaimsPrincipalFactory>();
+            services.AddScoped<IUserClaimsPrincipalFactory<UserDTO>, MyUserClaimsPrincipalFactory>();
 
             services.Configure<SecurityStampValidatorOptions>(options =>
             {
@@ -82,7 +91,7 @@ namespace Website.Web
             services.AddTransient<IEmailSender, EmailSender>();
 
             services.AddScoped<DbContext, WebsiteDbContext>();
-            services.AddScoped<IClientService, ClientService>();
+            services.AddScoped<IClientManager, ClientManager>();
 
             services.AddMvc()
                 .AddDataAnnotationsLocalization(options =>
@@ -91,6 +100,12 @@ namespace Website.Web
                             factory.Create(typeof(SharedResource));
                     })
                     .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+        }
+
+        private void FixInterfaces(IServiceCollection services)
+        {
+            services.AddTransient<IRoleStore<RoleDTO>, CustomRoleStore>();
+            services.AddTransient<IUserStore<UserDTO>, CustomUserStore>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

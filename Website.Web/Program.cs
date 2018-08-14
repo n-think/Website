@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Website.Data.EF.Models;
+using Website.Service.Services;
 using Website.Web.Initializers;
 
 namespace Website.Web
@@ -30,14 +30,14 @@ namespace Website.Web
                 var services = scope.ServiceProvider;
                 try
                 {
-                    var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
-                    var rolesManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+                    var userManager = services.GetRequiredService<UserManager>();
+                    var rolesManager = services.GetRequiredService<RoleManager>();
                     var context = services.GetRequiredService<DbContext>();
 
                     await AdminAndRoleInitializer.InitializeAsync(userManager, rolesManager);
                     
                     //TODO УБРАТЬ
-                    //await DbUserProfileSeed.InitializeAsync(userManager, rolesManager,context);
+                    await DbUserProfileSeed.InitializeAsync(userManager, rolesManager,context);
                 }
                 catch (Exception ex)
                 {

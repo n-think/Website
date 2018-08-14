@@ -1,12 +1,12 @@
 @using Castle.Core.Internal
 @using Microsoft.AspNetCore.Identity
-@using Website.Data.EF.Models
 @using Website.Service.Interfaces
+@using Website.Service.Services
 @using Website.Web.Models
 
-@inject SignInManager<ApplicationUser> SignInManager
-@inject UserManager<ApplicationUser> UserManager
-@inject IClientService ClientService
+@inject SignInManager SignInManager
+@inject UserManager UserManager
+@inject IClientManager ClientManager
 
 @if (SignInManager.IsSignedIn(User))
 {

@@ -10,9 +10,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Website.Data.EF.Models;
 using Website.Service.DTO;
 using Website.Service.Interfaces;
+using Website.Service.Services;
 using Website.Web.Models;
 using Website.Web.Models.AccountViewModels;
 using Website.Web.Services;
@@ -23,24 +23,24 @@ namespace Website.Web.Controllers
     [Route("[controller]/[action]")]
     public class AccountController : Controller
     {
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly UserManager _userManager;
+        private readonly SignInManager _signInManager;
         private readonly IEmailSender _emailSender;
         private readonly ILogger _logger;
-        private IClientService _service;
+        private IClientManager _clientManager;
 
         public AccountController(
-            UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager,
+            UserManager userManager,
+            SignInManager signInManager,
             IEmailSender emailSender,
             ILogger<AccountController> logger,
-            IClientService service)
+            IClientManager clientManager)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _emailSender = emailSender;
             _logger = logger;
-            _service = service;
+            _clientManager = clientManager;
         }
 
         [TempData]
@@ -80,7 +80,7 @@ namespace Website.Web.Controllers
                 if (result.IsLockedOut)
                 {
                     _logger.LogWarning("Аккаунт пользователя заблокирован из за большого количества неудачных попыток авторизации.");
-                    return RedirectToAction("Lockout","Error");
+                    return RedirectToAction("Lockout", "Error");
                 }
                 else
                 {
@@ -139,7 +139,7 @@ namespace Website.Web.Controllers
             else if (result.IsLockedOut)
             {
                 _logger.LogWarning("User with ID {UserId} account locked out.", user.Id);
-                return RedirectToAction("Lockout","Error");
+                return RedirectToAction("Lockout", "Error");
             }
             else
             {
@@ -219,7 +219,7 @@ namespace Website.Web.Controllers
             ViewData["ReturnUrl"] = returnUrl;
             if (ModelState.IsValid)
             {
-                var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
+                var user = new UserDTO() { UserName = model.Email, Email = model.Email, Id = Guid.NewGuid().ToString() };
                 var result = await _userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
@@ -229,6 +229,7 @@ namespace Website.Web.Controllers
                     var callbackUrl = Url.EmailConfirmationLink(user.Id, code, Request.Scheme);
                     await _emailSender.SendEmailConfirmationAsync(model.Email, callbackUrl);
 
+                    await _userManager.AddToRoleAsync(user, "user");
                     await _signInManager.SignInAsync(user, isPersistent: false);
 
                     var clientProfile = new ClientProfileDTO()
@@ -240,8 +241,8 @@ namespace Website.Web.Controllers
                         RegistrationDate = DateTimeOffset.Now
                     };
 
-                    await _service.CreateOrUpdateProfileAsync(clientProfile);
-                    
+                    await _clientManager.CreateOrUpdateProfileAsync(clientProfile);
+
                     return RedirectToLocal(returnUrl);
                 }
                 AddErrors(result);
@@ -320,7 +321,7 @@ namespace Website.Web.Controllers
                 {
                     throw new ApplicationException("Error loading external login information during confirmation.");
                 }
-                var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
+                var user = new UserDTO() { UserName = model.Email, Email = model.Email };
                 var result = await _userManager.CreateAsync(user);
                 if (result.Succeeded)
                 {

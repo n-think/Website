@@ -158,7 +158,7 @@
     <comment>Identity</comment>
   </data>
   <data name="PasswordMismatch" xml:space="preserve">
-    <value>Неправельный пароль.</value>
+    <value>Неправильный пароль.</value>
     <comment>Identity</comment>
   </data>
   <data name="PasswordRequiresDigit" xml:space="preserve">
