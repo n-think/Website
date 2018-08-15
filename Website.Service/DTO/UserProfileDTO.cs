@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Website.Service.DTO
 {
-    public class ClientProfileDTO
+    public class UserProfileDTO
     {
         public string Email { get; set; }
         [Display(Name = "Имя")]

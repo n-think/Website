@@ -91,7 +91,7 @@ namespace Website.Web
             services.AddTransient<IEmailSender, EmailSender>();
 
             services.AddScoped<DbContext, WebsiteDbContext>();
-            services.AddScoped<IClientManager, ClientManager>();
+            services.AddScoped<IUserManager, UserManager>();
 
             services.AddMvc()
                 .AddDataAnnotationsLocalization(options =>

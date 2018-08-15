@@ -1,13 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Microsoft.Extensions.Options;
 
 namespace Website.Data.EF.Models
 {
-    public partial class WebsiteDbContext : IdentityDbContext<ApplicationUser>
+    public partial class WebsiteDbContext : DbContext
     {
         public WebsiteDbContext()
         {
@@ -18,20 +23,23 @@ namespace Website.Data.EF.Models
         {
         }
 
+        public virtual DbSet<User> Users { get; set; }
+        public virtual DbSet<UserClaim> UserClaims { get; set; }
+        public virtual DbSet<UserLogin> UserLogins { get; set; }
+        public virtual DbSet<UserToken> UserTokens { get; set; }
+        public virtual DbSet<UserRole> UserRoles { get; set; }
+        public virtual DbSet<Role> Roles { get; set; }
+        public virtual DbSet<RoleClaim> RoleClaims { get; set; }
         public virtual DbSet<Category> Categories { get; set; }
-        public virtual DbSet<ClientProfile> ClientProfiles { get; set; }
+        public virtual DbSet<UserProfile> UserProfiles { get; set; }
         public virtual DbSet<DescriptionGroup> DescriptionGroups { get; set; }
         public virtual DbSet<Description> Descriptions { get; set; }
         public virtual DbSet<ProductImage> ProductImages { get; set; }
         public virtual DbSet<Product> Products { get; set; }
-        //public virtual DbSet<ProductToCategory> ProductToCategories { get; set; }
-
+        
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
-            // Customize the ASP.NET Identity model and override the defaults if needed.
-            // For example, you can rename the ASP.NET Identity table names and more.
-            // Add your customizations after calling base.OnModelCreating(builder);
+            FromIdentityBuilder(modelBuilder);
 
             modelBuilder.Entity<Category>(entity =>
             {
@@ -89,44 +97,18 @@ namespace Website.Data.EF.Models
                     .IsRowVersion();
             });
 
-            modelBuilder.Entity<ApplicationUser>(entity =>
+            modelBuilder.Entity<User>(entity =>
             {
-                entity.HasOne(x => x.ClientProfile)
+                entity.HasOne(x => x.UserProfile)
                     .WithOne(x => x.User)
-                    .HasForeignKey<ClientProfile>(x => x.Id);
-
-                entity.HasMany(e => e.Claims)
-                    .WithOne()
-                    .HasForeignKey(e => e.UserId)
-                    .IsRequired()
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                entity.HasMany(e => e.Roles)
-                    .WithOne()
-                    .HasForeignKey(e => e.UserId)
-                    .IsRequired()
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                //entity.HasMany(e => e.Logins)
-                //    .WithOne()
-                //    .HasForeignKey(e => e.UserId)
-                //    .IsRequired()
-                //    .OnDelete(DeleteBehavior.Cascade);
+                    .HasForeignKey<UserProfile>(x => x.Id);
             });
 
-            modelBuilder.Entity<ClientProfile>(entity =>
+            modelBuilder.Entity<UserProfile>(entity =>
             {
                 entity.Property(x => x.Timestamp)
                     .IsRowVersion();
             });
-
-            modelBuilder.Entity<IdentityUserRole<string>>()
-                .ToTable("AspNetUserRoles")
-                .HasKey(r => new { r.UserId, r.RoleId });
-
-            //modelBuilder.Entity<IdentityUserLogin<string>>()
-            //    .ToTable("AspNetUserLogins")
-            //    .HasKey(l => new { l.LoginProvider, l.ProviderKey, l.UserId });
 
             //many to many ef core woohoo
             modelBuilder.Entity<ProductToCategory>(entity =>
@@ -140,6 +122,78 @@ namespace Website.Data.EF.Models
                 entity.HasOne(x => x.Category)
                     .WithMany(x => x.ProductCategory)
                     .HasForeignKey(x => x.CategoryId);
+            });
+        }
+
+        private void FromIdentityBuilder(ModelBuilder modelBuilder)
+        {
+            //gutted encryptPersonalData
+
+            modelBuilder.Entity<User>(b =>
+            {
+                b.HasKey(u => u.Id);
+                b.HasIndex(u => u.NormalizedUserName).HasName("UserNameIndex").IsUnique();
+                b.HasIndex(u => u.NormalizedEmail).HasName("EmailIndex");
+                b.ToTable("Users");
+                b.Property(u => u.ConcurrencyStamp).IsConcurrencyToken();
+
+                b.Property(u => u.UserName).HasMaxLength(256);
+                b.Property(u => u.NormalizedUserName).HasMaxLength(256);
+                b.Property(u => u.Email).HasMaxLength(256);
+                b.Property(u => u.NormalizedEmail).HasMaxLength(256);
+
+                b.HasMany<UserClaim>().WithOne().HasForeignKey(uc => uc.UserId).IsRequired();
+                b.HasMany<UserLogin>().WithOne().HasForeignKey(ul => ul.UserId).IsRequired();
+                b.HasMany<UserToken>().WithOne().HasForeignKey(ut => ut.UserId).IsRequired();
+            });
+
+            modelBuilder.Entity<UserClaim>(b =>
+            {
+                b.HasKey(uc => uc.Id);
+                b.ToTable("UserClaims");
+            });
+
+            modelBuilder.Entity<UserLogin>(b =>
+            {
+                b.HasKey(l => new { l.LoginProvider, l.ProviderKey });
+                b.ToTable("UserLogins");
+            });
+
+            modelBuilder.Entity<UserToken>(b =>
+            {
+                b.HasKey(t => new { t.UserId, t.LoginProvider, t.Name });
+                b.ToTable("UserTokens");
+            });
+
+            modelBuilder.Entity<User>(b =>
+            {
+                b.HasMany<UserRole>().WithOne().HasForeignKey(ur => ur.UserId).IsRequired();
+            });
+
+            modelBuilder.Entity<Role>(b =>
+            {
+                b.HasKey(r => r.Id);
+                b.HasIndex(r => r.NormalizedName).HasName("RoleNameIndex").IsUnique();
+                b.ToTable("Roles");
+                b.Property(r => r.ConcurrencyStamp).IsConcurrencyToken();
+
+                b.Property(u => u.Name).HasMaxLength(256);
+                b.Property(u => u.NormalizedName).HasMaxLength(256);
+
+                b.HasMany<UserRole>().WithOne().HasForeignKey(ur => ur.RoleId).IsRequired();
+                b.HasMany<RoleClaim>().WithOne().HasForeignKey(rc => rc.RoleId).IsRequired();
+            });
+
+            modelBuilder.Entity<RoleClaim>(b =>
+            {
+                b.HasKey(rc => rc.Id);
+                b.ToTable("RoleClaims");
+            });
+
+            modelBuilder.Entity<UserRole>(b =>
+            {
+                b.HasKey(r => new { r.UserId, r.RoleId });
+                b.ToTable("UserRoles");
             });
         }
     }

@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
-using Microsoft.AspNetCore.Identity;
 
 namespace Website.Data.EF.Models
 {
-    public class ClientProfile
+    public class UserProfile
     {
         public string Id { get; set; }
         public string FirstName { get; set; }
@@ -19,6 +18,6 @@ namespace Website.Data.EF.Models
         public DateTimeOffset RegistrationDate { get; set; }
         public byte[] Timestamp { get; set; }
 
-        public virtual ApplicationUser User { get; set; }
+        public virtual User User { get; set; }
     }
 }

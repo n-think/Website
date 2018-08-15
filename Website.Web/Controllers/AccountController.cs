@@ -23,24 +23,21 @@ namespace Website.Web.Controllers
     [Route("[controller]/[action]")]
     public class AccountController : Controller
     {
-        private readonly UserManager _userManager;
+        private readonly IUserManager _userManager;
         private readonly SignInManager _signInManager;
         private readonly IEmailSender _emailSender;
         private readonly ILogger _logger;
-        private IClientManager _clientManager;
 
         public AccountController(
-            UserManager userManager,
+            IUserManager userManager,
             SignInManager signInManager,
             IEmailSender emailSender,
-            ILogger<AccountController> logger,
-            IClientManager clientManager)
+            ILogger<AccountController> logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _emailSender = emailSender;
             _logger = logger;
-            _clientManager = clientManager;
         }
 
         [TempData]
@@ -219,7 +216,7 @@ namespace Website.Web.Controllers
             ViewData["ReturnUrl"] = returnUrl;
             if (ModelState.IsValid)
             {
-                var user = new UserDTO() { UserName = model.Email, Email = model.Email, Id = Guid.NewGuid().ToString() };
+                var user = new UserDTO() { UserName = model.Email, Email = model.Email};
                 var result = await _userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
@@ -232,7 +229,7 @@ namespace Website.Web.Controllers
                     await _userManager.AddToRoleAsync(user, "user");
                     await _signInManager.SignInAsync(user, isPersistent: false);
 
-                    var clientProfile = new ClientProfileDTO()
+                    var clientProfile = new UserProfileDTO()
                     {
                         FirstName = model.FirstName,
                         LastName = model.LastName,
@@ -241,7 +238,7 @@ namespace Website.Web.Controllers
                         RegistrationDate = DateTimeOffset.Now
                     };
 
-                    await _clientManager.CreateOrUpdateProfileAsync(clientProfile);
+                    await _userManager.CreateOrUpdateProfileAsync(clientProfile);
 
                     return RedirectToLocal(returnUrl);
                 }

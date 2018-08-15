@@ -16,16 +16,17 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Website.Data.EF.Models;
 using Website.Service.DTO;
+using Website.Service.Interfaces;
 
 namespace Website.Service.IdentityStores
 {
     /// <inheritdoc />
     /// <summary>
     /// Represents a new instance of a persistence store for users, using the default implementation
-    /// of <see cref="T:Website.Data.EF.Models.ApplicationUser" /> with a string as a primary key.
+    /// of <see cref="T:Website.Data.EF.Models.User" /> with a string as a primary key.
     /// </summary>
-    public class CustomUserStore : CustomUserStoreBase<UserDTO, ApplicationUser, RoleDTO, IdentityRole, UserClaimDTO, IdentityUserClaim<string>,
-        UserRoleDTO, IdentityUserRole<string>, UserLoginDTO, IdentityUserLogin<string>, IdentityUserToken<string>, IdentityRoleClaim<string>>
+    public class CustomUserStore : CustomUserStoreBase<UserDTO, User, RoleDTO, Role, UserClaim,
+        UserRole, UserLogin, UserToken, RoleClaim>
     {
         public CustomUserStore(DbContext context, IMapper mapper, IdentityErrorDescriber describer = null)
             : base(context, mapper, describer)
@@ -36,49 +37,37 @@ namespace Website.Service.IdentityStores
     /// <summary>
     /// Represents a new instance of a persistence store for the specified user and role types.
     /// </summary>
-    /// <typeparam name="TUser">The type representing a user.</typeparam>
-    /// <typeparam name="TRole">The type representing a role.</typeparam>
-    /// <typeparam name="TUserClaim">The type representing a claim.</typeparam>
-    /// <typeparam name="TDbUserRole">The type representing a user role.</typeparam>
-    /// <typeparam name="TDbUserLogin">The type representing a user external login.</typeparam>
-    /// <typeparam name="TDbUserToken">The type representing a user token.</typeparam>
-    /// <typeparam name="TDbRoleClaim">The type representing a role claim.</typeparam>
-    // <typeparam name="TContext">The type of the data context class used to access the store.</typeparam>
-    // <typeparam name="TKey">The type of the primary key for a role.</typeparam>
-    public class CustomUserStoreBase<TUser, TDbUser, TRole, TDbRole, TUserClaim, TDbUserClaim, TUserRole, TDbUserRole, TUserLogin, TDbUserLogin,
-        TDbUserToken, TDbRoleClaim> :
-        IUserStore<TUser>,
-        IUserPasswordStore<TUser>,
-        IUserEmailStore<TUser>,
-        IUserLoginStore<TUser>,
-        IUserRoleStore<TUser>,
-        IUserSecurityStampStore<TUser>,
-        IUserClaimStore<TUser>,
-        IUserAuthenticationTokenStore<TUser>,
-        IUserTwoFactorStore<TUser>,
-        IUserPhoneNumberStore<TUser>,
-        IUserLockoutStore<TUser>
-        //,IQueryableUserStore<TUser>
+    /// <typeparam name="TUser">The type representing a dto user.</typeparam>
+    /// <typeparam name="TDbUser">The type representing a user in database.</typeparam>
+    /// <typeparam name="TRole">The type representing a dto role.</typeparam>
+    /// <typeparam name="TDbRole">The type representing a role in database.</typeparam>
+    /// <typeparam name="TDbUserRole">The type representing a user role in database.</typeparam>
+    /// <typeparam name="TDbUserClaim">The type representing a user claim in database.</typeparam>
+    /// <typeparam name="TDbUserLogin">The type representing a user external login in database.</typeparam>
+    /// <typeparam name="TDbUserToken">The type representing a user token in database.</typeparam>
+    /// <typeparam name="TDbRoleClaim">The type representing a role claim in database.</typeparam>
+    public class CustomUserStoreBase<TUser, TDbUser, TRole, TDbRole, TDbUserClaim, TDbUserRole, TDbUserLogin, TDbUserToken, TDbRoleClaim> :
+        ICustomUserStore<TUser, TDbUser, TRole, TDbRole, TDbUserClaim, TDbUserRole, TDbUserLogin, TDbUserToken, TDbRoleClaim>
         where TUser : UserDTO
-        where TDbUser : IdentityUser
+        where TDbUser : User
         where TRole : RoleDTO
-        where TDbRole : IdentityRole
-
-        where TUserClaim : UserClaimDTO, new()
-        where TDbUserClaim : IdentityUserClaim<string>, new()
-        where TUserRole : UserRoleDTO, new()
-        where TDbUserRole : IdentityUserRole<string>, new()
-        where TUserLogin : UserLoginDTO, new()
-        where TDbUserLogin : IdentityUserLogin<string>, new()
-        where TDbUserToken : IdentityUserToken<string>, new()
-        where TDbRoleClaim : IdentityRoleClaim<string>, new()
+        where TDbRole : Role
+        where TDbUserClaim : UserClaim, new()
+        where TDbUserRole : UserRole, new()
+        where TDbUserLogin : UserLogin, new()
+        where TDbUserToken : UserToken, new()
+        where TDbRoleClaim : RoleClaim, new()
     {
-
-
-        public CustomUserStoreBase(DbContext context, IMapper mapper, IdentityErrorDescriber describer = null)
+        /// <summary>
+        /// Constructs a new instance of CustomUserStoreBase".
+        /// </summary>
+        /// <param name="dbContext">The <see cref="DbContext"/>.</param>
+        /// <param name="mapper">The <see cref="AutoMapper.Mapper"/>.</param>
+        /// <param name="describer">The <see cref="IdentityErrorDescriber"/>.</param>
+        public CustomUserStoreBase(DbContext dbContext, IMapper mapper, IdentityErrorDescriber describer = null)
         {
             ErrorDescriber = describer ?? new IdentityErrorDescriber();
-            Context = context ?? throw new ArgumentNullException(nameof(context));
+            Context = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
@@ -118,25 +107,17 @@ namespace Website.Service.IdentityStores
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation, containing the <see cref="IdentityResult"/> of the creation operation.</returns>
         public virtual async Task<IdentityResult> CreateAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
-            //try
-            //{
-                cancellationToken.ThrowIfCancellationRequested();
-                ThrowIfDisposed();
-                if (user == null)
-                {
-                    throw new ArgumentNullException(nameof(user));
-                }
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
 
-                var dbUser = _mapper.Map<TDbUser>(user);
-                Context.Add(dbUser);
-                await SaveChanges(cancellationToken);
-                return IdentityResult.Success;
-            //}
-            //catch (Exception ex)
-            //{
-            //    return IdentityResult.Failed(new IdentityError { Code = ex.Message, Description = ex.Message });
-            //}
-
+            var dbUser = _mapper.Map<TDbUser>(user);
+            Context.Add(dbUser);
+            await SaveChanges(cancellationToken);
+            return IdentityResult.Success;
         }
 
         /// <summary>
@@ -238,15 +219,15 @@ namespace Website.Service.IdentityStores
             return _mapper.Map<Task<TUser>>(dbUser);
         }
 
-        //TODO убрать наверное если не вылетает нигде
-        public virtual IQueryable<TUser> Users
-        {
-            get
-            {
-                throw new NotImplementedException();
-                //return _mapper.Map<IQueryable<TUser>>(Task.Run(() => UsersSet.AsQueryable())); // це дичь, непонятно используется ли гдето у Identity
-            }
-        }
+        ////TODO убрать наверное если не вылетает нигде
+        //public virtual IQueryable<TUser> Users
+        //{
+        //    get
+        //    {
+        //        //throw new NotImplementedException();
+        //        return _mapper.Map<IQueryable<TUser>>(Task.Run(() => UsersSet.AsQueryable())); // це дичь, непонятно используется ли гдето у Identity
+        //    }
+        //}
 
         /// <summary>
         /// Return a role with the normalized name if it exists.
@@ -1500,21 +1481,6 @@ namespace Website.Service.IdentityStores
                 return true;
             }
             return false;
-        }
-
-        /// <summary>
-        /// Called to create a new instance of a <see cref="IdentityUserRole{TKey}"/>.
-        /// </summary>
-        /// <param name="user">The associated user.</param>
-        /// <param name="role">The associated role.</param>
-        /// <returns></returns>
-        protected virtual TUserRole CreateUserRole(TUser user, TRole role)
-        {
-            return new TUserRole()
-            {
-                UserId = user.Id,
-                RoleId = role.Id
-            };
         }
 
         /// <summary>

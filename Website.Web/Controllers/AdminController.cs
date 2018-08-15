@@ -15,12 +15,10 @@ namespace Website.Web.Controllers
     [Authorize(Roles = "admin, manager")]
     public class AdminController : Controller
     {
-        private readonly IClientManager _clientManager;
-        private readonly UserManager _userManager;
+        private readonly IUserManager _userManager;
 
-        public AdminController(IClientManager clientManager, UserManager userManager)
+        public AdminController(IUserManager userManager)
         {
-            _clientManager = clientManager;
             _userManager = userManager;
         }
         public IActionResult Index()
@@ -30,7 +28,7 @@ namespace Website.Web.Controllers
 
         public async Task<IActionResult> Users(string sortOrder, string currentFilter, string searchString, int? page, int? count)
         {
-            var users = await _clientManager.GetUsersAsync(RoleSelector.Clients,0,10);
+            var users = await _userManager.GetUsersAsync(RoleSelector.Clients,0,10);
 
             return View(users);
         }

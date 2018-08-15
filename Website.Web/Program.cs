@@ -37,7 +37,7 @@ namespace Website.Web
                     await AdminAndRoleInitializer.InitializeAsync(userManager, rolesManager);
                     
                     //TODO УБРАТЬ
-                    await DbUserProfileSeed.InitializeAsync(userManager, rolesManager,context);
+                    //await DbUserProfileSeed.InitializeAsync(userManager, rolesManager,context);
                 }
                 catch (Exception ex)
                 {

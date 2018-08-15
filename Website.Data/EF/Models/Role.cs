@@ -2,23 +2,23 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Website.Service.DTO
+namespace Website.Data.EF.Models
 {
     /// <summary>
     /// Represents a role in the identity system
     /// </summary>
-    public class RoleDTO
+    public class Role
     {
         /// <summary>
-        /// Initializes a new instance of <see cref="RoleDTO"/>.
+        /// Initializes a new instance of <see cref="Role"/>.
         /// </summary>
-        public RoleDTO() { }
+        public Role() { }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="RoleDTO"/>.
+        /// Initializes a new instance of <see cref="Role"/>.
         /// </summary>
         /// <param name="roleName">The role name.</param>
-        public RoleDTO(string roleName) : this()
+        public Role(string roleName) : this()
         {
             Name = roleName;
         }

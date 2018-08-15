@@ -5,8 +5,7 @@
 @using Website.Web.Models
 
 @inject SignInManager SignInManager
-@inject UserManager UserManager
-@inject IClientManager ClientManager
+@inject IUserManager UserManager
 
 @if (SignInManager.IsSignedIn(User))
 {

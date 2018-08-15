@@ -17,9 +17,9 @@ namespace Website.Service.IdentityStores
     /// <summary>
     /// Creates a new instance of a persistence store for roles.
     /// </summary>
-    public class CustomRoleStore : CustomRoleStoreBase<RoleDTO, IdentityRole, /*UserClaimDTO,*/ IdentityRoleClaim<string>>
+    public class CustomRoleStore : CustomRoleStoreBase<RoleDTO, Role, RoleClaim>
     {
-        public CustomRoleStore(DbContext dbContext, IMapper mapper, IdentityErrorDescriber describer) : base(dbContext, mapper, describer)
+        public CustomRoleStore(DbContext dbContext, IMapper mapper, IdentityErrorDescriber describer = null) : base(dbContext, mapper, describer)
         {
         }
     }
@@ -27,19 +27,24 @@ namespace Website.Service.IdentityStores
     /// <summary>
     /// Creates a new instance of a persistence store for roles.
     /// </summary>
-    public class CustomRoleStoreBase<TRole, TDbRole, /*TRoleClaim,*/ TDbRoleClaim> : IRoleStore<TRole>, IRoleClaimStore<TRole>
+    /// <typeparam name="TRole">The type of the class representing a dto role.</typeparam>
+    /// <typeparam name="TDbRole">The type of the class representing a role in database.</typeparam>
+    /// <typeparam name="TDbRoleClaim">The type of the class representing a role claim in database.</typeparam>
+    public class CustomRoleStoreBase<TRole, TDbRole, TDbRoleClaim> : IRoleStore<TRole>, IRoleClaimStore<TRole>
         where TRole : RoleDTO
-        where TDbRole : IdentityRole
-        //where TRoleClaim : UserClaimDTO
-        where TDbRoleClaim : IdentityRoleClaim<string>, new()
+        where TDbRole : Role
+        where TDbRoleClaim : RoleClaim, new()
 
     {
         private readonly IMapper _mapper;
         private bool _disposed;
 
         /// <summary>
-        /// Creates a new instance of a persistence store for roles.
+        /// Constructs a new instance of <see cref="CustomRoleStoreBase{TRole, TDbRole,TDbRoleClaim}"/>.
         /// </summary>
+        /// <param name="dbContext">The <see cref="DbContext"/>.</param>
+        /// <param name="mapper">The <see cref="AutoMapper.Mapper"/>.</param>
+        /// <param name="describer">The <see cref="IdentityErrorDescriber"/>.</param>
         public CustomRoleStoreBase(DbContext dbContext, IMapper mapper, IdentityErrorDescriber describer)
         {
             Context = dbContext ?? throw new ArgumentNullException(nameof(dbContext));

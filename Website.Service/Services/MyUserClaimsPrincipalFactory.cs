@@ -12,15 +12,14 @@ namespace Website.Service.Services
 {
     public class MyUserClaimsPrincipalFactory : UserClaimsPrincipalFactory<UserDTO, RoleDTO>
     {
-        private readonly IClientManager _clientManager;
+        private readonly IUserManager _userManager;
         public MyUserClaimsPrincipalFactory(
-            UserManager<UserDTO> userManager,
+            IUserManager userManager,
             RoleManager<RoleDTO> roleManager,
-            IOptions<IdentityOptions> optionsAccessor,
-            IClientManager clientManager)
-            : base(userManager, roleManager, optionsAccessor)
+            IOptions<IdentityOptions> optionsAccessor)
+            : base(userManager as UserManager<UserDTO>, roleManager, optionsAccessor)
         {
-            _clientManager = clientManager;
+            _userManager = userManager;
         }
 
         protected override async Task<ClaimsIdentity> GenerateClaimsAsync(UserDTO user)
@@ -35,12 +34,12 @@ namespace Website.Service.Services
 
             //тут лениво загружается профиль, чтобы убрать ленивую загрузку надо сделать свой user manager который будет явно загружать профиль
             //или хранить данные профиля вместо с логинами
-            identity.AddClaim(new Claim("FullName", user.ClientProfile?.FullName ?? ""));
+            identity.AddClaim(new Claim("FullName", user.UserProfile?.FullName ?? ""));
             var asd = user.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
 
             //fire and forget async log !not awaited
 #pragma warning disable CS4014
-            _clientManager.LogUserActivity(user.UserName);
+            _userManager.LogUserActivity(user.UserName);
 #pragma warning restore CS4014
 
             return identity;

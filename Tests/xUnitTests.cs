@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +8,9 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Website.Data.EF.Models;
 using Website.Service.DTO;
+using Website.Service.IdentityStores;
+using Website.Service.Interfaces;
+using Website.Service.Mapper;
 using Website.Service.Services;
 using Xunit;
 
@@ -18,34 +22,24 @@ namespace xUnitTests
         [Fact]
         public void CreateOrUpdateTest()
         {
-            var mockLogger = new Mock<ILogger<ClientManager>>();
-            var mockHttpContext = new Mock<IHttpContextAccessor>();
-            //mockLogger.Setup(x => x.Log());
-            var memoryContext = GetContext();
-            var testUser = new ApplicationUser(){UserName = "test@email", NormalizedEmail = "TEST@EMAIL"};
-            var profile = new ClientProfileDTO() {Email = "test@email", FirstName = "testName"};
-            var fakeProfile = new ClientProfileDTO() { Email = "test@email1", FirstName = "testName" };
-            var clientServ = new ClientManager(memoryContext, mockLogger.Object, mockHttpContext.Object);
-            var set = memoryContext.Set<ApplicationUser>();
-
-
+            var testUser = new User() { UserName = "test@email", NormalizedEmail = "TEST@EMAIL" };
+            var profile = new UserProfileDTO() { Email = "test@email", FirstName = "testName" };
+            var fakeProfile = new UserProfileDTO() { Email = "test@email1", FirstName = "testName" };
+            var customUserManager = GetUserManager();
+            var set = testContext.Set<User>();
 
             set.Add(testUser);
-            memoryContext.SaveChanges();
-            var resultFalse = clientServ.CreateOrUpdateProfileAsync(fakeProfile).Result;
-            var resultTrue = clientServ.CreateOrUpdateProfileAsync(profile).Result;
-
-            var users = set.FirstOrDefault();
-
+            testContext.SaveChanges();
+            var resultFalse = customUserManager.CreateOrUpdateProfileAsync(fakeProfile).Result;
+            var resultTrue = customUserManager.CreateOrUpdateProfileAsync(profile).Result;
 
             Assert.False(resultFalse.Succedeed);
             Assert.True(resultTrue.Succedeed);
-
         }
 
-
+        private DbContext testContext;
         //sqlite in-memory context
-        private DbContext GetContext() => SqlLiteMemoryContext();
+        //private DbContext GetContext() => SqlLiteMemoryContext();
         private DbContext SqlLiteMemoryContext()
         {
             var options = new DbContextOptionsBuilder<WebsiteDbContext>()
@@ -57,11 +51,13 @@ namespace xUnitTests
             context.Database.EnsureCreated();
             return context;
         }
-        private Mock<UserManager<ApplicationUser>> GetMockUserManager()
+        private UserManager GetUserManager()
         {
-            var userStoreMock = new Mock<IUserStore<ApplicationUser>>();
-            return new Mock<UserManager<ApplicationUser>>(
-                userStoreMock.Object, null, null, null, null, null, null, null, null);
+            testContext = SqlLiteMemoryContext();
+            var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MapperProfile>()));
+            var userStore = new CustomUserStore(testContext, mapper);
+            var manager = new UserManager(userStore, null, null, null, null, null, null, null, null, mapper);
+            return manager;
         }
     }
 }

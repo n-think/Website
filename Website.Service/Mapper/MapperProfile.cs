@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
-using Microsoft.AspNetCore.Identity;
 using Website.Data.EF.Models;
 using Website.Service.DTO;
 
@@ -13,22 +12,14 @@ namespace Website.Service.Mapper
     {
         public MapperProfile()
         {
-            CreateMap<ApplicationUser,ClientDTO>(MemberList.Destination)
-                .ForMember(dest=> dest.ProfileDto, opt=>opt.MapFrom(src=>src.ClientProfile))
-                .ForMember(dest => dest.UserLogin, opt => opt.MapFrom(src => src.UserName))
-                .ReverseMap();
+            CreateMap<UserProfile, UserProfileDTO>().ReverseMap();
+            CreateMap<User, UserDTO>(MemberList.Destination).ReverseMap();
+            CreateMap<Role, RoleDTO>().ReverseMap();
+            //CreateMap<UserRole<string>, UserRoleDTO>().ReverseMap();
 
-            CreateMap<ClientProfile, ClientProfileDTO>(MemberList.Destination).ReverseMap();
-
-            CreateMap<ApplicationUser, UserDTO>().ReverseMap();
-            CreateMap<IdentityRole, RoleDTO>().ReverseMap();
-            CreateMap<IdentityUserRole<string>, UserRoleDTO>().ReverseMap();
-
-            CreateMap<Task<ApplicationUser>, Task<UserDTO>>().ReverseMap();
-            CreateMap<Task<IdentityRole>, Task<RoleDTO>>().ReverseMap();
-            CreateMap<Task<IdentityUserRole<string>>, Task<UserRoleDTO>>().ReverseMap();
-
-
+            CreateMap<Task<User>, Task<UserDTO>>(MemberList.Destination).ReverseMap();
+            CreateMap<Task<Role>, Task<RoleDTO>>().ReverseMap();
+            //CreateMap<Task<UserRole<string>>, Task<UserRoleDTO>>().ReverseMap();
         }
     }
 }
