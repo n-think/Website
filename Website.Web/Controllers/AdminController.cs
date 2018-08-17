@@ -43,20 +43,18 @@ namespace Website.Web.Controllers
                 sortOrder = nameof(UserDTO.UserName);
             }
 
-            if (search != null)
-            {
-                page = 1;
-            }
-
             ViewBag.currSearch = search;
             ViewBag.currSort = sortOrder;
             ViewBag.desc = sortOrder.EndsWith("_desc");
-            ViewBag.currPage = page.HasValue ? page.Value : 1; //int not int?
+            ViewBag.currPage = page.HasValue ? page.Value : 1; // int not nullable
+            ViewBag.countPerPage = pageCount ?? 30; // get from client js?
             ViewBag.roles = (int)roles;
 
-            var pageN = page ?? 1;
-            var pageSize = pageCount ?? 7;
+            int pageN = ViewBag.currPage;
+            var pageSize = ViewBag.countPerPage;
             SortPageResult<UserDTO> result = await _userManager.GetSortFilterPageAsync(roles, search, sortOrder, pageN, pageSize);
+            
+            ViewBag.itemCount = result.TotalN;
 
             return View(result.FilteredData);
         }

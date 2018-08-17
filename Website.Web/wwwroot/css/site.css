@@ -272,3 +272,24 @@ body {
 table > tbody > tr:hover {
     background-color: #cccccc
 }
+
+/*Style pagination lists*/
+/* generates at runtime by pagelink tag-helper*/
+.Users-pagination > li a {
+    width: 43px;
+    text-align: center;
+}
+
+    .Users-pagination > li a.dots {
+/*unselectable*/
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+
+        .Users-pagination > li a.dots:hover {
+            background-color: white;
+        }
