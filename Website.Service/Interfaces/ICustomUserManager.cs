@@ -21,7 +21,7 @@ namespace Website.Service.Interfaces
         /// <param name="takeCount">Users to take</param>
         /// <returns></returns>
         Task<IEnumerable<UserDTO>> GetUsersAsync(RoleSelector rolePick, int skipCount, int takeCount);
-        Task<IEnumerable<UserDTO>> GetSortFilterPageAsync(RoleSelector roleSelector, string searchString, string sortOrder, int page, int count);
+        Task<SortPageResult<UserDTO>> GetSortFilterPageAsync(RoleSelector roleSelector, string searchString, string sortOrder, int page, int count);
         Task LogUserActivity(string userLogin);
     }
 }

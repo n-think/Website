@@ -160,7 +160,7 @@ namespace Website.Service.Services
             return finalQuery;
 
         }
-        public async Task<IEnumerable<UserDTO>> GetSortFilterPageAsync(RoleSelector roleSelector, string searchString, string sortPropName, int page, int pageCount)
+        public async Task<SortPageResult<UserDTO>> GetSortFilterPageAsync(RoleSelector roleSelector, string searchString, string sortPropName, int page, int pageCount)
         {
             //TODO refactor into smaller methods
 
@@ -169,7 +169,7 @@ namespace Website.Service.Services
             if (pageCount < 0) throw new ArgumentOutOfRangeException(nameof(pageCount));
             if (page < 0) throw new ArgumentOutOfRangeException(nameof(page));
             if (!Enum.IsDefined(typeof(RoleSelector), roleSelector))
-                throw new InvalidEnumArgumentException(nameof(roleSelector), (int) roleSelector, typeof(RoleSelector));
+                throw new InvalidEnumArgumentException(nameof(roleSelector), (int)roleSelector, typeof(RoleSelector));
 
             bool descending = false;
             if (sortPropName.EndsWith("_desc"))
@@ -225,10 +225,12 @@ namespace Website.Service.Services
             }
 
             // paginating
+            var totalUsers = await query.CountAsync();
             query = query.Skip((page - 1) * pageCount).Take(pageCount);
 
             var usersDto = await query.ProjectTo<UserDTO>(_mapper.ConfigurationProvider).ToListAsync();
-            return usersDto;
+
+            return new SortPageResult<UserDTO> { FilteredData = usersDto, TotalN = totalUsers };
         }
 
         /// <summary>

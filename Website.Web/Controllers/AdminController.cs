@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Website.Service.DTO;
 using Website.Service.Enums;
+using Website.Service.Infrastructure;
 using Website.Service.Interfaces;
 using Website.Web.Models.AdminViewModels;
 
@@ -46,17 +47,18 @@ namespace Website.Web.Controllers
             {
                 page = 1;
             }
+
             ViewBag.currSearch = search;
             ViewBag.currSort = sortOrder;
             ViewBag.desc = sortOrder.EndsWith("_desc");
-            ViewBag.currPage = page.HasValue ? page.Value : 1;
+            ViewBag.currPage = page.HasValue ? page.Value : 1; //int not int?
             ViewBag.roles = (int)roles;
 
             var pageN = page ?? 1;
             var pageSize = pageCount ?? 7;
-            var users = await _userManager.GetSortFilterPageAsync(roles, search, sortOrder, pageN, pageSize);
+            SortPageResult<UserDTO> result = await _userManager.GetSortFilterPageAsync(roles, search, sortOrder, pageN, pageSize);
 
-            return View(users);
+            return View(result.FilteredData);
         }
 
         public async Task<IActionResult> Items()

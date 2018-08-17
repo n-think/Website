@@ -21,17 +21,17 @@
         <tr>
             <th class="col-sm-1">
                 <sort-header action="Users" search="@ViewBag.currSearch" selector="@ViewBag.roles" descending="@ViewBag.desc" current="@ViewBag.currSort"
-                             property="UserName" content="@Html.DisplayNameFor(x => x.UserName)" ></sort-header>
+                             property="UserName" content="@Html.DisplayNameFor(x => x.UserName)"></sort-header>
             </th>
             <th class="col-sm-1">@Html.DisplayNameFor(x => x.Email)</th>
             <th class="col-sm-1">@Html.DisplayNameFor(x => x.PhoneNumber)</th>
             <th class="col-sm-1">
                 <sort-header action="Users" search="@ViewBag.currSearch" selector="@ViewBag.roles" descending="@ViewBag.desc" current="@ViewBag.currSort"
-                             property="LastName" content="@Html.DisplayNameFor(x => x.UserProfile.LastName)" ></sort-header>
+                             property="LastName" content="@Html.DisplayNameFor(x => x.UserProfile.LastName)"></sort-header>
             </th>
             <th class="col-sm-1">
                 <sort-header action="Users" search="@ViewBag.currSearch" selector="@ViewBag.roles" descending="@ViewBag.desc" current="@ViewBag.currSort"
-                             property="FirstName" content="@Html.DisplayNameFor(x => x.UserProfile.FirstName)" ></sort-header>
+                             property="FirstName" content="@Html.DisplayNameFor(x => x.UserProfile.FirstName)"></sort-header>
             </th>
             <th class="col-sm-1">
                 <sort-header action="Users" search="@ViewBag.currSearch" selector="@ViewBag.roles" descending="@ViewBag.desc" current="@ViewBag.currSort"
@@ -41,11 +41,11 @@
             <th class="col-sm-1">Количество заказов</th>
             <th class="col-sm-1">
                 <sort-header action="Users" search="@ViewBag.currSearch" selector="@ViewBag.roles" descending="@ViewBag.desc" current="@ViewBag.currSort"
-                             property="RegistrationDate" content="@Html.DisplayNameFor(x => x.UserProfile.RegistrationDate)" ></sort-header>
+                             property="RegistrationDate" content="@Html.DisplayNameFor(x => x.UserProfile.RegistrationDate)"></sort-header>
             </th>
             <th class="col-sm-1">
                 <sort-header action="Users" search="@ViewBag.currSearch" selector="@ViewBag.roles" descending="@ViewBag.desc" current="@ViewBag.currSort"
-                             property="LastActivityDate" content="@Html.DisplayNameFor(x => x.LastActivityDate)" ></sort-header>
+                             property="LastActivityDate" content="@Html.DisplayNameFor(x => x.LastActivityDate)"></sort-header>
             </th>
         </tr>
     </thead>
@@ -61,43 +61,19 @@
                 <td>@Html.DisplayFor(m => user.UserProfile.PatrName)</td>
                 <td>@Html.DisplayFor(m => user.UserProfile.City)</td>
                 <td>100500</td>
-                <td>@user.UserProfile.RegistrationDate.Value.DateTime.ToString()</td>
-                <td>@user.LastActivityDate.Value.DateTime.ToString()</td>
+                <td>
+                    @if (user.UserProfile?.RegistrationDate != null)
+                    {
+                        @user.UserProfile.RegistrationDate.Value.DateTime.ToString()
+                    }
+                </td>
+                <td>
+                    @if (user?.LastActivityDate != null)
+                    {
+                        @user.LastActivityDate.Value.DateTime.ToString()
+                    }
+                </td>
             </tr>
         }
     </tbody>
 </table>
-
-
-@*<table class="table">
-        <thead>
-        <tr>
-            <th>@Html.DisplayNameFor(model => model.UserName)</th>
-            <th>@Html.DisplayNameFor(model => model.Email)</th>
-            <th>@Html.DisplayNameFor(model => model.PhoneNumber)</th>
-            <th>@Html.DisplayNameFor(model => model.UserProfile.LastName)</th>
-            <th>@Html.DisplayNameFor(model => model.UserProfile.FirstName)</th>
-            <th>@Html.DisplayNameFor(model => model.UserProfile.City)</th>
-            <th>Количество заказов</th>
-            <th>@Html.DisplayNameFor(model => model.UserProfile.RegistrationDate)</th>
-            <th>@Html.DisplayNameFor(model => model.LastActivityDate)</th>
-        </tr>
-        </thead>
-        <tbody class="tab-content">
-        @foreach (var user in Model)
-        {
-            <tr>
-                <td>@Html.DisplayFor(m => user.UserName)</td>
-                <td>@Html.DisplayFor(m => user.Email)</td>
-                <td>@Html.DisplayFor(m => user.PhoneNumber)</td>
-                <td>@Html.DisplayFor(m => user.UserProfile.LastName)</td>
-                <td>@Html.DisplayFor(m => user.UserProfile.FirstName)</td>
-                <td>@Html.DisplayFor(m => user.UserProfile.City)</td>
-                <td>100500</td>
-                <td>@Html.DisplayFor(m => user.UserProfile.RegistrationDate)</td>
-                <td>@Html.DisplayFor(m => user.LastActivityDate)</td>
-            </tr>
-        }
-        </tbody>
-    </table>*@
-
