@@ -14,14 +14,14 @@ namespace Website.Service.Interfaces
         Task<OperationDetails> CreateOrUpdateProfileAsync(UserProfileDTO userProfileDto);
 
         /// <summary>
-        /// Gets all users
+        /// Skips <paramref name="skipCount"/> and takes next <paramref name="takeCount"/> users in <see cref="RoleSelector"/> roles.
         /// </summary>
-        /// <param name="rolePick"></param>
-        /// <param name="skip"></param>
-        /// <param name="take"></param>
+        /// <param name="rolePick">Select role type</param>
+        /// <param name="skipCount">Users to skip</param>
+        /// <param name="takeCount">Users to take</param>
         /// <returns></returns>
-        Task<ICollection<UserDTO>> GetUsersAsync(RoleSelector rolePick, int skip, int take);
-        Task <ICollection<UserDTO>> GetSortFilterPageAsync(string sortOrder, string currentFilter, string searchString, int? page, int? count);
+        Task<IEnumerable<UserDTO>> GetUsersAsync(RoleSelector rolePick, int skipCount, int takeCount);
+        Task<IEnumerable<UserDTO>> GetSortFilterPageAsync(RoleSelector roleSelector, string searchString, string sortOrder, int page, int count);
         Task LogUserActivity(string userLogin);
     }
 }

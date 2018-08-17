@@ -36,12 +36,7 @@ namespace Website.Service.Services
             //или хранить данные профиля вместо с логинами
             identity.AddClaim(new Claim("FullName", user.UserProfile?.FullName ?? ""));
             var asd = user.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
-
-            //fire and forget async log !not awaited
-#pragma warning disable CS4014
-            _userManager.LogUserActivity(user.UserName);
-#pragma warning restore CS4014
-
+            await _userManager.LogUserActivity(user.UserName);
             return identity;
         }
     }

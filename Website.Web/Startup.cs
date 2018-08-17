@@ -43,7 +43,7 @@ namespace Website.Web
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"))
                 .UseLazyLoadingProxies());
 
-            services.AddDbContext<WebsiteDbContext>();
+            services.AddDbContext<WebsiteDbContext>(/*ServiceLifetime.Transient*/);
             services.AddAutoMapper(opt => opt.AddProfile<MapperProfile>());
 
             services.AddIdentity<UserDTO, RoleDTO>(options =>

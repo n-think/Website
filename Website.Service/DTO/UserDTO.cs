@@ -51,7 +51,6 @@ namespace Website.Service.DTO
         public bool PhoneNumberConfirmed { get; set; }
         public string ConcurrencyStamp { get; set; }
         public string SecurityStamp { get; set; }
-        public DateTimeOffset? RegistrationDate { get; set; }
         public DateTimeOffset? LastLoginDate { get; set; }
         [Display(Name = "Возможна ли блокировка")]
         public bool LockoutEnabled { get; set; }

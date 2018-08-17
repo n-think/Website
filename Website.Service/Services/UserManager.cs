@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -17,9 +21,11 @@ using Website.Service.Interfaces;
 
 namespace Website.Service.Services
 {
-    public class UserManager : UserManager<UserDTO>, IUserManager
+    public class UserManager : AspNetUserManager<UserDTO>, IUserManager
     {
-        public UserManager(IUserStore<UserDTO> store,
+        public UserManager(
+            DbContext context,
+            IUserStore<UserDTO> store,
             IOptions<IdentityOptions> optionsAccessor,
             IPasswordHasher<UserDTO> passwordHasher,
             IEnumerable<IUserValidator<UserDTO>> userValidators,
@@ -40,32 +46,33 @@ namespace Website.Service.Services
                 logger)
         {
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _dbContext = context;
         }
 
-        private DbContext DbContext => (Store as CustomUserStore)?.Context;
+        private readonly DbContext _dbContext;
         private readonly IMapper _mapper;
 
-        //public override Task<IdentityResult> CreateAsync(UserDTO user)
-        //{
-        //    user.Id = Guid.NewGuid().ToString();
-        //    return base.CreateAsync(user);
-        //}
-
+        /// <summary>
+        /// Creates or updates profile of user with certain login (UserName)
+        /// </summary>
+        /// <param name="userProfileDto"></param>
+        /// <returns></returns>
         public async Task<OperationDetails> CreateOrUpdateProfileAsync(UserProfileDTO userProfileDto)
         {
             this.ThrowIfDisposed();
 
-            if (userProfileDto?.Email == null)return new OperationDetails(false, "Некорректная модель.", nameof(userProfileDto));
+            if (userProfileDto?.Login == null) return new OperationDetails(false, "Некорректный профиль.", nameof(userProfileDto));
 
 
-            var userDbSet = DbContext.Set<User>();
-            var user = await userDbSet.Where(x => x.NormalizedEmail == userProfileDto.Email.ToUpper()).Include(x => x.UserProfile).FirstOrDefaultAsync();
+            var userDbSet = _dbContext.Set<User>();
+
+            var user = await userDbSet.Where(x => x.NormalizedUserName == userProfileDto.Login.ToUpper()).Include(x => x.UserProfile).FirstOrDefaultAsync();
             if (user == null)
-                return new OperationDetails(false, "Пользователь с таким e-mail не найден.", nameof(userProfileDto.Email));
+                return new OperationDetails(false, "Пользователь с таким логином не найден.", nameof(userProfileDto.Login));
 
             OperationDetails opDetails;
             var clProfile = user.UserProfile;
-            var profileDbSet = DbContext.Set<UserProfile>();
+            var profileDbSet = _dbContext.Set<UserProfile>();
             if (clProfile != null)
             {
                 clProfile = _mapper.Map<UserProfile>(userProfileDto);
@@ -82,7 +89,7 @@ namespace Website.Service.Services
 
             try
             {
-                await DbContext.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync();
             }
             catch (DbUpdateException e)
             {
@@ -93,13 +100,13 @@ namespace Website.Service.Services
             return opDetails;
         }
 
-        public async Task<ICollection<UserDTO>> GetUsersAsync(RoleSelector rolePick, int skip, int take)
+        public async Task<IEnumerable<UserDTO>> GetUsersAsync(RoleSelector rolePick, int skip, int take)
         {
             this.ThrowIfDisposed();
 
-            var query = GetUsersAsQuery(rolePick, skip, take);
+            var query = GetUsersByRoleAsQuery(rolePick);
 
-            List<User> users = await query.ToListAsync();
+            List<User> users = await query.Skip(skip).Take(take).ToListAsync();
 
             var clientList = new List<UserDTO>();
             foreach (var user in users)
@@ -111,13 +118,13 @@ namespace Website.Service.Services
             return clientList;
         }
 
-        private IQueryable<User> GetUsersAsQuery(RoleSelector rolePick, int skip, int take)
+        private IQueryable<User> GetUsersByRoleAsQuery(RoleSelector rolePick)
         {
             this.ThrowIfDisposed();
 
-            var userSet = DbContext.Set<User>();
-            var roleSet = DbContext.Set<Role>();
-            var userRoleSet = DbContext.Set<UserRole>();
+            var userSet = _dbContext.Set<User>();
+            var roleSet = _dbContext.Set<Role>();
+            var userRoleSet = _dbContext.Set<UserRole>();
 
             var anonymQuery = userRoleSet
                 .Join(userSet, userRole => userRole.UserId, user => user.Id, (userRole, user) => new { user, userRole })
@@ -147,19 +154,83 @@ namespace Website.Service.Services
             }
 
             finalQuery = finalQuery
-                .Skip(skip)
-                .Take(take)
                 .Include(x => x.Claims)
                 .Include(x => x.UserProfile);
 
             return finalQuery;
 
         }
-        public async Task<ICollection<UserDTO>> GetSortFilterPageAsync(string sortPropName, string currentFilter, string searchString, int? page, int? count)
+        public async Task<IEnumerable<UserDTO>> GetSortFilterPageAsync(RoleSelector roleSelector, string searchString, string sortPropName, int page, int pageCount)
         {
-            await Task.CompletedTask;
-            return new List<UserDTO>();
+            //TODO refactor into smaller methods
+
+            // check inputs
+            if (sortPropName == null) throw new ArgumentNullException(nameof(sortPropName));
+            if (pageCount < 0) throw new ArgumentOutOfRangeException(nameof(pageCount));
+            if (page < 0) throw new ArgumentOutOfRangeException(nameof(page));
+            if (!Enum.IsDefined(typeof(RoleSelector), roleSelector))
+                throw new InvalidEnumArgumentException(nameof(roleSelector), (int) roleSelector, typeof(RoleSelector));
+
+            bool descending = false;
+            if (sortPropName.EndsWith("_desc"))
+            {
+                sortPropName = sortPropName.Substring(0, sortPropName.Length - 5);
+                descending = true;
+            }
+            // checking property name
+            string propClass = "";
+            var result = CheckIfPropertyExists(sortPropName, typeof(UserDTO), typeof(UserProfileDTO));
+            if (result.Result)
+            {
+                propClass = result.Type.Name;
+            }
+
+            // filetring
+            var query = GetUsersByRoleAsQuery(roleSelector);
+
+            // searching
+            if (!String.IsNullOrEmpty(searchString))
+            {
+                query = query.Where(x => x.UserName.Contains(searchString) ||
+                                         x.Email.Contains(searchString) ||
+                                         x.PhoneNumber != null && x.PhoneNumber.Contains(searchString) ||
+                                         x.UserProfile.FirstName != null && x.UserProfile.FirstName.Contains(searchString) ||
+                                         x.UserProfile.LastName != null && x.UserProfile.LastName.Contains(searchString) ||
+                                         x.UserProfile.PatrName != null && x.UserProfile.PatrName.Contains(searchString)
+                );
+            }
+
+            // ordering
+
+            Expression<Func<User, object>> userValue = u => EF.Property<object>(u, sortPropName);
+            Expression<Func<User, object>> profileValue = u => EF.Property<object>(u.UserProfile, sortPropName);
+            switch (propClass)
+            {
+                case nameof(UserDTO):
+                    if (descending)
+                        query = query.OrderByDescending(userValue);
+                    else
+                        query = query.OrderBy(userValue);
+                    break;
+
+                case nameof(UserProfileDTO):
+                    if (descending)
+                        query = query.OrderByDescending(profileValue);
+                    else
+                        query = query.OrderBy(profileValue);
+                    break;
+                default:
+                    query = query.OrderBy(x => x.UserName);
+                    break;
+            }
+
+            // paginating
+            query = query.Skip((page - 1) * pageCount).Take(pageCount);
+
+            var usersDto = await query.ProjectTo<UserDTO>(_mapper.ConfigurationProvider).ToListAsync();
+            return usersDto;
         }
+
         /// <summary>
         /// Сохраняет в бд текущее время как дату последней активности (LastActivityDate)
         /// </summary>
@@ -169,7 +240,7 @@ namespace Website.Service.Services
         {
             this.ThrowIfDisposed();
 
-            var set = DbContext.Set<User>();
+            var set = _dbContext.Set<User>();
             var user = set.FirstOrDefault(x => x.UserName == userLogin);
             if (user == null)
             {
@@ -178,8 +249,39 @@ namespace Website.Service.Services
             }
             user.LastActivityDate = DateTimeOffset.Now;
             set.Update(user);
-            await DbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync();
         }
+
+        #region helpers
+
+        private PropertyCheckResult CheckIfPropertyExists(string sortPropName, params Type[] types)
+        {
+            foreach (var type in types)
+            {
+                var typeProps = type.GetProperties(System.Reflection.BindingFlags.Public
+                                                              | System.Reflection.BindingFlags.Instance
+                                                              | System.Reflection.BindingFlags.DeclaredOnly)
+                    .Select(x => x.Name).ToArray();
+                if (typeProps.Contains(sortPropName))
+                    return new PropertyCheckResult(true, type);
+            }
+            return new PropertyCheckResult(false);
+        }
+
+        private class PropertyCheckResult
+        {
+            public Type Type;
+            public bool Result;
+
+            public PropertyCheckResult(bool result, Type type = null)
+            {
+                Type = type;
+                Result = result;
+            }
+        }
+
+        #endregion
+
 
         #region IDisposable Support
         private bool _disposed = false; // To detect redundant calls

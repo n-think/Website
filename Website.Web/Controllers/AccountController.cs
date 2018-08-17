@@ -234,7 +234,7 @@ namespace Website.Web.Controllers
                         FirstName = model.FirstName,
                         LastName = model.LastName,
                         PatrName = model.PatrName,
-                        Email = model.Email,
+                        Login = model.Email,
                         RegistrationDate = DateTimeOffset.Now
                     };
 

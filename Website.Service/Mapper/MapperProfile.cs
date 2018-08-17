@@ -13,11 +13,14 @@ namespace Website.Service.Mapper
         public MapperProfile()
         {
             CreateMap<UserProfile, UserProfileDTO>().ReverseMap();
-            CreateMap<User, UserDTO>(MemberList.Destination).ReverseMap();
+            CreateMap<User, UserDTO>(MemberList.Source).ForSourceMember(x=>x.Id , opt=>opt.Ignore()).ReverseMap();
             CreateMap<Role, RoleDTO>().ReverseMap();
+
+            //CreateMap<List<User>, List<UserDTO>>().ReverseMap();
             //CreateMap<UserRole<string>, UserRoleDTO>().ReverseMap();
 
-            CreateMap<Task<User>, Task<UserDTO>>(MemberList.Destination).ReverseMap();
+
+            CreateMap<Task<User>, Task<UserDTO>>(MemberList.None).ForSourceMember(x => x.Id, opt => opt.Ignore()).ReverseMap();
             CreateMap<Task<Role>, Task<RoleDTO>>().ReverseMap();
             //CreateMap<Task<UserRole<string>>, Task<UserRoleDTO>>().ReverseMap();
         }

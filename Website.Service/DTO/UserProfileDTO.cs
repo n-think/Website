@@ -7,7 +7,8 @@ namespace Website.Service.DTO
 {
     public class UserProfileDTO
     {
-        public string Email { get; set; }
+        [Display(Name = "Логин")]
+        public string Login { get; set; }
         [Display(Name = "Имя")]
         public string FirstName { get; set; }
         [Display(Name = "Фамилия")]
@@ -21,6 +22,6 @@ namespace Website.Service.DTO
         [Display(Name = "Город")]
         public string City { get; set; }
         [Display(Name = "Дата регистрации")]
-        public DateTimeOffset RegistrationDate { get; set; }
+        public DateTimeOffset? RegistrationDate { get; set; }
     }
 }

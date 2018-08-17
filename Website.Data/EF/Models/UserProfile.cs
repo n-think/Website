@@ -15,7 +15,7 @@ namespace Website.Data.EF.Models
         public string FullName => $"{LastName} {FirstName} {PatrName}";
         public string Address { get; set; }
         public string City { get; set; }
-        public DateTimeOffset RegistrationDate { get; set; }
+        public DateTimeOffset? RegistrationDate { get; set; }
         public byte[] Timestamp { get; set; }
 
         public virtual User User { get; set; }

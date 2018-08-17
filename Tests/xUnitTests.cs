@@ -20,11 +20,11 @@ namespace xUnitTests
     {
         //TODO test all cases with messages
         [Fact]
-        public void CreateOrUpdateTest()
+        public void CreateOrUpdateProfileTest()
         {
-            var testUser = new User() { UserName = "test@email", NormalizedEmail = "TEST@EMAIL" };
-            var profile = new UserProfileDTO() { Email = "test@email", FirstName = "testName" };
-            var fakeProfile = new UserProfileDTO() { Email = "test@email1", FirstName = "testName" };
+            var testUser = new User() { UserName = "test@email", NormalizedUserName = "TEST@EMAIL" };
+            var profile = new UserProfileDTO() { Login = "test@email", FirstName = "testName" };
+            var fakeProfile = new UserProfileDTO() { Login = "test@email1", FirstName = "testName" };
             var customUserManager = GetUserManager();
             var set = testContext.Set<User>();
 
@@ -39,7 +39,7 @@ namespace xUnitTests
 
         private DbContext testContext;
         //sqlite in-memory context
-        //private DbContext GetContext() => SqlLiteMemoryContext();
+        private DbContext GetContext() => SqlLiteMemoryContext();
         private DbContext SqlLiteMemoryContext()
         {
             var options = new DbContextOptionsBuilder<WebsiteDbContext>()
@@ -55,8 +55,8 @@ namespace xUnitTests
         {
             testContext = SqlLiteMemoryContext();
             var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MapperProfile>()));
-            var userStore = new CustomUserStore(testContext, mapper);
-            var manager = new UserManager(userStore, null, null, null, null, null, null, null, null, mapper);
+            var userStore = new Mock<IUserStore<UserDTO>>();
+            var manager = new UserManager(testContext, userStore.Object, null, null, null, null, null, null, null, null, mapper);
             return manager;
         }
     }

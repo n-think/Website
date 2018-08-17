@@ -35,12 +35,12 @@ namespace Website.Data.EF.Models
         public virtual string Id { get; set; }
 
         /// <summary>
-        /// Gets or sets the user name for this user.
+        /// Gets or sets the user name (Login) for this user.
         /// </summary>
         public virtual string UserName { get; set; }
 
         /// <summary>
-        /// Gets or sets the normalized user name for this user.
+        /// Gets or sets the normalized user name (Login) for this user.
         /// </summary>
         public virtual string NormalizedUserName { get; set; }
 
