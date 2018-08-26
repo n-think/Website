@@ -1,27 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Website.Data.ModelsInterfaces;
 
 namespace Website.Data.EF.Models
 {
     /// <summary>
     /// Represents a role in the identity system
     /// </summary>
-    public class Role
+    public class Role : IRole
     {
-        /// <summary>
-        /// Initializes a new instance of <see cref="Role"/>.
-        /// </summary>
-        public Role() { }
 
-        /// <summary>
-        /// Initializes a new instance of <see cref="Role"/>.
-        /// </summary>
-        /// <param name="roleName">The role name.</param>
-        public Role(string roleName) : this()
+        public Role()
         {
-            Name = roleName;
+            UserRoles = new HashSet<UserRole>();
         }
+
 
         /// <summary>
         /// Gets or sets the primary key for this role.
@@ -41,7 +35,13 @@ namespace Website.Data.EF.Models
         /// <summary>
         /// A random value that should change whenever a role is persisted to the store
         /// </summary>
-        public virtual string ConcurrencyStamp { get; set; } = Guid.NewGuid().ToString();
+        public virtual string ConcurrencyStamp { get; set; }
+
+
+        /// <summary>
+        /// Navigation property for the Users this role belongs to.
+        /// </summary>
+        public virtual ICollection<UserRole> UserRoles { get; set; }
 
         /// <summary>
         /// Returns the name of the role.

@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Security.Claims;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -12,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Website.Data.EF.Models;
 using Website.Service.DTO;
 
-namespace Website.Service.IdentityStores
+namespace Website.Service.Stores
 {
     /// <summary>
     /// Creates a new instance of a persistence store for roles.
@@ -340,7 +338,7 @@ namespace Website.Service.IdentityStores
 
             var dbRole = _mapper.Map<TDbRole>(role);
             RoleClaims.Add(CreateDbRoleClaim(dbRole, claim));
-            return Task.FromResult(false);
+            return Task.CompletedTask;
         }
 
         /// <summary>

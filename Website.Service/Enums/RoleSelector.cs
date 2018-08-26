@@ -9,7 +9,7 @@ namespace Website.Service.Enums
     public enum RoleSelector
     {
         [Display(Name = "Пользователи")]
-        Clients,
+        Users,
         [Display(Name = "Все")]
         Everyone,
         [Display(Name = "Администраторы")]

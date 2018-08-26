@@ -11,7 +11,7 @@ using Website.Service.Enums;
 
 namespace Website.Web.TagHelpers
 {
-    //[HtmlTargetElement("sort-header", TagStructure = TagStructure.WithoutEndTag)] // нельзя иначе внутри ничего не напишет
+    [HtmlTargetElement("sort-header", TagStructure = TagStructure.WithoutEndTag)]
     public class SortHeaderTagHelper : TagHelper
     {
         public string Property { get; set; } // значение текущего свойства, для которого создается тег
@@ -50,11 +50,11 @@ namespace Website.Web.TagHelpers
             {
                 if (Descending)// если сортировка по убыванию
                 {
-                    tag.AddCssClass("glyphicon-chevron-up");
+                    tag.AddCssClass("glyphicon-arrow-up");
                 }
                 else // если сортировка по возрастанию
                 {
-                    tag.AddCssClass("glyphicon-chevron-down");
+                    tag.AddCssClass("glyphicon-arrow-down");
                     linkProp += "_desc";
                 }
 
@@ -70,6 +70,7 @@ namespace Website.Web.TagHelpers
 
             IUrlHelper urlHelper = urlHelperFactory.GetUrlHelper(ViewContext);
             output.TagName = "a";
+            output.TagMode = TagMode.StartTagAndEndTag;
 
             string url = urlHelper.Action(Action, new { s = Search, st = Selector, o = linkProp }); // o - sort order query
             output.Attributes.SetAttribute("href", url);

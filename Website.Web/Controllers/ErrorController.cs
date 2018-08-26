@@ -39,14 +39,6 @@ namespace Website.Web.Controllers
         //если определена то ее
 
         [HttpGet]
-        [Route("/Error/Exception")]
-        public IActionResult ErrorException()
-        {
-            //TODO LOG ?
-            return View("Error");
-        }
-
-        [HttpGet]
         [Route("/Error/500")]
         public IActionResult Error500()
         {

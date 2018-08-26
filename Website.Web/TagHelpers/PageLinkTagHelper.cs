@@ -10,9 +10,9 @@ using Microsoft.AspNetCore.Razor.TagHelpers;
 
 namespace Website.Web.TagHelpers
 {
+    [HtmlTargetElement("page-link", TagStructure = TagStructure.WithoutEndTag)]
     public class PageLinkTagHelper : TagHelper
     {
-
         private IUrlHelperFactory urlHelperFactory;
         public PageLinkTagHelper(IUrlHelperFactory helperFactory)
         {
@@ -33,6 +33,7 @@ namespace Website.Web.TagHelpers
         {
             IUrlHelper urlHelper = urlHelperFactory.GetUrlHelper(ViewContext);
             output.TagName = "div";
+            output.TagMode = TagMode.StartTagAndEndTag;
 
             var totalPages = (int)Math.Ceiling((double)ItemsCount / ItemsPerPage);
 
@@ -72,8 +73,7 @@ namespace Website.Web.TagHelpers
                 }
             }
 
-
-            output.Content.AppendHtml(tag);
+            output.PostContent.AppendHtml(tag);
         }
 
         TagBuilder CreateTag(int pageNumber, IUrlHelper urlHelper)
@@ -86,7 +86,7 @@ namespace Website.Web.TagHelpers
             }
             else
             {
-                link.Attributes["href"] = urlHelper.Action(Action, new { s = Search, st = Selector, o = CurrentProp, p = pageNumber });
+                link.Attributes["href"] = urlHelper.Action(Action, new { s = Search, st = Selector, o = CurrentProp, p = pageNumber, c = ItemsPerPage });
             }
             link.InnerHtml.Append(pageNumber.ToString());
             item.InnerHtml.AppendHtml(link);

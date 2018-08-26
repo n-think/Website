@@ -195,6 +195,7 @@ namespace Website.Data.EF.Migrations
                         .IsConcurrencyToken();
 
                     b.Property<string>("Email")
+                        .IsRequired()
                         .HasMaxLength(256);
 
                     b.Property<bool>("EmailConfirmed");
@@ -222,9 +223,13 @@ namespace Website.Data.EF.Migrations
                     b.Property<bool>("TwoFactorEnabled");
 
                     b.Property<string>("UserName")
+                        .IsRequired()
                         .HasMaxLength(256);
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
 
                     b.HasIndex("NormalizedEmail")
                         .HasName("EmailIndex");
@@ -233,6 +238,9 @@ namespace Website.Data.EF.Migrations
                         .IsUnique()
                         .HasName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
+
+                    b.HasIndex("UserName")
+                        .IsUnique();
 
                     b.ToTable("Users");
                 });
@@ -250,13 +258,9 @@ namespace Website.Data.EF.Migrations
                     b.Property<string>("UserId")
                         .IsRequired();
 
-                    b.Property<string>("UserId1");
-
                     b.HasKey("Id");
 
                     b.HasIndex("UserId");
-
-                    b.HasIndex("UserId1");
 
                     b.ToTable("UserClaims");
                 });
@@ -272,13 +276,9 @@ namespace Website.Data.EF.Migrations
                     b.Property<string>("UserId")
                         .IsRequired();
 
-                    b.Property<string>("UserId1");
-
                     b.HasKey("LoginProvider", "ProviderKey");
 
                     b.HasIndex("UserId");
-
-                    b.HasIndex("UserId1");
 
                     b.ToTable("UserLogins");
                 });
@@ -314,13 +314,9 @@ namespace Website.Data.EF.Migrations
 
                     b.Property<string>("RoleId");
 
-                    b.Property<string>("UserId1");
-
                     b.HasKey("UserId", "RoleId");
 
                     b.HasIndex("RoleId");
-
-                    b.HasIndex("UserId1");
 
                     b.ToTable("UserRoles");
                 });
@@ -387,26 +383,18 @@ namespace Website.Data.EF.Migrations
 
             modelBuilder.Entity("Website.Data.EF.Models.UserClaim", b =>
                 {
-                    b.HasOne("Website.Data.EF.Models.User")
-                        .WithMany()
+                    b.HasOne("Website.Data.EF.Models.User", "User")
+                        .WithMany("Claims")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("Website.Data.EF.Models.User")
-                        .WithMany("Claims")
-                        .HasForeignKey("UserId1");
                 });
 
             modelBuilder.Entity("Website.Data.EF.Models.UserLogin", b =>
                 {
-                    b.HasOne("Website.Data.EF.Models.User")
-                        .WithMany()
+                    b.HasOne("Website.Data.EF.Models.User", "User")
+                        .WithMany("Logins")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("Website.Data.EF.Models.User")
-                        .WithMany("Logins")
-                        .HasForeignKey("UserId1");
                 });
 
             modelBuilder.Entity("Website.Data.EF.Models.UserProfile", b =>
@@ -419,25 +407,21 @@ namespace Website.Data.EF.Migrations
 
             modelBuilder.Entity("Website.Data.EF.Models.UserRole", b =>
                 {
-                    b.HasOne("Website.Data.EF.Models.Role")
-                        .WithMany()
+                    b.HasOne("Website.Data.EF.Models.Role", "Role")
+                        .WithMany("UserRoles")
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade);
 
-                    b.HasOne("Website.Data.EF.Models.User")
-                        .WithMany()
+                    b.HasOne("Website.Data.EF.Models.User", "User")
+                        .WithMany("UserRoles")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("Website.Data.EF.Models.User")
-                        .WithMany("Roles")
-                        .HasForeignKey("UserId1");
                 });
 
             modelBuilder.Entity("Website.Data.EF.Models.UserToken", b =>
                 {
-                    b.HasOne("Website.Data.EF.Models.User")
-                        .WithMany()
+                    b.HasOne("Website.Data.EF.Models.User", "User")
+                        .WithMany("Tokens")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });

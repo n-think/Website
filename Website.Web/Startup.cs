@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Builder;
@@ -22,7 +23,8 @@ using Website.Service.Mapper;
 using Website.Service.Services;
 using Website.Web.Localization;
 using Website.Web.Resources;
-using Website.Service.IdentityStores;
+using Website.Service.Stores;
+using Website.Web.Mapper;
 
 
 namespace Website.Web
@@ -44,11 +46,15 @@ namespace Website.Web
                 .UseLazyLoadingProxies());
 
             services.AddDbContext<WebsiteDbContext>(/*ServiceLifetime.Transient*/);
-            services.AddAutoMapper(opt => opt.AddProfile<MapperProfile>());
+            services.AddAutoMapper(opt =>
+            {
+                opt.AddProfile<ServiceProfile>();
+                opt.AddProfile<WebsiteProfile>();
+            });
 
             services.AddIdentity<UserDTO, RoleDTO>(options =>
             {
-                options.User.RequireUniqueEmail = false; // false тк пользователь==емейл или будет две ошибки на валидации //TODO если можно менять имя надо true
+                options.User.RequireUniqueEmail = true;
                 options.Password.RequiredLength = 6;
                 options.Password.RequireDigit = false;
                 options.Password.RequiredUniqueChars = 2;
@@ -57,9 +63,7 @@ namespace Website.Web
                 options.Password.RequireUppercase = false;
                 options.Lockout.MaxFailedAccessAttempts = 10;
                 //option.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
-            })
-                //.AddEntityFrameworkStores<WebsiteDbContext>()
-                .AddUserManager<UserManager>()
+            }).AddUserManager<UserManager>()
                 .AddRoleManager<RoleManager>()
                 .AddSignInManager<SignInManager>()
                 .AddDefaultTokenProviders()
@@ -100,12 +104,35 @@ namespace Website.Web
                             factory.Create(typeof(SharedResource));
                     })
                     .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+
+            AddPolicies(services);
         }
 
         private void FixInterfaces(IServiceCollection services)
         {
             services.AddTransient<IRoleStore<RoleDTO>, CustomRoleStore>();
             services.AddTransient<IUserStore<UserDTO>, CustomUserStore>();
+        }
+
+        private void AddPolicies(IServiceCollection services)
+        {
+            services.AddAuthorization(options =>
+                {
+                    options.AddPolicy("Administrators",
+                        policy => policy.RequireRole("admin")); // == RequireClaim(ClaimTypes.Role, "admin")
+
+                    options.AddPolicy("ViewUsers",
+                        policy => policy.RequireAssertion(context => context.User.HasClaim(c =>
+                                c.Type == "ViewUsers" || c.Type == "EditUsers" || c.Type == "DeleteUsers")));
+
+                    options.AddPolicy("EditUsers",
+                        policy => policy.RequireAssertion(context => context.User.HasClaim(c =>
+                            c.Type == "EditUsers" || c.Type == "DeleteUsers")));
+
+                    options.AddPolicy("DeleteUsers",
+                        policy => policy.RequireClaim("DeleteUsers"));
+                }
+            );
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -126,7 +153,7 @@ namespace Website.Web
             else
             {
                 //TODO тут надо логировать както или мб уже логируется
-                app.UseExceptionHandler("/error/exception");
+                app.UseExceptionHandler("/error/500");
                 app.UseHsts();
             }
 

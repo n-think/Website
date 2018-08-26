@@ -59,17 +59,21 @@ body {
         color: #252839;
     }
 
-#logoutForm button {
+#logoutButton {
     margin-right: -15px;
     margin-top: 0;
     margin-bottom: 0;
     height: 50px;
     text-decoration: none;
 }
+#loginButton {
+    margin-right: -15px;
+}
 
-.navbar-fixed-top #logoutButton {
+.navbar-fixed-top #logoutButton, .navbar-fixed-top #loginButton {
     margin-right: 0;
 }
+
 
 
 /* Remove the navbar's default rounded borders */
@@ -216,42 +220,38 @@ body {
     You could also use a data-* attribute and content for this. That way "bloats" the HTML, this way means you need to keep HTML and CSS in sync. Lea Verou has a clever way to handle with text-shadow.
 		*/
         .responsive-table td:nth-of-type(1):before {
-            content: "Логин";
-        }
-
-        .responsive-table td:nth-of-type(2):before {
             content: "Email";
         }
 
-        .responsive-table td:nth-of-type(3):before {
+        .responsive-table td:nth-of-type(2):before {
             content: "Телефон";
         }
 
-        .responsive-table td:nth-of-type(4):before {
+        .responsive-table td:nth-of-type(3):before {
             content: "Фамилия";
         }
 
-        .responsive-table td:nth-of-type(5):before {
+        .responsive-table td:nth-of-type(4):before {
             content: "Имя";
         }
 
-        .responsive-table td:nth-of-type(6):before {
+        .responsive-table td:nth-of-type(5):before {
             content: "Отчество";
         }
 
-        .responsive-table td:nth-of-type(7):before {
+        .responsive-table td:nth-of-type(6):before {
             content: "Город";
         }
 
-        .responsive-table td:nth-of-type(8):before {
+        .responsive-table td:nth-of-type(7):before {
             content: "Количество заказов";
         }
 
-        .responsive-table td:nth-of-type(9):before {
+        .responsive-table td:nth-of-type(8):before {
             content: "Дата регистрации";
         }
 
-        .responsive-table td:nth-of-type(10):before {
+        .responsive-table td:nth-of-type(9):before {
             content: "Последняя активность";
         }
 }
@@ -269,9 +269,9 @@ body {
     }
 }
 
-table > tbody > tr:hover {
+/*table > tbody > tr:hover {
     background-color: #cccccc
-}
+}*/
 
 /*Style pagination lists*/
 /* generates at runtime by pagelink tag-helper*/
@@ -293,3 +293,21 @@ table > tbody > tr:hover {
         .Users-pagination > li a.dots:hover {
             background-color: white;
         }
+
+.unselectable {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.admin-options label {
+    font-weight: normal;
+}
+.admin-options .claims-label {
+    font-weight: bold;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}

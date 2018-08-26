@@ -3,14 +3,11 @@
     ViewData.AddActivePage(AdminNavPages.Users);
 }
 
-@using System.Globalization
-@using System.Linq
-@using Website.Service.Enums
-@model IEnumerable<UserDTO>
+@model UsersViewModel
 
 <form asp-action="Users" method="get">
     <div class="form-inline form-group">
-        @*<label class="control-label">Поиск:&nbsp;</label>*@<input type="text" name="s" value="@ViewBag.currSearch" />
+        @*<label class="control-label">Поиск:&nbsp;</label>*@<input type="text" name="s" value="@Model.CurrentSearch" />
         @Html.DropDownList("st", Html.GetEnumSelectList<RoleSelector>())
         <input type="submit" value="Поиск" class="btn btn-default" />
         | <a asp-action="Users">Сброс</a>
@@ -19,44 +16,40 @@
 <table id="user-table" class="table responsive-table">
     <thead>
     <tr>
-        <th class="col-sm-1">
-            <sort-header action="Users" search="@ViewBag.currSearch" selector="@ViewBag.roles" descending="@ViewBag.desc" current="@ViewBag.currSort"
-                         property="UserName" content="@Html.DisplayNameFor(x => x.UserName)"></sort-header>
-        </th>
         <th class="col-sm-1"> 
-            <sort-header action="Users" search="@ViewBag.currSearch" selector="@ViewBag.roles" descending="@ViewBag.desc" current="@ViewBag.currSort"
-                         property="Email" content="@Html.DisplayNameFor(x => x.Email)"></sort-header>
+            <sort-header action="Users" search="@Model.CurrentSearch" selector="@Model.Roles" descending="@Model.Descending" current="@Model.CurrentSortOrder"
+                         property="Email" content="@Html.DisplayNameFor(x => x.users.First().Email)"/>
         </th>
-        <th class="col-sm-1">@Html.DisplayNameFor(x => x.PhoneNumber)</th>
+        <th class="col-sm-1">@Html.DisplayNameFor(x => x.users.First().PhoneNumber)</th>
         <th class="col-sm-1">
-            <sort-header action="Users" search="@ViewBag.currSearch" selector="@ViewBag.roles" descending="@ViewBag.desc" current="@ViewBag.currSort"
-                         property="LastName" content="@Html.DisplayNameFor(x => x.UserProfile.LastName)"></sort-header>
-        </th>
-        <th class="col-sm-1">
-            <sort-header action="Users" search="@ViewBag.currSearch" selector="@ViewBag.roles" descending="@ViewBag.desc" current="@ViewBag.currSort"
-                         property="FirstName" content="@Html.DisplayNameFor(x => x.UserProfile.FirstName)"></sort-header>
+            <sort-header action="Users" search="@Model.CurrentSearch" selector="@Model.Roles" descending="@Model.Descending" current="@Model.CurrentSortOrder"
+                         property="LastName" content="@Html.DisplayNameFor(x => x.users.First().UserProfile.LastName)"/>
         </th>
         <th class="col-sm-1">
-            <sort-header action="Users" search="@ViewBag.currSearch" selector="@ViewBag.roles" descending="@ViewBag.desc" current="@ViewBag.currSort"
-                         property="PatrName" content="@Html.DisplayNameFor(x => x.UserProfile.PatrName)"></sort-header>
-        </th>
-        <th class="col-sm-1">@Html.DisplayNameFor(x => x.UserProfile.City)</th>
-        <th class="col-sm-1">Количество заказов</th>
-        <th class="col-sm-1">
-            <sort-header action="Users" search="@ViewBag.currSearch" selector="@ViewBag.roles" descending="@ViewBag.desc" current="@ViewBag.currSort"
-                         property="RegistrationDate" content="@Html.DisplayNameFor(x => x.UserProfile.RegistrationDate)"></sort-header>
+            <sort-header action="Users" search="@Model.CurrentSearch" selector="@Model.Roles" descending="@Model.Descending" current="@Model.CurrentSortOrder"
+                         property="FirstName" content="@Html.DisplayNameFor(x => x.users.First().UserProfile.FirstName)"/>
         </th>
         <th class="col-sm-1">
-            <sort-header action="Users" search="@ViewBag.currSearch" selector="@ViewBag.roles" descending="@ViewBag.desc" current="@ViewBag.currSort"
-                         property="LastActivityDate" content="@Html.DisplayNameFor(x => x.LastActivityDate)"></sort-header>
+            <sort-header action="Users" search="@Model.CurrentSearch" selector="@Model.Roles" descending="@Model.Descending" current="@Model.CurrentSortOrder"
+                         property="PatrName" content="@Html.DisplayNameFor(x => x.users.First().UserProfile.PatrName)"/>
         </th>
+        <th class="col-sm-1">@Html.DisplayNameFor(x => x.users.First().UserProfile.City)</th>
+        <th class="col-sm-1" >Количество заказов</th>
+        <th class="col-sm-1" >
+            <sort-header action="Users" search="@Model.CurrentSearch" selector="@Model.Roles" descending="@Model.Descending" current="@Model.CurrentSortOrder"
+                         property="RegistrationDate" content="@Html.DisplayNameFor(x => x.users.First().UserProfile.RegistrationDate)"/>
+        </th>
+        <th class="col-sm-1">
+            <sort-header action="Users" search="@Model.CurrentSearch" selector="@Model.Roles" descending="@Model.Descending" current="@Model.CurrentSortOrder"
+                         property="LastActivityDate" content="@Html.DisplayNameFor(x => x.users.First().LastActivityDate)"/>
+        </th>
+        <th class="col-sm-1"></th>
     </tr>
     </thead>
     <tbody class="tab-content">
-    @foreach (var user in Model)
+    @foreach (var user in Model.users)
     {
         <tr>
-            <td>@Html.DisplayFor(m => user.UserName)</td>
             <td>@Html.DisplayFor(m => user.Email)</td>
             <td>@Html.DisplayFor(m => user.PhoneNumber)</td>
             <td>@Html.DisplayFor(m => user.UserProfile.LastName)</td>
@@ -64,11 +57,18 @@
             <td>@Html.DisplayFor(m => user.UserProfile.PatrName)</td>
             <td>@Html.DisplayFor(m => user.UserProfile.City)</td>
             <td>100500</td>
-            <td>@Html.DisplayFor(m => user.UserProfile.RegistrationDate.Value.DateTime)</td>
-            <td>@Html.DisplayFor(m => user.LastActivityDate.Value.DateTime)</td>
+            <td>@if (user.UserProfile.RegistrationDate.HasValue)
+                {
+                    @Html.DisplayFor(m => user.UserProfile.RegistrationDate.Value.DateTime)
+                }</td>
+            <td>@if (user.LastActivityDate.HasValue)
+                {
+                    @Html.DisplayFor(m => user.LastActivityDate.Value.DateTime)
+                }</td>
+            <td><a asp-action="ViewUser" asp-route-id="@user.Id">Подробнее</a> | <a asp-action="EditUser" asp-route-id="@user.Id"><span class="glyphicon glyphicon-pencil"></span></a></td>
         </tr>
     }
     </tbody>
 </table>
-<page-link current-page="@ViewBag.currPage" search="@ViewBag.currSearch" selector="ViewBag.roles" current-prop="@ViewBag.currSort"
-           items-count="ViewBag.itemCount" items-per-page="ViewBag.countPerPage" action="Users"></page-link>
+<page-link current-page="@Model.CurrentPage" search="@Model.CurrentSearch" selector="@Model.Roles" current-prop="@Model.CurrentSortOrder"
+           items-count="@Model.ItemCount" items-per-page="@Model.CountPerPage" action="Users"/>

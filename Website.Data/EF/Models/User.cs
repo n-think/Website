@@ -1,35 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Website.Data.ModelsInterfaces;
 
 namespace Website.Data.EF.Models
 {
-    /// <summary>
-    /// Represents a user in the identity system
-    /// </summary>
-    public class User
+    public class User : IUser
     {
-        /// <summary>
-        /// Initializes a new instance of <see cref="User"/>.
-        /// </summary>
-        /// <remarks>
-        /// The Id property is initialized to form a new GUID string value.
-        /// </remarks>
         public User()
         {
-            Id = Guid.NewGuid().ToString();
-        }
-
-        /// <summary>
-        /// Initializes a new instance of <see cref="User"/>.
-        /// </summary>
-        /// <param name="userName">The user name.</param>
-        /// <remarks>
-        /// The Id property is initialized to form a new GUID string value.
-        /// </remarks>
-        public User(string userName) : this()
-        {
-            UserName = userName;
+            UserRoles = new HashSet<UserRole>();
+            Claims = new HashSet<UserClaim>();
+            Logins = new HashSet<UserLogin>();
+            Tokens = new HashSet<UserToken>();
         }
 
         public virtual string Id { get; set; }
@@ -73,7 +56,7 @@ namespace Website.Data.EF.Models
         /// <summary>
         /// A random value that must change whenever a user is persisted to the store
         /// </summary>
-        public virtual string ConcurrencyStamp { get; set; } = Guid.NewGuid().ToString();
+        public virtual string ConcurrencyStamp { get; set; }
 
         /// <summary>
         /// Gets or sets a telephone number for the user.
@@ -117,19 +100,23 @@ namespace Website.Data.EF.Models
         /// <summary>
         /// Navigation property for the roles this user belongs to.
         /// </summary>
-        public virtual ICollection<UserRole> Roles { get; } = new List<UserRole>();
+        public virtual ICollection<UserRole> UserRoles { get; }
 
         /// <summary>
         /// Navigation property for the claims this user possesses.
         /// </summary>
-        public virtual ICollection<UserClaim> Claims { get; } = new List<UserClaim>();
+        public virtual ICollection<UserClaim> Claims { get; }
 
         public virtual DateTimeOffset? LastActivityDate { get; set; }
 
         /// <summary>
         /// Navigation property for this users login accounts.
         /// </summary>
-        public virtual ICollection<UserLogin> Logins { get; } = new List<UserLogin>();
+        public virtual ICollection<UserLogin> Logins { get; }
+        /// <summary>
+        /// Navigation property for this users login tokens.
+        /// </summary>
+        public virtual ICollection<UserToken> Tokens { get; }
 
         /// <summary>
         /// Returns the username for this user.

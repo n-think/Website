@@ -1,0 +1,90 @@
+﻿@using Microsoft.AspNetCore.Html
+@using Microsoft.AspNetCore.Mvc.ViewEngines
+@using Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
+
+@using Microsoft.Extensions.DependencyInjection
+@functions{
+    private static bool ShouldShow(ModelExplorer modelExplorer, TemplateInfo templateInfo)
+    {
+        return
+            modelExplorer.Metadata.ShowForEdit &&
+            !modelExplorer.Metadata.IsComplexType &&
+            !templateInfo.Visited(modelExplorer);
+
+    }
+
+    private IHtmlContent BuildObject()
+    {
+        var viewData = Html.ViewData;
+        var templateInfo = viewData.TemplateInfo;
+        var modelExplorer = viewData.ModelExplorer;
+
+        if (modelExplorer.Model == null)
+        {
+            return new HtmlString(modelExplorer.Metadata.NullDisplayText);
+        }
+
+        if (templateInfo.TemplateDepth > 1)
+        {
+            var text = modelExplorer.GetSimpleDisplayText();
+            if (modelExplorer.Metadata.HtmlEncode)
+            {
+                text = Html.Encode(text);
+            }
+
+            return new HtmlString(text);
+        }
+
+        var serviceProvider = Html.ViewContext.HttpContext.RequestServices;
+        var viewEngine = serviceProvider.GetRequiredService<ICompositeViewEngine>();
+        var viewBufferScope = serviceProvider.GetRequiredService<IViewBufferScope>();
+
+        var content = new HtmlContentBuilder(modelExplorer.Metadata.Properties.Count);
+        foreach (var propertyExplorer in modelExplorer.Properties)
+        {
+            var propertyMetadata = propertyExplorer.Metadata;
+            if (!ShouldShow(propertyExplorer, templateInfo))
+            {
+                continue;
+            }
+
+            var templateBuilder = new TemplateBuilder(
+                viewEngine,
+                viewBufferScope,
+                Html.ViewContext,
+                Html.ViewData,
+                propertyExplorer,
+                htmlFieldName: propertyMetadata.PropertyName,
+                templateName: null,
+                readOnly: true,
+                additionalViewData: null);
+
+            var templateBuilderResult = templateBuilder.Build();
+            if (!propertyMetadata.HideSurroundingHtml)
+            {
+                var row = new TagBuilder("tr");
+                var labelCell = new TagBuilder("td");
+                var valueCell = new TagBuilder("td");
+
+                var label = propertyMetadata.GetDisplayName();
+                if (!string.IsNullOrEmpty(label))
+                {
+                    labelCell.InnerHtml.SetHtmlContent(label);
+                }
+
+                valueCell.InnerHtml.AppendHtml(templateBuilderResult);
+
+                row.InnerHtml.AppendHtml(labelCell);
+                row.InnerHtml.AppendHtml(valueCell);
+                content.AppendLine(row);
+            }
+            else
+            {
+                content.AppendHtml(templateBuilderResult);
+            }
+        }
+
+        return content;
+    }
+}
+@BuildObject()

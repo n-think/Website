@@ -1,12 +1,16 @@
-﻿namespace Website.Data.EF.Models
+﻿using Website.Data.ModelsInterfaces;
+
+namespace Website.Data.EF.Models
 {
-    public class ProductToCategory
+    public class ProductToCategory : IProductToCategory
     {
-        public int ProductId { get; set; }
+        public virtual int ProductId { get; set; }
+        public virtual int CategoryId { get; set; }
+
+
+        // Nav property for Producst
         public virtual Product Product { get; set; }
-
-        public int CategoryId { get; set; }
+        // Nav property for Category
         public virtual Category Category { get; set; }
-
     }
 }

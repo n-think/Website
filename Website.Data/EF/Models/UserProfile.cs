@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
+using Website.Data.ModelsInterfaces;
 
 namespace Website.Data.EF.Models
 {
-    public class UserProfile
+    public class UserProfile : IUserProfile
     {
         public string Id { get; set; }
         public string FirstName { get; set; }

@@ -3,14 +3,58 @@
 var navbar = document.getElementById("navbar");
 var sticky = navbar.offsetTop;
 
-function stickyNavbar()
-{
-    if (window.pageYOffset >= sticky)
-    {
+function stickyNavbar() {
+    if (window.pageYOffset >= sticky) {
         navbar.classList.add("navbar-fixed-top");
     }
-    else
-    {
+    else {
         navbar.classList.remove("navbar-fixed-top");
     }
 }
+
+
+$("#role-selector").change(function () {
+    if ($(this).val() === "admin") {
+        $(".admin-options").removeClass("hidden");
+    } else {
+        $(".admin-options").addClass("hidden");
+    }
+});
+
+$(".admin-options label").click(function () {
+    var classes = this.className.split(" ");
+    var action = classes[0];
+    var group = classes[1];
+    $("." + action + "." + group + ":checkbox").click();
+});
+
+$(".admin-options input:checkbox, .admin-options label").click(function () {
+    var classes = this.className.split(" ");
+    var action = classes[0];
+    var group = classes[1];
+
+    if (action === "delete" && this.checked === true) {
+        $("." + "view" + "." + group + ":checkbox").prop("checked", true).prop("disabled", true);
+        $("." + "edit" + "." + group + ":checkbox").prop("checked", true).prop("disabled", true);
+        $("." + "create" + "." + group + ":checkbox").prop("checked", true).prop("disabled", true);
+    }
+    else if (action === "delete" && this.checked === false) {
+        $("." + "view" + "." + group + ":checkbox").prop("checked", false).prop("disabled", false);
+        $("." + "edit" + "." + group + ":checkbox").prop("checked", false).prop("disabled", false);
+        $("." + "create" + "." + group + ":checkbox").prop("checked", false).prop("disabled", false);
+    }
+    if (action === "create" && this.checked === true) {
+        $("." + "view" + "." + group + ":checkbox").prop("checked", true).prop("disabled", true);
+        $("." + "edit" + "." + group + ":checkbox").prop("checked", true).prop("disabled", true);
+    }
+    else if (action === "create" && this.checked === false) {
+        $("." + "view" + "." + group + ":checkbox").prop("checked", false).prop("disabled", false);
+        $("." + "edit" + "." + group + ":checkbox").prop("checked", false).prop("disabled", false);
+    }
+    if (action === "edit" && this.checked === true) {
+        $("." + "view" + "." + group + ":checkbox").prop("checked", true).prop("disabled", true);
+    }
+    else if (action === "edit" && this.checked === false) {
+        $("." + "view" + "." + group + ":checkbox").prop("checked", false).prop("disabled", false);
+    }
+});

@@ -26,7 +26,7 @@ namespace Website.Data.EF.Models
         public virtual DbSet<Description> Descriptions { get; set; }
         public virtual DbSet<ProductImage> ProductImages { get; set; }
         public virtual DbSet<Product> Products { get; set; }
-        
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             FromIdentityBuilder(modelBuilder);
@@ -127,10 +127,13 @@ namespace Website.Data.EF.Models
                 b.ToTable("Users");
                 b.Property(u => u.ConcurrencyStamp).IsConcurrencyToken();
 
-                b.Property(u => u.UserName).HasMaxLength(256);
+                b.Property(u => u.UserName).HasMaxLength(256).IsRequired();
                 b.Property(u => u.NormalizedUserName).HasMaxLength(256);
-                b.Property(u => u.Email).HasMaxLength(256);
+                b.Property(u => u.Email).HasMaxLength(256).IsRequired(); ;
                 b.Property(u => u.NormalizedEmail).HasMaxLength(256);
+
+                b.HasIndex(u => u.Email).IsUnique();
+                b.HasIndex(u => u.UserName).IsUnique();
 
                 b.HasMany<UserClaim>().WithOne().HasForeignKey(uc => uc.UserId).IsRequired();
                 b.HasMany<UserLogin>().WithOne().HasForeignKey(ul => ul.UserId).IsRequired();
@@ -141,18 +144,21 @@ namespace Website.Data.EF.Models
             {
                 b.HasKey(uc => uc.Id);
                 b.ToTable("UserClaims");
+                b.HasOne(x => x.User).WithMany(x => x.Claims).HasForeignKey(x => x.UserId);
             });
 
             modelBuilder.Entity<UserLogin>(b =>
             {
                 b.HasKey(l => new { l.LoginProvider, l.ProviderKey });
                 b.ToTable("UserLogins");
+                b.HasOne(x => x.User).WithMany(x => x.Logins).HasForeignKey(x => x.UserId);
             });
 
             modelBuilder.Entity<UserToken>(b =>
             {
                 b.HasKey(t => new { t.UserId, t.LoginProvider, t.Name });
                 b.ToTable("UserTokens");
+                b.HasOne(x => x.User).WithMany(x => x.Tokens).HasForeignKey(x => x.UserId);
             });
 
             modelBuilder.Entity<User>(b =>
@@ -184,6 +190,14 @@ namespace Website.Data.EF.Models
             {
                 b.HasKey(r => new { r.UserId, r.RoleId });
                 b.ToTable("UserRoles");
+
+                b.HasOne(x => x.User)
+                    .WithMany(x => x.UserRoles)
+                    .HasForeignKey(x => x.UserId);
+
+                b.HasOne(x => x.Role)
+                    .WithMany(x => x.UserRoles)
+                    .HasForeignKey(x => x.RoleId);
             });
         }
     }

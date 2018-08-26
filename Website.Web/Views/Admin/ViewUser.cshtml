@@ -1,0 +1,37 @@
+﻿
+@{
+    ViewData["Title"] = "User";
+}
+
+@model UserViewModel
+
+<h2>Просмотр пользователя</h2>
+<div class="text-success">@TempData["Message"]</div>
+<a asp-area="" asp-route-id="@Model.Id" asp-action="EditUser">Редактировать</a>
+
+
+<table class="table responsive-table">
+    <thead>
+    <tr>
+        <th class="col-sm-3">Параметр</th>
+        <th class="col-sm-7">Значение</th>
+    </tr>
+    </thead>
+    <tbody class="tab-content">
+    <td><label>Права доступа</label></td>
+    <td>
+        <div>
+            <label>@(Model.Role== "admin" ? "Администратор" : "Пользователь")</label>
+        </div>
+        @if (Model.Role == "admin")
+        {
+            <div class="admin-options">
+                <user-claims name="newClaims" display="Пользователи:" actions="view edit delete" claims="@Model.CurrentClaims" view-only="true"/>
+                <user-claims name="newClaims" display="Товары:" actions="view edit create delete" claims="@Model.CurrentClaims" view-only="true"/>
+                <user-claims name="newClaims" display="Заказы:" actions="view edit delete" claims="@Model.CurrentClaims" view-only="true"/>
+            </div>
+        }
+    </td>
+    @Html.DisplayForModel("TableDataRowDisplay")
+    </tbody>
+</table>

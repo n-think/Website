@@ -8,7 +8,6 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Website.Data.EF.Models;
 using Website.Service.DTO;
-using Website.Service.IdentityStores;
 using Website.Service.Interfaces;
 using Website.Service.Mapper;
 using Website.Service.Services;
@@ -54,7 +53,7 @@ namespace xUnitTests
         private UserManager GetUserManager()
         {
             testContext = SqlLiteMemoryContext();
-            var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MapperProfile>()));
+            var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<ServiceProfile>()));
             var userStore = new Mock<IUserStore<UserDTO>>();
             var manager = new UserManager(testContext, userStore.Object, null, null, null, null, null, null, null, null, mapper);
             return manager;

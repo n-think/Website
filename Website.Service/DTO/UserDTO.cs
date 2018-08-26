@@ -51,7 +51,6 @@ namespace Website.Service.DTO
         public bool PhoneNumberConfirmed { get; set; }
         public string ConcurrencyStamp { get; set; }
         public string SecurityStamp { get; set; }
-        public DateTimeOffset? LastLoginDate { get; set; }
         [Display(Name = "Возможна ли блокировка")]
         public bool LockoutEnabled { get; set; }
         [Display(Name = "Дата конца блокировки")]
@@ -61,7 +60,6 @@ namespace Website.Service.DTO
         [Display(Name = "Неудачных попыток входа")]
         public int AccessFailedCount { get; set; }
         public UserProfileDTO UserProfile { get; set; }
-        //public ICollection<UserRoleDTO> Roles { get; set; } все роли в клеймах
         [Display(Name = "Дата последней активности")]
         public DateTimeOffset? LastActivityDate { get; set; }
 

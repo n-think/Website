@@ -64,7 +64,7 @@ namespace Website.Web.Controllers
             {
                 // This doesn't count login failures towards account lockout
                 // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: true);
+                var result = await _signInManager.PasswordSignInAsync(model.Login, model.Password, model.RememberMe, lockoutOnFailure: true);
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("Пользователь авторизовался.");
@@ -216,7 +216,17 @@ namespace Website.Web.Controllers
             ViewData["ReturnUrl"] = returnUrl;
             if (ModelState.IsValid)
             {
-                var user = new UserDTO() { UserName = model.Email, Email = model.Email};
+                var userProfile = new UserProfileDTO()
+                {
+                    FirstName = model.FirstName,
+                    LastName = model.LastName,
+                    PatrName = model.PatrName,
+                    Login = model.Email,
+                    RegistrationDate = DateTimeOffset.Now
+                };
+
+                var user = new UserDTO() { UserName = model.Email, Email = model.Email, UserProfile = userProfile};
+
                 var result = await _userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
@@ -228,17 +238,6 @@ namespace Website.Web.Controllers
 
                     await _userManager.AddToRoleAsync(user, "user");
                     await _signInManager.SignInAsync(user, isPersistent: false);
-
-                    var clientProfile = new UserProfileDTO()
-                    {
-                        FirstName = model.FirstName,
-                        LastName = model.LastName,
-                        PatrName = model.PatrName,
-                        Login = model.Email,
-                        RegistrationDate = DateTimeOffset.Now
-                    };
-
-                    await _userManager.CreateOrUpdateProfileAsync(clientProfile);
 
                     return RedirectToLocal(returnUrl);
                 }

@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using Website.Data.ModelsInterfaces;
 
 namespace Website.Data.EF.Models
 {
-    public partial class Product
+    public class Product : IProduct
     {
         public Product()
         {

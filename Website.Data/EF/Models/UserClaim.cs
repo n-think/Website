@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Text;
+using Website.Data.ModelsInterfaces;
 
 namespace Website.Data.EF.Models
 {
     /// <summary>
     /// Represents a claim that a user possesses. 
     /// </summary>
-    public class UserClaim
+    public class UserClaim : IUserClaim
     {
         /// <summary>
         /// Gets or sets the identifier for this user claim.
@@ -31,22 +32,8 @@ namespace Website.Data.EF.Models
         public virtual string ClaimValue { get; set; }
 
         /// <summary>
-        /// Converts the entity into a Claim instance.
+        /// Navigation property for the User of this claim.
         /// </summary>
-        /// <returns></returns>
-        public virtual Claim ToClaim()
-        {
-            return new Claim(ClaimType, ClaimValue);
-        }
-
-        /// <summary>
-        /// Reads the type and value from the Claim.
-        /// </summary>
-        /// <param name="claim"></param>
-        public virtual void InitializeFromClaim(Claim claim)
-        {
-            ClaimType = claim.Type;
-            ClaimValue = claim.Value;
-        }
+        public virtual User User { get; set; }
     }
 }

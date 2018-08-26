@@ -19,7 +19,7 @@ namespace Website.Web.Models.AccountViewModels
         public string PatrName { get; set; }
 
         [Required(ErrorMessage = "RequiredError")]
-        [EmailAddress]
+        [EmailAddress(ErrorMessage = "Некорректный email адрес.")]
         [Display(Name = "Email")]
         public string Email { get; set; }
 

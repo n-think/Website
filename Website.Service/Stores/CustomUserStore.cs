@@ -2,23 +2,17 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Website.Data.EF.Models;
 using Website.Service.DTO;
 using Website.Service.Interfaces;
 
-namespace Website.Service.IdentityStores
+namespace Website.Service.Stores
 {
     /// <inheritdoc />
     /// <summary>
@@ -37,20 +31,32 @@ namespace Website.Service.IdentityStores
     /// <summary>
     /// Represents a new instance of a persistence store for the specified user and role types.
     /// </summary>
-    /// <typeparam name="TUser">The type representing a dto user.</typeparam>
+    /// <typeparam name="TDtoUser">The type representing a dto user.</typeparam>
     /// <typeparam name="TDbUser">The type representing a user in database.</typeparam>
-    /// <typeparam name="TRole">The type representing a dto role.</typeparam>
+    /// <typeparam name="TDtoRole">The type representing a dto role.</typeparam>
     /// <typeparam name="TDbRole">The type representing a role in database.</typeparam>
     /// <typeparam name="TDbUserRole">The type representing a user role in database.</typeparam>
     /// <typeparam name="TDbUserClaim">The type representing a user claim in database.</typeparam>
     /// <typeparam name="TDbUserLogin">The type representing a user external login in database.</typeparam>
     /// <typeparam name="TDbUserToken">The type representing a user token in database.</typeparam>
     /// <typeparam name="TDbRoleClaim">The type representing a role claim in database.</typeparam>
-    public class CustomUserStoreBase<TUser, TDbUser, TRole, TDbRole, TDbUserClaim, TDbUserRole, TDbUserLogin, TDbUserToken, TDbRoleClaim> :
-        ICustomUserStore<TUser, TDbUser, TRole, TDbRole, TDbUserClaim, TDbUserRole, TDbUserLogin, TDbUserToken, TDbRoleClaim>
-        where TUser : UserDTO
+    public class CustomUserStoreBase<TDtoUser, TDbUser, TDtoRole, TDbRole, TDbUserClaim, TDbUserRole, TDbUserLogin, TDbUserToken, TDbRoleClaim> :
+            IUserStore<TDtoUser>,
+            IUserPasswordStore<TDtoUser>,
+            IUserEmailStore<TDtoUser>,
+            IUserLoginStore<TDtoUser>,
+            IUserRoleStore<TDtoUser>,
+            IUserSecurityStampStore<TDtoUser>,
+            IUserClaimStore<TDtoUser>,
+            IUserAuthenticationTokenStore<TDtoUser>,
+            IUserTwoFactorStore<TDtoUser>,
+            IUserPhoneNumberStore<TDtoUser>,
+            IUserLockoutStore<TDtoUser>
+            //,IQueryableUserStore<TUser> не получится через dto
+
+        where TDtoUser : UserDTO
         where TDbUser : User
-        where TRole : RoleDTO
+        where TDtoRole : RoleDTO
         where TDbRole : Role
         where TDbUserClaim : UserClaim, new()
         where TDbUserRole : UserRole, new()
@@ -105,7 +111,7 @@ namespace Website.Service.IdentityStores
         /// <param name="user">The user to create.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation, containing the <see cref="IdentityResult"/> of the creation operation.</returns>
-        public virtual async Task<IdentityResult> CreateAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual async Task<IdentityResult> CreateAsync(TDtoUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -126,7 +132,7 @@ namespace Website.Service.IdentityStores
         /// <param name="user">The user to update.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation, containing the <see cref="IdentityResult"/> of the update operation.</returns>
-        public virtual async Task<IdentityResult> UpdateAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual async Task<IdentityResult> UpdateAsync(TDtoUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -135,15 +141,22 @@ namespace Website.Service.IdentityStores
                 throw new ArgumentNullException(nameof(user));
             }
 
-            user.ConcurrencyStamp = Guid.NewGuid().ToString();
             var dbUser = await Context.FindAsync<TDbUser>(user.Id);
+
             if (dbUser != null)
             {
+                if (dbUser.ConcurrencyStamp != user.ConcurrencyStamp) // optimistic concurrency check
+                {
+                    return IdentityResult.Failed(ErrorDescriber.ConcurrencyFailure());
+                }
+
                 _mapper.Map(user, dbUser);
+                dbUser.ConcurrencyStamp = Guid.NewGuid().ToString();
             }
             else
             {
                 dbUser = _mapper.Map<TDbUser>(user);
+                Context.Attach(dbUser);
                 dbUser.ConcurrencyStamp = Guid.NewGuid().ToString();
                 Context.Update(dbUser);
             }
@@ -156,6 +169,11 @@ namespace Website.Service.IdentityStores
             {
                 return IdentityResult.Failed(ErrorDescriber.ConcurrencyFailure());
             }
+            //catch (DbUpdateException e)
+            //{
+            //    //log?
+            //    return IdentityResult.Failed(new IdentityError { Description = e.InnerException.Message });
+            //}
             return IdentityResult.Success;
         }
 
@@ -165,7 +183,7 @@ namespace Website.Service.IdentityStores
         /// <param name="user">The user to delete.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation, containing the <see cref="IdentityResult"/> of the update operation.</returns>
-        public virtual async Task<IdentityResult> DeleteAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual async Task<IdentityResult> DeleteAsync(TDtoUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -194,13 +212,13 @@ namespace Website.Service.IdentityStores
         /// <returns>
         /// The <see cref="Task"/> that represents the asynchronous operation, containing the user matching the specified <paramref name="userId"/> if it exists.
         /// </returns>
-        public virtual Task<TUser> FindByIdAsync(string userId, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual Task<TDtoUser> FindByIdAsync(string userId, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
             var id = userId;
             var dbUser = UsersSet.FindAsync(new object[] { id }, cancellationToken);
-            return _mapper.Map<Task<TUser>>(dbUser);
+            return _mapper.Map<Task<TDtoUser>>(dbUser);
         }
 
         /// <summary>
@@ -211,23 +229,13 @@ namespace Website.Service.IdentityStores
         /// <returns>
         /// The <see cref="Task"/> that represents the asynchronous operation, containing the user matching the specified <paramref name="normalizedUserName"/> if it exists.
         /// </returns>
-        public virtual Task<TUser> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual Task<TDtoUser> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
             var dbUser = UsersSet.FirstOrDefaultAsync(u => u.NormalizedUserName == normalizedUserName, cancellationToken);
-            return _mapper.Map<Task<TUser>>(dbUser);
+            return _mapper.Map<Task<TDtoUser>>(dbUser);
         }
-
-        ////TODO убрать наверное если не вылетает нигде
-        //public virtual IQueryable<TUser> Users
-        //{
-        //    get
-        //    {
-        //        //throw new NotImplementedException();
-        //        return _mapper.Map<IQueryable<TUser>>(Task.Run(() => UsersSet.AsQueryable())); // це дичь, непонятно используется ли гдето у Identity
-        //    }
-        //}
 
         /// <summary>
         /// Return a role with the normalized name if it exists.
@@ -299,7 +307,7 @@ namespace Website.Service.IdentityStores
         /// <param name="normalizedRoleName">The role to add.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation.</returns>
-        public virtual async Task AddToRoleAsync(TUser user, string normalizedRoleName, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual async Task AddToRoleAsync(TDtoUser user, string normalizedRoleName, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -343,7 +351,7 @@ namespace Website.Service.IdentityStores
         /// <param name="normalizedRoleName">The role to remove.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation.</returns>
-        public virtual async Task RemoveFromRoleAsync(TUser user, string normalizedRoleName, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual async Task RemoveFromRoleAsync(TDtoUser user, string normalizedRoleName, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -372,7 +380,7 @@ namespace Website.Service.IdentityStores
         /// <param name="user">The user whose roles should be retrieved.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>A <see cref="Task{TResult}"/> that contains the roles the user is a member of.</returns>
-        public virtual async Task<IList<string>> GetRolesAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual async Task<IList<string>> GetRolesAsync(TDtoUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -396,7 +404,7 @@ namespace Website.Service.IdentityStores
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>A <see cref="Task{TResult}"/> containing a flag indicating if the specified user is a member of the given group. If the 
         /// user is a member of the group the returned value with be true, otherwise it will be false.</returns>
-        public virtual async Task<bool> IsInRoleAsync(TUser user, string normalizedRoleName, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual async Task<bool> IsInRoleAsync(TDtoUser user, string normalizedRoleName, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -423,7 +431,7 @@ namespace Website.Service.IdentityStores
         /// <param name="user">The user whose claims should be retrieved.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>A <see cref="Task{TResult}"/> that contains the claims granted to a user.</returns>
-        public virtual async Task<IList<Claim>> GetClaimsAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual async Task<IList<Claim>> GetClaimsAsync(TDtoUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             ThrowIfDisposed();
             if (user == null)
@@ -431,7 +439,7 @@ namespace Website.Service.IdentityStores
                 throw new ArgumentNullException(nameof(user));
             }
 
-            return await UserClaims.Where(uc => uc.UserId.Equals(user.Id)).Select(c => c.ToClaim()).ToListAsync(cancellationToken);
+            return await UserClaims.Where(uc => uc.UserId.Equals(user.Id)).Select(c => new Claim(c.ClaimType, c.ClaimValue)).ToListAsync(cancellationToken);
         }
 
         /// <summary>
@@ -441,7 +449,7 @@ namespace Website.Service.IdentityStores
         /// <param name="claims">The claim to add to the user.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation.</returns>
-        public virtual Task AddClaimsAsync(TUser user, IEnumerable<Claim> claims, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual Task AddClaimsAsync(TDtoUser user, IEnumerable<Claim> claims, CancellationToken cancellationToken = default(CancellationToken))
         {
             ThrowIfDisposed();
             if (user == null)
@@ -469,7 +477,7 @@ namespace Website.Service.IdentityStores
         /// <param name="newClaim">The new claim replacing the <paramref name="claim"/>.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation.</returns>
-        public virtual async Task ReplaceClaimAsync(TUser user, Claim claim, Claim newClaim, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual async Task ReplaceClaimAsync(TDtoUser user, Claim claim, Claim newClaim, CancellationToken cancellationToken = default(CancellationToken))
         {
             ThrowIfDisposed();
             if (user == null)
@@ -500,7 +508,7 @@ namespace Website.Service.IdentityStores
         /// <param name="claims">The claim to remove.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation.</returns>
-        public virtual async Task RemoveClaimsAsync(TUser user, IEnumerable<Claim> claims, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual async Task RemoveClaimsAsync(TDtoUser user, IEnumerable<Claim> claims, CancellationToken cancellationToken = default(CancellationToken))
         {
             ThrowIfDisposed();
             if (user == null)
@@ -528,7 +536,7 @@ namespace Website.Service.IdentityStores
         /// <param name="login">The login to add to the user.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation.</returns>
-        public virtual Task AddLoginAsync(TUser user, UserLoginInfo login,
+        public virtual Task AddLoginAsync(TDtoUser user, UserLoginInfo login,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -554,7 +562,7 @@ namespace Website.Service.IdentityStores
         /// <param name="providerKey">The key provided by the <paramref name="loginProvider"/> to identify a user.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation.</returns>
-        public virtual async Task RemoveLoginAsync(TUser user, string loginProvider, string providerKey,
+        public virtual async Task RemoveLoginAsync(TDtoUser user, string loginProvider, string providerKey,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -578,7 +586,7 @@ namespace Website.Service.IdentityStores
         /// <returns>
         /// The <see cref="Task"/> for the asynchronous operation, containing a list of <see cref="UserLoginInfo"/> for the specified <paramref name="user"/>, if any.
         /// </returns>
-        public virtual async Task<IList<UserLoginInfo>> GetLoginsAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual async Task<IList<UserLoginInfo>> GetLoginsAsync(TDtoUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -600,7 +608,7 @@ namespace Website.Service.IdentityStores
         /// <returns>
         /// The <see cref="Task"/> for the asynchronous operation, containing the user, if any which matched the specified login provider and key.
         /// </returns>
-        public virtual async Task<TUser> FindByLoginAsync(string loginProvider, string providerKey,
+        public virtual async Task<TDtoUser> FindByLoginAsync(string loginProvider, string providerKey,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -609,7 +617,7 @@ namespace Website.Service.IdentityStores
             if (userLogin != null)
             {
                 var dbUser = await FindUserAsync(userLogin.UserId, cancellationToken);
-                return _mapper.Map<TUser>(dbUser);
+                return _mapper.Map<TDtoUser>(dbUser);
             }
             return null;
         }
@@ -622,12 +630,12 @@ namespace Website.Service.IdentityStores
         /// <returns>
         /// The task object containing the results of the asynchronous lookup operation, the user if any associated with the specified normalized email address.
         /// </returns>
-        public virtual Task<TUser> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual Task<TDtoUser> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
             var dbUser = UsersSet.FirstOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail, cancellationToken);
-            return _mapper.Map<Task<TUser>>(dbUser);
+            return _mapper.Map<Task<TDtoUser>>(dbUser);
         }
 
         /// <summary>
@@ -638,7 +646,7 @@ namespace Website.Service.IdentityStores
         /// <returns>
         /// The <see cref="Task"/> contains a list of users, if any, that contain the specified claim. 
         /// </returns>
-        public virtual async Task<IList<TUser>> GetUsersForClaimAsync(Claim claim, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual async Task<IList<TDtoUser>> GetUsersForClaimAsync(Claim claim, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -653,7 +661,7 @@ namespace Website.Service.IdentityStores
                         && userclaims.ClaimType == claim.Type
                         select user;
 
-            return await query.Select(x => _mapper.Map<TUser>(x)).ToListAsync(cancellationToken);
+            return await query.Select(x => _mapper.Map<TDtoUser>(x)).ToListAsync(cancellationToken);
         }
 
         /// <summary>
@@ -664,7 +672,7 @@ namespace Website.Service.IdentityStores
         /// <returns>
         /// The <see cref="Task"/> contains a list of users, if any, that are in the specified role. 
         /// </returns>
-        public virtual async Task<IList<TUser>> GetUsersInRoleAsync(string normalizedRoleName, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual async Task<IList<TDtoUser>> GetUsersInRoleAsync(string normalizedRoleName, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -682,9 +690,9 @@ namespace Website.Service.IdentityStores
                             where userrole.RoleId.Equals(role.Id)
                             select user;
 
-                return await query.Select(x => _mapper.Map<TUser>(x)).ToListAsync(cancellationToken);
+                return await query.Select(x => _mapper.Map<TDtoUser>(x)).ToListAsync(cancellationToken);
             }
-            return new List<TUser>();
+            return new List<TDtoUser>();
         }
 
         /// <summary>
@@ -695,7 +703,7 @@ namespace Website.Service.IdentityStores
         /// <param name="name">The name of the token.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The user token if it exists.</returns>
-        protected virtual Task<TDbUserToken> FindTokenAsync(TUser user, string loginProvider, string name, CancellationToken cancellationToken)
+        protected virtual Task<TDbUserToken> FindTokenAsync(TDtoUser user, string loginProvider, string name, CancellationToken cancellationToken)
             => UserTokens.FindAsync(new object[] { user.Id, loginProvider, name }, cancellationToken);
 
         /// <summary>
@@ -728,8 +736,7 @@ namespace Website.Service.IdentityStores
         /// <returns></returns>
         protected virtual TDbUserClaim CreateUserClaim(TDbUser user, Claim claim)
         {
-            var userClaim = new TDbUserClaim { UserId = user.Id };
-            userClaim.InitializeFromClaim(claim);
+            var userClaim = new TDbUserClaim { UserId = user.Id, ClaimType = claim.Type, ClaimValue = claim.Value };
             return userClaim;
         }
 
@@ -739,7 +746,7 @@ namespace Website.Service.IdentityStores
         /// <param name="user">The associated user.</param>
         /// <param name="login">The sasociated login.</param>
         /// <returns></returns>
-        protected virtual TDbUserLogin CreateUserLogin(TUser user, UserLoginInfo login)
+        protected virtual TDbUserLogin CreateUserLogin(TDtoUser user, UserLoginInfo login)
         {
             return new TDbUserLogin
             {
@@ -775,7 +782,7 @@ namespace Website.Service.IdentityStores
         /// <param name="name">The name of the user token.</param>
         /// <param name="value">The value of the user token.</param>
         /// <returns></returns>
-        protected virtual TDbUserToken CreateUserToken(TUser user, string loginProvider, string name, string value)
+        protected virtual TDbUserToken CreateUserToken(TDtoUser user, string loginProvider, string name, string value)
         {
             return new TDbUserToken
             {
@@ -792,7 +799,7 @@ namespace Website.Service.IdentityStores
         /// <param name="user">The user whose identifier should be retrieved.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation, containing the identifier for the specified <paramref name="user"/>.</returns>
-        public async virtual Task<string> GetUserIdAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
+        public async virtual Task<string> GetUserIdAsync(TDtoUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -809,7 +816,7 @@ namespace Website.Service.IdentityStores
         /// <param name="user">The user whose name should be retrieved.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation, containing the name for the specified <paramref name="user"/>.</returns>
-        public virtual Task<string> GetUserNameAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual Task<string> GetUserNameAsync(TDtoUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -827,7 +834,7 @@ namespace Website.Service.IdentityStores
         /// <param name="userName">The user name to set.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation.</returns>
-        public virtual Task SetUserNameAsync(TUser user, string userName, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual Task SetUserNameAsync(TDtoUser user, string userName, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -845,7 +852,7 @@ namespace Website.Service.IdentityStores
         /// <param name="user">The user whose normalized name should be retrieved.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation, containing the normalized user name for the specified <paramref name="user"/>.</returns>
-        public virtual Task<string> GetNormalizedUserNameAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual Task<string> GetNormalizedUserNameAsync(TDtoUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -863,7 +870,7 @@ namespace Website.Service.IdentityStores
         /// <param name="normalizedName">The normalized name to set.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation.</returns>
-        public virtual Task SetNormalizedUserNameAsync(TUser user, string normalizedName, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual Task SetNormalizedUserNameAsync(TDtoUser user, string normalizedName, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -876,7 +883,7 @@ namespace Website.Service.IdentityStores
         }
 
 
-        public virtual Task SetPasswordHashAsync(TUser user, string passwordHash, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual Task SetPasswordHashAsync(TDtoUser user, string passwordHash, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -894,7 +901,7 @@ namespace Website.Service.IdentityStores
         /// <param name="user">The user to retrieve the password hash for.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>A <see cref="Task{TResult}"/> that contains the password hash for the user.</returns>
-        public virtual Task<string> GetPasswordHashAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual Task<string> GetPasswordHashAsync(TDtoUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -912,7 +919,7 @@ namespace Website.Service.IdentityStores
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>A <see cref="Task{TResult}"/> containing a flag indicating if the specified user has a password. If the 
         /// user has a password the returned value with be true, otherwise it will be false.</returns>
-        public virtual Task<bool> HasPasswordAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual Task<bool> HasPasswordAsync(TDtoUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             return Task.FromResult(user.PasswordHash != null);
@@ -928,7 +935,7 @@ namespace Website.Service.IdentityStores
         /// The task object containing the results of the asynchronous operation, a flag indicating whether the email address for the specified <paramref name="user"/>
         /// has been confirmed or not.
         /// </returns>
-        public virtual Task<bool> GetEmailConfirmedAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual Task<bool> GetEmailConfirmedAsync(TDtoUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -946,7 +953,7 @@ namespace Website.Service.IdentityStores
         /// <param name="confirmed">A flag indicating if the email address has been confirmed, true if the address is confirmed otherwise false.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The task object representing the asynchronous operation.</returns>
-        public virtual Task SetEmailConfirmedAsync(TUser user, bool confirmed, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual Task SetEmailConfirmedAsync(TDtoUser user, bool confirmed, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -965,7 +972,7 @@ namespace Website.Service.IdentityStores
         /// <param name="email">The email to set.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The task object representing the asynchronous operation.</returns>
-        public virtual Task SetEmailAsync(TUser user, string email, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual Task SetEmailAsync(TDtoUser user, string email, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -983,7 +990,7 @@ namespace Website.Service.IdentityStores
         /// <param name="user">The user whose email should be returned.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The task object containing the results of the asynchronous operation, the email address for the specified <paramref name="user"/>.</returns>
-        public virtual Task<string> GetEmailAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual Task<string> GetEmailAsync(TDtoUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -1002,7 +1009,7 @@ namespace Website.Service.IdentityStores
         /// <returns>
         /// The task object containing the results of the asynchronous lookup operation, the normalized email address if any associated with the specified user.
         /// </returns>
-        public virtual Task<string> GetNormalizedEmailAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual Task<string> GetNormalizedEmailAsync(TDtoUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -1020,7 +1027,7 @@ namespace Website.Service.IdentityStores
         /// <param name="normalizedEmail">The normalized email to set for the specified <paramref name="user"/>.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The task object representing the asynchronous operation.</returns>
-        public virtual Task SetNormalizedEmailAsync(TUser user, string normalizedEmail, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual Task SetNormalizedEmailAsync(TDtoUser user, string normalizedEmail, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -1042,7 +1049,7 @@ namespace Website.Service.IdentityStores
         /// A <see cref="Task{TResult}"/> that represents the result of the asynchronous query, a <see cref="DateTimeOffset"/> containing the last time
         /// a user's lockout expired, if any.
         /// </returns>
-        public virtual Task<DateTimeOffset?> GetLockoutEndDateAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual Task<DateTimeOffset?> GetLockoutEndDateAsync(TDtoUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -1060,7 +1067,7 @@ namespace Website.Service.IdentityStores
         /// <param name="lockoutEnd">The <see cref="DateTimeOffset"/> after which the <paramref name="user"/>'s lockout should end.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation.</returns>
-        public virtual Task SetLockoutEndDateAsync(TUser user, DateTimeOffset? lockoutEnd, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual Task SetLockoutEndDateAsync(TDtoUser user, DateTimeOffset? lockoutEnd, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -1078,7 +1085,7 @@ namespace Website.Service.IdentityStores
         /// <param name="user">The user whose cancellation count should be incremented.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation, containing the incremented failed access count.</returns>
-        public virtual Task<int> IncrementAccessFailedCountAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual Task<int> IncrementAccessFailedCountAsync(TDtoUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -1097,7 +1104,7 @@ namespace Website.Service.IdentityStores
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation.</returns>
         /// <remarks>This is typically called after the account is successfully accessed.</remarks>
-        public virtual Task ResetAccessFailedCountAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual Task ResetAccessFailedCountAsync(TDtoUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -1115,7 +1122,7 @@ namespace Website.Service.IdentityStores
         /// <param name="user">The user whose failed access count should be retrieved.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation, containing the failed access count.</returns>
-        public virtual Task<int> GetAccessFailedCountAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual Task<int> GetAccessFailedCountAsync(TDtoUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -1134,7 +1141,7 @@ namespace Website.Service.IdentityStores
         /// <returns>
         /// The <see cref="Task"/> that represents the asynchronous operation, true if a user can be locked out, otherwise false.
         /// </returns>
-        public virtual Task<bool> GetLockoutEnabledAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual Task<bool> GetLockoutEnabledAsync(TDtoUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -1152,7 +1159,7 @@ namespace Website.Service.IdentityStores
         /// <param name="enabled">A flag indicating if lock out can be enabled for the specified <paramref name="user"/>.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation.</returns>
-        public virtual Task SetLockoutEnabledAsync(TUser user, bool enabled, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual Task SetLockoutEnabledAsync(TDtoUser user, bool enabled, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -1171,7 +1178,7 @@ namespace Website.Service.IdentityStores
         /// <param name="phoneNumber">The telephone number to set.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation.</returns>
-        public virtual Task SetPhoneNumberAsync(TUser user, string phoneNumber, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual Task SetPhoneNumberAsync(TDtoUser user, string phoneNumber, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -1189,7 +1196,7 @@ namespace Website.Service.IdentityStores
         /// <param name="user">The user whose telephone number should be retrieved.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation, containing the user's telephone number, if any.</returns>
-        public virtual Task<string> GetPhoneNumberAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual Task<string> GetPhoneNumberAsync(TDtoUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -1209,7 +1216,7 @@ namespace Website.Service.IdentityStores
         /// The <see cref="Task"/> that represents the asynchronous operation, returning true if the specified <paramref name="user"/> has a confirmed
         /// telephone number otherwise false.
         /// </returns>
-        public virtual Task<bool> GetPhoneNumberConfirmedAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual Task<bool> GetPhoneNumberConfirmedAsync(TDtoUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -1227,7 +1234,7 @@ namespace Website.Service.IdentityStores
         /// <param name="confirmed">A flag indicating whether the user's telephone number has been confirmed.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation.</returns>
-        public virtual Task SetPhoneNumberConfirmedAsync(TUser user, bool confirmed, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual Task SetPhoneNumberConfirmedAsync(TDtoUser user, bool confirmed, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -1246,7 +1253,7 @@ namespace Website.Service.IdentityStores
         /// <param name="stamp">The security stamp to set.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation.</returns>
-        public virtual Task SetSecurityStampAsync(TUser user, string stamp, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual Task SetSecurityStampAsync(TDtoUser user, string stamp, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -1264,7 +1271,7 @@ namespace Website.Service.IdentityStores
         /// <param name="user">The user whose security stamp should be set.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation, containing the security stamp for the specified <paramref name="user"/>.</returns>
-        public virtual Task<string> GetSecurityStampAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual Task<string> GetSecurityStampAsync(TDtoUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -1283,7 +1290,7 @@ namespace Website.Service.IdentityStores
         /// <param name="enabled">A flag indicating whether the specified <paramref name="user"/> has two factor authentication enabled.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation.</returns>
-        public virtual Task SetTwoFactorEnabledAsync(TUser user, bool enabled, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual Task SetTwoFactorEnabledAsync(TDtoUser user, bool enabled, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -1305,7 +1312,7 @@ namespace Website.Service.IdentityStores
         /// The <see cref="Task"/> that represents the asynchronous operation, containing a flag indicating whether the specified 
         /// <paramref name="user"/> has two factor authentication enabled or not.
         /// </returns>
-        public virtual Task<bool> GetTwoFactorEnabledAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual Task<bool> GetTwoFactorEnabledAsync(TDtoUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -1325,7 +1332,7 @@ namespace Website.Service.IdentityStores
         /// <param name="value">The value of the token.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation.</returns>
-        public virtual async Task SetTokenAsync(TUser user, string loginProvider, string name, string value, CancellationToken cancellationToken)
+        public virtual async Task SetTokenAsync(TDtoUser user, string loginProvider, string name, string value, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -1354,7 +1361,7 @@ namespace Website.Service.IdentityStores
         /// <param name="name">The name of the token.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation.</returns>
-        public virtual async Task RemoveTokenAsync(TUser user, string loginProvider, string name, CancellationToken cancellationToken)
+        public virtual async Task RemoveTokenAsync(TDtoUser user, string loginProvider, string name, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -1378,7 +1385,7 @@ namespace Website.Service.IdentityStores
         /// <param name="name">The name of the token.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation.</returns>
-        public virtual async Task<string> GetTokenAsync(TUser user, string loginProvider, string name, CancellationToken cancellationToken)
+        public virtual async Task<string> GetTokenAsync(TDtoUser user, string loginProvider, string name, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -1402,7 +1409,7 @@ namespace Website.Service.IdentityStores
         /// <param name="key">The authenticator key to set.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation.</returns>
-        public virtual Task SetAuthenticatorKeyAsync(TUser user, string key, CancellationToken cancellationToken)
+        public virtual Task SetAuthenticatorKeyAsync(TDtoUser user, string key, CancellationToken cancellationToken)
             => SetTokenAsync(user, InternalLoginProvider, AuthenticatorKeyTokenName, key, cancellationToken);
 
         /// <summary>
@@ -1411,7 +1418,7 @@ namespace Website.Service.IdentityStores
         /// <param name="user">The user whose security stamp should be set.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation, containing the security stamp for the specified <paramref name="user"/>.</returns>
-        public virtual Task<string> GetAuthenticatorKeyAsync(TUser user, CancellationToken cancellationToken)
+        public virtual Task<string> GetAuthenticatorKeyAsync(TDtoUser user, CancellationToken cancellationToken)
             => GetTokenAsync(user, InternalLoginProvider, AuthenticatorKeyTokenName, cancellationToken);
 
         /// <summary>
@@ -1420,7 +1427,7 @@ namespace Website.Service.IdentityStores
         /// <param name="user">The user who owns the recovery code.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The number of valid recovery codes for the user..</returns>
-        public virtual async Task<int> CountCodesAsync(TUser user, CancellationToken cancellationToken)
+        public virtual async Task<int> CountCodesAsync(TDtoUser user, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -1444,7 +1451,7 @@ namespace Website.Service.IdentityStores
         /// <param name="recoveryCodes">The new recovery codes for the user.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The new recovery codes for the user.</returns>
-        public virtual Task ReplaceCodesAsync(TUser user, IEnumerable<string> recoveryCodes, CancellationToken cancellationToken)
+        public virtual Task ReplaceCodesAsync(TDtoUser user, IEnumerable<string> recoveryCodes, CancellationToken cancellationToken)
         {
             var mergedCodes = string.Join(";", recoveryCodes);
             return SetTokenAsync(user, InternalLoginProvider, RecoveryCodeTokenName, mergedCodes, cancellationToken);
@@ -1458,7 +1465,7 @@ namespace Website.Service.IdentityStores
         /// <param name="code">The recovery code to use.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>True if the recovery code was found for the user.</returns>
-        public virtual async Task<bool> RedeemCodeAsync(TUser user, string code, CancellationToken cancellationToken)
+        public virtual async Task<bool> RedeemCodeAsync(TDtoUser user, string code, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
