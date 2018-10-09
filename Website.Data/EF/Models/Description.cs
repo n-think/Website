@@ -4,7 +4,7 @@ using Website.Data.ModelsInterfaces;
 
 namespace Website.Data.EF.Models
 {
-    public partial class Description : IDescription
+    public class Description : IDescription
     {
         public virtual int Id { get; set; }
         public virtual string Name { get; set; }

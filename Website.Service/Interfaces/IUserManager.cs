@@ -13,7 +13,7 @@ namespace Website.Service.Interfaces
 {
     public interface IUserManager : IIdentityUserManager
     {
-        Task<OperationDetails> CreateOrUpdateProfileAsync(UserProfileDTO userProfileDto);
+        Task<OperationResult> CreateOrUpdateProfileAsync(UserProfileDTO userProfileDto);
 
         /// <summary>
         /// Skips <paramref name="skipCount"/> and takes next <paramref name="takeCount"/> users in <see cref="RoleSelector"/> roles.

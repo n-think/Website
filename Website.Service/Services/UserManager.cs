@@ -23,6 +23,8 @@ using Website.Service.Interfaces;
 
 namespace Website.Service.Services
 {
+    //TODO refactor using store
+
     public class UserManager : AspNetUserManager<UserDTO>, IUserManager
     {
         public UserManager(
@@ -51,6 +53,7 @@ namespace Website.Service.Services
             _dbContext = context;
         }
 
+        //TODO remove after refactor using store
         private readonly DbContext _dbContext; // DI scoped context
         private readonly IMapper _mapper; //DI
 
@@ -59,34 +62,34 @@ namespace Website.Service.Services
         /// </summary>
         /// <param name="userProfileDto"></param>
         /// <returns></returns>
-        public async Task<OperationDetails> CreateOrUpdateProfileAsync(UserProfileDTO userProfileDto)
+        public async Task<OperationResult> CreateOrUpdateProfileAsync(UserProfileDTO userProfileDto)
         {
             this.ThrowIfDisposed();
 
-            if (userProfileDto?.Login == null) return new OperationDetails(false, "Некорректный профиль.", nameof(userProfileDto));
+            if (userProfileDto?.Login == null) return new OperationResult(false, "Некорректный профиль.", nameof(userProfileDto));
 
 
             var userDbSet = _dbContext.Set<User>();
 
             var user = await userDbSet.Where(x => x.NormalizedUserName == userProfileDto.Login.ToUpper()).Include(x => x.UserProfile).FirstOrDefaultAsync();
             if (user == null)
-                return new OperationDetails(false, "Пользователь с таким логином не найден.", nameof(userProfileDto.Login));
+                return new OperationResult(false, "Пользователь с таким логином не найден.", nameof(userProfileDto.Login));
 
-            OperationDetails opDetails;
+            OperationResult opResult;
             var clProfile = user.UserProfile;
             var profileDbSet = _dbContext.Set<UserProfile>();
             if (clProfile != null)
             {
                 clProfile = _mapper.Map<UserProfile>(userProfileDto);
                 profileDbSet.Update(clProfile);
-                opDetails = new OperationDetails(true, "Профиль успешно изменен.", "");
+                opResult = new OperationResult(true, "Профиль успешно изменен.", "");
             }
             else
             {
                 clProfile = _mapper.Map<UserProfile>(userProfileDto);
                 clProfile.Id = user.Id;
                 profileDbSet.Add(clProfile);
-                opDetails = new OperationDetails(true, "Профиль успешно создан.", "");
+                opResult = new OperationResult(true, "Профиль успешно создан.", "");
             }
 
             try
@@ -96,10 +99,10 @@ namespace Website.Service.Services
             catch (DbUpdateException e)
             {
                 Logger.Log(LogLevel.Error, e, "Возникла ошибка при обновлении профиля клиента.");
-                return new OperationDetails(false, "Возникла ошибка при обновлении профиля.", "");
+                return new OperationResult(false, "Возникла ошибка при обновлении профиля.", "");
             }
 
-            return opDetails;
+            return opResult;
         }
 
         public async Task<IEnumerable<UserDTO>> GetUsersAsync(RoleSelector roleSelector, int skip, int take)

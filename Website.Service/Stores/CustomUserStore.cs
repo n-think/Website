@@ -141,11 +141,11 @@ namespace Website.Service.Stores
                 throw new ArgumentNullException(nameof(user));
             }
 
-            var dbUser = await Context.FindAsync<TDbUser>(user.Id);
+            var dbUser = await UsersSet.FindAsync(user.Id);
 
             if (dbUser != null)
             {
-                if (dbUser.ConcurrencyStamp != user.ConcurrencyStamp) // optimistic concurrency check
+                if (dbUser.ConcurrencyStamp != user.ConcurrencyStamp) // optimistic concurrency check //hz nado li tut
                 {
                     return IdentityResult.Failed(ErrorDescriber.ConcurrencyFailure());
                 }
@@ -218,7 +218,7 @@ namespace Website.Service.Stores
             ThrowIfDisposed();
             var id = userId;
             var dbUser = UsersSet.FindAsync(new object[] { id }, cancellationToken);
-            return _mapper.Map<Task<TDtoUser>>(dbUser);
+            return dbUser == null ? Task.FromResult<TDtoUser>(null) : _mapper.Map<Task<TDtoUser>>(dbUser);
         }
 
         /// <summary>
@@ -234,7 +234,7 @@ namespace Website.Service.Stores
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
             var dbUser = UsersSet.FirstOrDefaultAsync(u => u.NormalizedUserName == normalizedUserName, cancellationToken);
-            return _mapper.Map<Task<TDtoUser>>(dbUser);
+            return dbUser == null ? Task.FromResult<TDtoUser>(null) : _mapper.Map<Task<TDtoUser>>(dbUser);
         }
 
         /// <summary>
@@ -635,7 +635,7 @@ namespace Website.Service.Stores
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
             var dbUser = UsersSet.FirstOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail, cancellationToken);
-            return _mapper.Map<Task<TDtoUser>>(dbUser);
+            return dbUser == null ? Task.FromResult<TDtoUser>(null) : _mapper.Map<Task<TDtoUser>>(dbUser);
         }
 
         /// <summary>

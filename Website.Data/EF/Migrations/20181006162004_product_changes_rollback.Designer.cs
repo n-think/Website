@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Website.Data.EF.Models;
 
 namespace Website.Data.EF.Migrations
 {
     [DbContext(typeof(WebsiteDbContext))]
-    partial class WebsiteDbContextModelSnapshot : ModelSnapshot
+    [Migration("20181006162004_product_changes_rollback")]
+    partial class product_changes_rollback
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -106,6 +108,29 @@ namespace Website.Data.EF.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Products");
+                });
+
+            modelBuilder.Entity("Website.Data.EF.Models.ProductImage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<byte[]>("Data");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(50);
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(50);
+
+                    b.Property<int?>("ProductId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("ProductImages");
                 });
 
             modelBuilder.Entity("Website.Data.EF.Models.ProductToCategory", b =>
@@ -336,6 +361,15 @@ namespace Website.Data.EF.Migrations
                         .WithMany("Descriptions")
                         .HasForeignKey("ProductId")
                         .HasConstraintName("FK_Descriptions_Products")
+                        .OnDelete(DeleteBehavior.SetNull);
+                });
+
+            modelBuilder.Entity("Website.Data.EF.Models.ProductImage", b =>
+                {
+                    b.HasOne("Website.Data.EF.Models.Product", "Product")
+                        .WithMany("ProductImages")
+                        .HasForeignKey("ProductId")
+                        .HasConstraintName("FK_ProductImages_Products")
                         .OnDelete(DeleteBehavior.SetNull);
                 });
 

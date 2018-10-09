@@ -4,16 +4,18 @@ using System.Text;
 
 namespace Website.Service.Infrastructure
 {
-    public class OperationDetails
+    public class OperationResult
     {
-        public OperationDetails(bool succedeed, string message, string prop)
+        public OperationResult(bool succeeded, string message, string prop)
         {
-            Succedeed = succedeed;
+            Succeeded = succeeded;
             Message = message;
             Property = prop;
         }
-        public bool Succedeed { get; private set; }
+        public bool Succeeded { get; private set; }
         public string Message { get; private set; }
         public string Property { get; private set; }
+
+        public static OperationResult Success() => new OperationResult(true, null, null);
     }
 }

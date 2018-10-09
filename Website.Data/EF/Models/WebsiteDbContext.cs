@@ -24,7 +24,6 @@ namespace Website.Data.EF.Models
         public virtual DbSet<UserProfile> UserProfiles { get; set; }
         public virtual DbSet<DescriptionGroup> DescriptionGroups { get; set; }
         public virtual DbSet<Description> Descriptions { get; set; }
-        public virtual DbSet<ProductImage> ProductImages { get; set; }
         public virtual DbSet<Product> Products { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -64,19 +63,6 @@ namespace Website.Data.EF.Models
                     .HasConstraintName("FK_Descriptions_Products");
             });
 
-            modelBuilder.Entity<ProductImage>(entity =>
-            {
-                entity.Property(e => e.Description).HasMaxLength(50);
-
-                entity.Property(e => e.Name).HasMaxLength(50);
-
-                entity.HasOne(d => d.Product)
-                    .WithMany(p => p.ProductImages)
-                    .HasForeignKey(d => d.ProductId)
-                    .OnDelete(DeleteBehavior.SetNull)
-                    .HasConstraintName("FK_ProductImages_Products");
-            });
-
             modelBuilder.Entity<Product>(entity =>
             {
                 entity.Property(e => e.Name)
@@ -100,7 +86,7 @@ namespace Website.Data.EF.Models
                     .IsRowVersion();
             });
 
-            //many to many ef core woohoo
+            //many to many ef core
             modelBuilder.Entity<ProductToCategory>(entity =>
             {
                 entity.HasKey(pc => new { pc.ProductId, pc.CategoryId });

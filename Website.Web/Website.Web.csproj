@@ -8,6 +8,10 @@
     <AssemblyName>Website.Web</AssemblyName>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="run.cmd" />
+  </ItemGroup>
+
 
   <ItemGroup>
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="5.0.1" />

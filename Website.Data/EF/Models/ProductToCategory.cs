@@ -8,7 +8,7 @@ namespace Website.Data.EF.Models
         public virtual int CategoryId { get; set; }
 
 
-        // Nav property for Producst
+        // Nav property for Product
         public virtual Product Product { get; set; }
         // Nav property for Category
         public virtual Category Category { get; set; }

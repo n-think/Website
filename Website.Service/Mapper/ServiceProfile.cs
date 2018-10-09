@@ -19,6 +19,15 @@ namespace Website.Service.Mapper
             CreateMap<Role, RoleDTO>().ReverseMap();
             CreateMap<UserProfile, UserProfileDTO>().ReverseMap();
 
+            CreateMap<Product, ProductDTO>(MemberList.Destination)
+                .ForMember(x => x.Images, opt => opt.Ignore())
+                .ForMember(x => x.CategoryName, opt => opt.Ignore()).ReverseMap();
+
+           // CreateMap<ProductDTO, Product>(MemberList.Source);
+
+
+
+
             //CreateMap<UserClaim,Claim>()
             //    .ForMember(x=>x.Type, opt=>opt.MapFrom(x=>x.ClaimType))
             //    .ForMember(x => x.Value, opt => opt.MapFrom(x => x.ClaimValue))

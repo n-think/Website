@@ -21,9 +21,9 @@ using Website.Service.DTO;
 using Website.Service.Interfaces;
 using Website.Service.Mapper;
 using Website.Service.Services;
-using Website.Web.Localization;
 using Website.Web.Resources;
 using Website.Service.Stores;
+using Website.Web.Localization;
 using Website.Web.Mapper;
 
 

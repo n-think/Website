@@ -32,8 +32,8 @@ namespace xUnitTests
             var resultFalse = customUserManager.CreateOrUpdateProfileAsync(fakeProfile).Result;
             var resultTrue = customUserManager.CreateOrUpdateProfileAsync(profile).Result;
 
-            Assert.False(resultFalse.Succedeed);
-            Assert.True(resultTrue.Succedeed);
+            Assert.False(resultFalse.Succeeded);
+            Assert.True(resultTrue.Succeeded);
         }
 
         private DbContext testContext;

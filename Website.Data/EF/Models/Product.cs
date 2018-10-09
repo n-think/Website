@@ -9,7 +9,6 @@ namespace Website.Data.EF.Models
         public Product()
         {
             Descriptions = new HashSet<Description>();
-            ProductImages = new HashSet<ProductImage>();
             ProductCategory = new HashSet<ProductToCategory>();
         }
 
@@ -23,7 +22,6 @@ namespace Website.Data.EF.Models
         public byte[] Timestamp { get; set; }
 
         public virtual ICollection<Description> Descriptions { get; set; }
-        public virtual ICollection<ProductImage> ProductImages { get; set; }
         public virtual ICollection<ProductToCategory> ProductCategory { get; set; }
     }
 }
