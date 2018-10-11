@@ -54,7 +54,7 @@ namespace Website.Web.Controllers
 
             if (sortOrder.IsNullOrEmpty())
             {
-                sortOrder = nameof(UserDTO.UserName);
+                sortOrder = nameof(UserDTO.Email);
             }
 
             var currPage = page ?? 1;
@@ -151,7 +151,7 @@ namespace Website.Web.Controllers
 
                 if (result.Succeeded) // update succesfull
                 {
-                    if (HttpContext.User.Claims.First(x=>x.Type == ClaimTypes.NameIdentifier).Value == dtoUser.Id)
+                    if (HttpContext.User.Claims.First(x => x.Type == ClaimTypes.NameIdentifier).Value == dtoUser.Id)
                     {
                         await _signInManager.RefreshSignInAsync(dtoUser);
                     }
@@ -173,8 +173,66 @@ namespace Website.Web.Controllers
             return View(user);
         }
 
+        [HttpGet]
+        [Authorize(Policy = "ViewItems")]
+        public async Task<IActionResult> Items(
+            [FromQuery(Name = "s")]string search,
+            [FromQuery(Name = "st")]ItemTypeSelector types,
+            [FromQuery(Name = "o")]string sortOrder,
+            [FromQuery(Name = "p")]int? page,
+            [FromQuery(Name = "c")]int? pageCount)
+        {
+            if (sortOrder.IsNullOrEmpty())
+            {
+                sortOrder = nameof(ProductDTO.Name);
+            }
 
-        public async Task<IActionResult> Items()
+            var currPage = page ?? 1;
+            var countPerPage = pageCount ?? 30; // get from client js?
+
+           // SortPageResult<UserDTO> result = await _userManager.GetSortFilterPageAsync(roles, search, sortOrder, currPage, countPerPage);
+
+            ViewBag.itemCount = 2;//result.TotalN;
+
+            var model = new ItemsViewModel()
+            {
+                CurrentSearch = search,
+                CurrentSortOrder = sortOrder,
+                Descending = sortOrder.EndsWith("_desc"),
+                CurrentPage = currPage,
+                CountPerPage = countPerPage,
+                Types = (int)types,
+                ItemCount = 2,//result.TotalN,
+                Items = new ProductDTO[]
+                {
+                    new ProductDTO(){Name = "asd",Price = 123.32},
+                    new ProductDTO(){Name = "fghj", Price = 33.32, Enabled = true}
+                }//result.FilteredData
+            };
+
+            await Task.CompletedTask;
+            return View(model);
+        }
+
+        [HttpGet]
+        [Authorize(Policy = "ViewItems")]
+        public async Task<IActionResult> ViewItem()
+        {
+            await Task.CompletedTask;
+            return View();
+        }
+
+        [HttpGet]
+        [Authorize(Policy = "EditItems")]
+        public async Task<IActionResult> EditItem()
+        {
+            await Task.CompletedTask;
+            return View();
+        }
+
+        [HttpGet]
+        [Authorize(Policy = "CreateItems")]
+        public async Task<IActionResult> AddItem()
         {
             await Task.CompletedTask;
             return View();

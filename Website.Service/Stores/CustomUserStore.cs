@@ -191,8 +191,13 @@ namespace Website.Service.Stores
             {
                 throw new ArgumentNullException(nameof(user));
             }
-            var dbUser = _mapper.Map<TDbUser>(user);
-            Context.Remove(dbUser);
+            //var dbUser = _mapper.Map<TDbUser>(user);
+            var userToRemove = UsersSet.Find(user.Id);
+            if (userToRemove == null)
+            {
+                return IdentityResult.Success; // mb return error
+            }
+            Context.Remove(userToRemove);
             try
             {
                 await SaveChanges(cancellationToken);

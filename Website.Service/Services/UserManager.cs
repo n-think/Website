@@ -53,7 +53,7 @@ namespace Website.Service.Services
             _dbContext = context;
         }
 
-        //TODO remove after refactor using store
+        //TODO refactor using store
         private readonly DbContext _dbContext; // DI scoped context
         private readonly IMapper _mapper; //DI
 
@@ -66,14 +66,14 @@ namespace Website.Service.Services
         {
             this.ThrowIfDisposed();
 
-            if (userProfileDto?.Login == null) return new OperationResult(false, "Некорректный профиль.", nameof(userProfileDto));
+            if (userProfileDto?.Login == null) return OperationResult.Failure("Некорректный профиль.", nameof(userProfileDto));
 
 
             var userDbSet = _dbContext.Set<User>();
 
             var user = await userDbSet.Where(x => x.NormalizedUserName == userProfileDto.Login.ToUpper()).Include(x => x.UserProfile).FirstOrDefaultAsync();
             if (user == null)
-                return new OperationResult(false, "Пользователь с таким логином не найден.", nameof(userProfileDto.Login));
+                return OperationResult.Failure("Пользователь с таким логином не найден.", nameof(userProfileDto.Login));
 
             OperationResult opResult;
             var clProfile = user.UserProfile;
@@ -82,14 +82,14 @@ namespace Website.Service.Services
             {
                 clProfile = _mapper.Map<UserProfile>(userProfileDto);
                 profileDbSet.Update(clProfile);
-                opResult = new OperationResult(true, "Профиль успешно изменен.", "");
+                opResult = OperationResult.Success("Профиль успешно изменен.", "");
             }
             else
             {
                 clProfile = _mapper.Map<UserProfile>(userProfileDto);
                 clProfile.Id = user.Id;
                 profileDbSet.Add(clProfile);
-                opResult = new OperationResult(true, "Профиль успешно создан.", "");
+                opResult = OperationResult.Success("Профиль успешно создан.");
             }
 
             try
@@ -214,7 +214,7 @@ namespace Website.Service.Services
             var user = set.FirstOrDefault(x => x.UserName == userLogin);
             if (user == null)
             {
-                Logger.LogError("Попытка зарегистрировать активносить несущуствующего пользователя"); //lul
+                Logger.LogError("Попытка зарегистрировать активность несущeствующего пользователя"); //lul
                 return;
             }
             user.LastActivityDate = DateTimeOffset.Now;

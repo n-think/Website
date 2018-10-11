@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Website.Service.Interfaces;
 using Website.Service.Services;
 using Website.Web.Initializers;
 
@@ -30,14 +31,16 @@ namespace Website.Web
                 var services = scope.ServiceProvider;
                 try
                 {
-                    var userManager = services.GetRequiredService<UserManager>();
+                    var userManager = services.GetRequiredService<IUserManager>();
                     var rolesManager = services.GetRequiredService<RoleManager>();
-                    var context = services.GetRequiredService<DbContext>();
+                    var configManager = services.GetRequiredService<IConfiguration>();
 
-                    await AdminAndRoleInitializer.InitializeAsync(userManager, rolesManager);
+                    //seed admin user
+                    await AdminAndRoleInitializer.InitializeAsync(userManager, rolesManager, configManager);
                     
                     //TODO УБРАТЬ
-                    //await DbUserProfileSeed.InitializeAsync(userManager, rolesManager,context);
+                    // seed test users
+                    //await DbUserProfileSeed.InitializeAsync(userManager, rolesManager);
                 }
                 catch (Exception ex)
                 {

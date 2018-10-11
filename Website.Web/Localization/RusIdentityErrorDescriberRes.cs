@@ -226,5 +226,4 @@ namespace Website.Web.Localization
             };
         }
     }
-
 }

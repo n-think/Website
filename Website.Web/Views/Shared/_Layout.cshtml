@@ -1,4 +1,9 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.Extensions.Configuration
+@using Website.Web.Initializers
+
+@inject IConfiguration Configuration
+
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
@@ -22,7 +27,7 @@
         @*<video id="jumbo-video" src="/videos/sloth.webm" autoplay height="160" loop style="position: absolute; left: 10%;">sloth</video> 
         <img src="/images/1.jpg" height="160" style="position: absolute; right: 10%;" alt="eagle pic"/>*@
         <h1>Сайт</h1>
-        <p>пришел, увидел, купил</p>
+        <p>Логин: "admin" Пароль: "@(Configuration.GetSection("AdminAccount").GetValue<string>("Password"))"</p>
     </div>
 </div>
     <nav id="navbar" class="navbar navbar-inverse">

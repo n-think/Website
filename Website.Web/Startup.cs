@@ -68,7 +68,7 @@ namespace Website.Web
                 .AddSignInManager<SignInManager>()
                 .AddDefaultTokenProviders()
                 .AddErrorDescriber<RusIdentityErrorDescriberRes>();
-            FixInterfaces(services);
+            AddCustomInterfaces(services);
 
             //custom sign in manager. пока не нужен
             //services.AddScoped<SignInManager<UserDTO>, ApplicationSignInManager<UserDTO>>();
@@ -81,7 +81,6 @@ namespace Website.Web
                 options.ValidationInterval = TimeSpan.FromMinutes(10);
             });
 
-
             services.ConfigureApplicationCookie(option =>
             {
                 //option.ExpireTimeSpan = TimeSpan.FromMinutes(30);
@@ -92,10 +91,7 @@ namespace Website.Web
                 //option.Cookie.SecurePolicy = CookieSecurePolicy.Always;
             });
 
-            services.AddTransient<IEmailSender, EmailSender>();
-
             services.AddScoped<DbContext, WebsiteDbContext>();
-            services.AddScoped<IUserManager, UserManager>();
 
             services.AddMvc()
                 .AddDataAnnotationsLocalization(options =>
@@ -108,29 +104,52 @@ namespace Website.Web
             AddPolicies(services);
         }
 
-        private void FixInterfaces(IServiceCollection services)
+        private void AddCustomInterfaces(IServiceCollection services)
         {
             services.AddTransient<IRoleStore<RoleDTO>, CustomRoleStore>();
             services.AddTransient<IUserStore<UserDTO>, CustomUserStore>();
+            services.AddTransient<IShopStore<ProductDTO>, CustomShopStore>();
+
+            services.AddScoped<IUserManager, UserManager>();
+            services.AddScoped<IStoreManager, ShopManager>();
+
+            services.AddTransient<IEmailSender, EmailSender>();
         }
 
         private void AddPolicies(IServiceCollection services)
         {
             services.AddAuthorization(options =>
                 {
+                    //global admin policy
                     options.AddPolicy("Administrators",
-                        policy => policy.RequireRole("admin")); // == RequireClaim(ClaimTypes.Role, "admin")
+                        policy => policy.RequireAssertion(context =>
+                            context.User.IsInRole("admin") || context.User.IsInRole("admin_generated")));
 
+                    //user manage policies
                     options.AddPolicy("ViewUsers",
                         policy => policy.RequireAssertion(context => context.User.HasClaim(c =>
                                 c.Type == "ViewUsers" || c.Type == "EditUsers" || c.Type == "DeleteUsers")));
-
                     options.AddPolicy("EditUsers",
                         policy => policy.RequireAssertion(context => context.User.HasClaim(c =>
                             c.Type == "EditUsers" || c.Type == "DeleteUsers")));
-
                     options.AddPolicy("DeleteUsers",
                         policy => policy.RequireClaim("DeleteUsers"));
+
+                    //item manage policies
+                    options.AddPolicy("ViewItems",
+                        policy => policy.RequireAssertion(context => context.User.HasClaim(c =>
+                            c.Type == "ViewItems" || c.Type == "EditItems" || c.Type == "DeleteItems" || c.Type == "CreateItems")));
+
+                    options.AddPolicy("EditItems",
+                        policy => policy.RequireAssertion(context => context.User.HasClaim(c =>
+                            c.Type == "EditItems" || c.Type == "DeleteItems" || c.Type == "CreateItems")));
+
+                    options.AddPolicy("CreateItems",
+                        policy => policy.RequireAssertion(context => context.User.HasClaim(c =>
+                            c.Type == "DeleteItems" || c.Type == "CreateItems")));
+
+                    options.AddPolicy("DeleteItems",
+                        policy => policy.RequireClaim("DeleteItems"));
                 }
             );
         }
@@ -144,15 +163,15 @@ namespace Website.Web
 
             app.UseStatusCodePagesWithReExecute("/error/{0}");
 
-            var errorMode = configuration.GetValue<string>("ErrorHandlingMode"); //читаем конфиг
-            if (errorMode == "development" /*|| env.IsDevelopment()*/)
+            var errorMode = configuration.GetValue<bool>("DevelopmentErrorHandlingMode"); //читаем конфиг
+            if (errorMode || env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
 
             else
             {
-                //TODO тут надо логировать както или мб уже логируется
+                //TODO тут мб логировать
                 app.UseExceptionHandler("/error/500");
                 app.UseHsts();
             }

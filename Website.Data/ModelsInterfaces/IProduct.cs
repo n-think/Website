@@ -1,4 +1,6 @@
-﻿namespace Website.Data.ModelsInterfaces
+﻿using System;
+
+namespace Website.Data.ModelsInterfaces
 {
     public interface IProduct
     {
@@ -6,9 +8,12 @@
         string Name { get; set; }
         string Description { get; set; }
         int Code { get; set; }
-        int Price { get; set; }
-        int Quantity { get; set; }
-        byte[] ThumbImage { get; set; }
+        double Price { get; set; }
+        int Stock { get; set; }
+        int Reserved { get; set; }
+        bool Enabled { get; set; }
+        DateTimeOffset Added { get; set; }
+        DateTimeOffset Changed { get; set; }
         byte[] Timestamp { get; set; }
     }
 }

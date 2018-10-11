@@ -1,13 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Net.Mime;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using Castle.Core.Internal;
 using Castle.DynamicProxy.Generators.Emitters.SimpleAST;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Website.Data.EF.Models;
@@ -17,24 +22,26 @@ using Website.Service.Interfaces;
 
 namespace Website.Service.Stores
 {
+
+
     /// <inheritdoc />
     /// <summary>
     /// Represents a new instance of a persistence store for products, using the default implementation.
     /// </summary>
-    public class CustomShopStore : CustomShopStoreBase<ProductDTO, Product, Category>
+    public class CustomShopStore : ShopStoreBase<ProductDTO, Product, Category>
     {
-        public CustomShopStore(DbContext context, IMapper mapper, StoreErrorDescriber describer = null)
-            : base(context, mapper, describer)
+        public CustomShopStore(DbContext context, IMapper mapper, IHostingEnvironment environment, StoreErrorDescriber describer = null)
+            : base(context, mapper, environment, describer)
         {
         }
     }
 
     /// <summary>
-    /// Represents a new instance of a persistence store for the specified products types.
+    /// Represents a new instance of a persistence store for the specified types.
     /// </summary>
     /// <typeparam name="TDtoProduct">The type representing a dto product.</typeparam>
     /// <typeparam name="TDbProduct">The type representing a product in database.</typeparam>
-    public class CustomShopStoreBase<TDtoProduct, TDbProduct, TDbCategory>
+    public class ShopStoreBase<TDtoProduct, TDbProduct, TDbCategory> : IShopStore<TDtoProduct>, IDisposable
         where TDtoProduct : ProductDTO
         where TDbProduct : Product
         where TDbCategory : Category, new()
@@ -46,21 +53,25 @@ namespace Website.Service.Stores
         /// <param name="dbContext">The <see cref="DbContext"/>.</param>
         /// <param name="mapper">The <see cref="AutoMapper.Mapper"/>.</param>
         /// <param name="describer">The <see cref="StoreErrorDescriber"/>.</param>
-        public CustomShopStoreBase(DbContext dbContext, IMapper mapper, StoreErrorDescriber describer = null)
+        public ShopStoreBase(DbContext dbContext, IMapper mapper, IHostingEnvironment environment, StoreErrorDescriber describer = null)
         {
             ErrorDescriber = describer ?? new StoreErrorDescriber();
             Context = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            HostingEnvironment = environment;
         }
 
         public DbContext Context { get; private set; }
         public StoreErrorDescriber ErrorDescriber { get; set; }
 
         private bool _disposed;
-        protected readonly IMapper _mapper;
-        private DbSet<TDbProduct> ProductsSet => Context.Set<TDbProduct>();
-        private DbSet<TDbCategory> CategoriesSet => Context.Set<TDbCategory>();
+        private readonly IMapper _mapper;
+        private readonly object _lock = new object();
+        protected DbSet<TDbProduct> ProductsSet => Context.Set<TDbProduct>();
+        protected DbSet<TDbCategory> CategoriesSet => Context.Set<TDbCategory>();
+        protected IHostingEnvironment HostingEnvironment;
 
+        private const string ImagesSavePath = "\\images\\products";
         /// <summary>
         /// Gets or sets a flag indicating if changes should be persisted after CreateAsync, UpdateAsync and DeleteAsync are called.
         /// </summary>
@@ -77,46 +88,9 @@ namespace Website.Service.Stores
             return AutoSaveChanges ? Context.SaveChangesAsync(cancellationToken) : Task.CompletedTask;
         }
 
-
-        //TODO move to manager
-        /// <summary>
-        /// Creates product with images and category in db.
-        /// </summary>
-        /// <param name="product"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        public virtual async Task<OperationResult> CreateItemAsync(TDtoProduct product, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            ThrowIfDisposed();
-            if (product == null)
-            {
-                throw new ArgumentNullException(nameof(product));
-            }
-
-            AutoSaveChanges = false;
-
-            await CreateProductAsync(product, cancellationToken);
-
-            if (!product.CategoryName.IsNullOrEmpty())
-            {
-                //add prod to cat
-            }
-
-            if (!product.Images.IsNullOrEmpty())
-            {
-                //add images
-            }
-
-            AutoSaveChanges = true;
-
-            await SaveChanges(cancellationToken);
-            return OperationResult.Success();
-        }
-
         #region CRUD product
 
-        private async Task<OperationResult> CreateProductAsync(TDtoProduct product, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<OperationResult> CreateProductAsync(TDtoProduct product, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -181,7 +155,7 @@ namespace Website.Service.Stores
 
         #region CRUD category
 
-        private async Task<OperationResult> CreateCategoryAsync(string categoryName, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<OperationResult> CreateCategoryAsync(string categoryName, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -211,17 +185,17 @@ namespace Website.Service.Stores
 
         //public virtual async Task<OperationResult> UpdateCategoryAsync(TDtoProduct product, CancellationToken cancellationToken = default(CancellationToken))
         //{
-        //    cancellationToken.ThrowIfCancellationRequested();
-        //    ThrowIfDisposed();
-        //    if (product == null)
-        //    {
-        //        throw new ArgumentNullException(nameof(product));
-        //    }
+        ////    cancellationToken.ThrowIfCancellationRequested();
+        ////    ThrowIfDisposed();
+        ////    if (product == null)
+        ////    {
+        ////        throw new ArgumentNullException(nameof(product));
+        ////    }
 
-        //    var dbProduct = _mapper.Map<TDbProduct>(product);
-        //    ProductsSet.Update(dbProduct);
-        //    await SaveChanges(cancellationToken);
-        //    return OperationResult.Success();
+        ////    var dbProduct = _mapper.Map<TDbProduct>(product);
+        ////    ProductsSet.Update(dbProduct);
+        ////    await SaveChanges(cancellationToken);
+        ////    return OperationResult.Success();
         //}
 
         public virtual async Task<OperationResult> RemoveCategoryAsync(string categoryName, CancellationToken cancellationToken = default(CancellationToken))
@@ -246,33 +220,50 @@ namespace Website.Service.Stores
 
         #region CRUD images
 
-        //TODO
+        public virtual Task<OperationResult> SaveImage(Bitmap image, string savePath, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+            if (image == null)
+            {
+                throw new ArgumentNullException(nameof(image));
+            }
+            if (savePath.IsNullOrEmpty())
+            {
+                throw new ArgumentNullException(nameof(savePath));
+            }
+            if (Directory.Exists(savePath))
+            {
+                throw new ArgumentException(nameof(savePath));
+            }
+
+            image.Save(savePath);
+            return Task.FromResult(OperationResult.Success());
+        }
+
+        public virtual Task<OperationResult> RemoveImage(Bitmap image, string removePath, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+            if (image == null)
+            {
+                throw new ArgumentNullException(nameof(image));
+            }
+            if (removePath.IsNullOrEmpty())
+            {
+                throw new ArgumentNullException(nameof(removePath));
+            }
+            if (!Directory.Exists(removePath))
+            {
+                throw new ArgumentException(nameof(removePath));
+            }
+
+            File.Delete(removePath);
+            return Task.FromResult(OperationResult.Success());
+        }
 
         #endregion
 
-        ///// <summary>
-        ///// Creates the specified <paramref name="user"/> in the user store.
-        ///// </summary>
-        ///// <param name="user">The user to create.</param>
-        ///// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
-        ///// <returns>The <see cref="Task"/> that represents the asynchronous operation, containing the <see cref="IdentityResult"/> of the creation operation.</returns>
-        //public virtual async Task<IdentityResult> CreateAsync(TDtoUser user, CancellationToken cancellationToken = default(CancellationToken))
-        //{
-        //    cancellationToken.ThrowIfCancellationRequested();
-        //    ThrowIfDisposed();
-        //    if (user == null)
-        //    {
-        //        throw new ArgumentNullException(nameof(user));
-        //    }
-        //    var dbUser = _mapper.Map<TDbUser>(user);
-        //    Context.Add(dbUser);
-        //    await SaveChanges(cancellationToken);
-        //    return IdentityResult.Success;
-        //}
-
-        /// <summary>
-        /// Throws if this class has been disposed.
-        /// </summary>
         protected void ThrowIfDisposed()
         {
             if (_disposed)

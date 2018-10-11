@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Website.Data.EF.Models;
 
 namespace Website.Data.EF.Migrations
 {
     [DbContext(typeof(WebsiteDbContext))]
-    partial class WebsiteDbContextModelSnapshot : ModelSnapshot
+    [Migration("20181010031649_product_edit")]
+    partial class product_edit
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -99,11 +101,9 @@ namespace Website.Data.EF.Migrations
                         .IsRequired()
                         .HasMaxLength(50);
 
-                    b.Property<double>("Price");
+                    b.Property<int>("Price");
 
-                    b.Property<int>("Reserved");
-
-                    b.Property<int>("Stock");
+                    b.Property<int>("Quantity");
 
                     b.Property<byte[]>("Timestamp")
                         .IsConcurrencyToken()

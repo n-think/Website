@@ -12,7 +12,7 @@ namespace Website.Web.Initializers
     public class DbUserProfileSeed
     {
         public static async Task InitializeAsync(UserManager userManager,
-            RoleManager roleManager, DbContext context)
+            RoleManager roleManager)
         {
             string email = "email@example.com";
             string password = "123123";
