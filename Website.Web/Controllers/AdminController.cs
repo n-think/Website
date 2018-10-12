@@ -28,14 +28,16 @@ namespace Website.Web.Controllers
         private readonly IMapper _mapper;
         private readonly IdentityErrorDescriber _errorDescriber;
         private readonly SignInManager _signInManager;
+        private readonly IStoreManager _storeManager;
 
-        public AdminController(IUserManager userManager, RoleManager roleManager, SignInManager signInManager, IMapper mapper, IdentityErrorDescriber describer = null)
+        public AdminController(IUserManager userManager, IStoreManager storeManager, RoleManager roleManager, SignInManager signInManager, IMapper mapper, IdentityErrorDescriber describer = null)
         {
             _errorDescriber = describer ?? new IdentityErrorDescriber();
             _userManager = userManager;
             _roleManager = roleManager;
             _signInManager = signInManager;
             _mapper = mapper;
+            _storeManager = storeManager;
         }
         public IActionResult Index()
         {
@@ -149,7 +151,7 @@ namespace Website.Web.Controllers
                 //try update
                 var result = await _userManager.UpdateUserPasswordClaims(dtoUser, user.Password, newClaims);
 
-                if (result.Succeeded) // update succesfull
+                if (result.Succeeded) // update successful
                 {
                     if (HttpContext.User.Claims.First(x => x.Type == ClaimTypes.NameIdentifier).Value == dtoUser.Id)
                     {
@@ -190,7 +192,7 @@ namespace Website.Web.Controllers
             var currPage = page ?? 1;
             var countPerPage = pageCount ?? 30; // get from client js?
 
-           // SortPageResult<UserDTO> result = await _userManager.GetSortFilterPageAsync(roles, search, sortOrder, currPage, countPerPage);
+           SortPageResult<ProductDTO> result = await _storeManager.GetSortFilterPageAsync(types, search, sortOrder, currPage, countPerPage);
 
             ViewBag.itemCount = 2;//result.TotalN;
 

@@ -6,7 +6,7 @@ using Website.Data.ModelsInterfaces;
 
 namespace Website.Data.EF.Models
 {
-    public class Category : ICategory
+    public class Category : ICategory<Category>
     {
         public Category()
         {
@@ -16,6 +16,9 @@ namespace Website.Data.EF.Models
         public virtual int Id { get; set; }
         public virtual string Name { get; set; }
         public virtual string Description { get; set; }
+        [Unlike(nameof(Id))]
+        public int? ParentId { get; set; }
+        public byte[] Timestamp { get; set; }
 
         public virtual Category Parent { get; set; }
         public virtual ICollection<Category> Children { get; set; }

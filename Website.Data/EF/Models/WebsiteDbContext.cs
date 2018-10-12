@@ -33,6 +33,10 @@ namespace Website.Data.EF.Models
             modelBuilder.Entity<Category>(entity =>
             {
                 entity.Property(e => e.Name).HasMaxLength(50);
+                entity.Property(e => e.Timestamp).IsRowVersion();
+                entity.HasOne(e => e.Parent)
+                    .WithMany(e => e.Children)
+                    .HasForeignKey(e => e.ParentId);
             });
 
             modelBuilder.Entity<DescriptionGroup>(entity =>

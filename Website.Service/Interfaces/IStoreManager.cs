@@ -1,6 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 using Website.Service.DTO;
+using Website.Service.Enums;
 using Website.Service.Infrastructure;
 
 namespace Website.Service.Interfaces
@@ -13,6 +14,8 @@ namespace Website.Service.Interfaces
         /// <param name="product"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task<OperationResult> CreateItemAsync(ProductDTO product, CancellationToken cancellationToken = default(CancellationToken));
+        Task<OperationResult> CreateItemAsync(ProductDTO product);
+
+        Task<SortPageResult<ProductDTO>> GetSortFilterPageAsync(ItemTypeSelector types, string search, string sortOrder, int currPage, int countPerPage);
     }
 }

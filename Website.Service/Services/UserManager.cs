@@ -20,6 +20,7 @@ using Website.Service.DTO;
 using Website.Service.Enums;
 using Website.Service.Infrastructure;
 using Website.Service.Interfaces;
+using Website.Service.Stores;
 
 namespace Website.Service.Services
 {
@@ -53,8 +54,9 @@ namespace Website.Service.Services
             _dbContext = context;
         }
 
-        //TODO refactor using store
         private readonly DbContext _dbContext; // DI scoped context
+
+        //TODO remove mapper, add store.ExecuteQuery
         private readonly IMapper _mapper; //DI
 
         /// <summary>
@@ -68,7 +70,7 @@ namespace Website.Service.Services
 
             if (userProfileDto?.Login == null) return OperationResult.Failure("Некорректный профиль.", nameof(userProfileDto));
 
-
+            //TODO use store for db ops
             var userDbSet = _dbContext.Set<User>();
 
             var user = await userDbSet.Where(x => x.NormalizedUserName == userProfileDto.Login.ToUpper()).Include(x => x.UserProfile).FirstOrDefaultAsync();
@@ -129,9 +131,12 @@ namespace Website.Service.Services
             return clientList;
         }
 
+
         public async Task<SortPageResult<UserDTO>> GetSortFilterPageAsync(RoleSelector roleSelector, string searchString, string sortPropName, int page, int pageCount)
         {
-            //TODO refactor into smaller methods
+            //TODO delegate implementation to store? and get rid of dbcontext in manager
+
+            ThrowIfDisposed();
 
             // check inputs
             if (sortPropName == null) throw new ArgumentNullException(nameof(sortPropName));
@@ -140,36 +145,47 @@ namespace Website.Service.Services
             if (!Enum.IsDefined(typeof(RoleSelector), roleSelector))
                 throw new InvalidEnumArgumentException(nameof(roleSelector), (int)roleSelector, typeof(RoleSelector));
 
+            // filter roles
+            IQueryable<User> query = GetUsersByRoleAsQuery(roleSelector);
+
+            // searching
+            SearchUsersQuery(searchString, query);
+
+            // ordering
+            OrderUserQuery(sortPropName, query);
+
+            // paginating
+            var totalUsers = await query.CountAsync();
+            query = query.Skip((page - 1) * pageCount).Take(pageCount);
+
+            var usersDto = await query.ProjectTo<UserDTO>(_mapper.ConfigurationProvider).ToListAsync();
+
+            return new SortPageResult<UserDTO> { FilteredData = usersDto, TotalN = totalUsers };
+        }
+
+        private void OrderUserQuery(string sortPropName, IQueryable<User> query)
+        {
+            this.ThrowIfDisposed();
+            if (sortPropName.IsNullOrEmpty())
+                throw new ArgumentNullException(nameof(sortPropName));
+
             bool descending = false;
             if (sortPropName.EndsWith("_desc"))
             {
                 sortPropName = sortPropName.Substring(0, sortPropName.Length - 5);
                 descending = true;
             }
+
             // checking property name
             string propClass = "";
-            var result = CheckIfPropertyExists(sortPropName, typeof(UserDTO), typeof(UserProfileDTO));
-            if (result.Result)
+            var check = StoreHelpers.CheckIfPropertyExists(sortPropName, typeof(UserDTO), typeof(UserProfileDTO));
+            if (check.Result)
             {
-                propClass = result.Type.Name;
+                propClass = check.Type.Name;
             }
+            else
+                throw new ArgumentNullException(nameof(sortPropName));
 
-            // filetring
-            var query = GetUsersByRoleAsQuery(roleSelector);
-
-            // searching
-            if (!String.IsNullOrEmpty(searchString))
-            {
-                query = query.Where(x => x.UserName.Contains(searchString) ||
-                                         x.Email.Contains(searchString) ||
-                                         x.PhoneNumber != null && x.PhoneNumber.Contains(searchString) ||
-                                         x.UserProfile.FirstName != null && x.UserProfile.FirstName.Contains(searchString) ||
-                                         x.UserProfile.LastName != null && x.UserProfile.LastName.Contains(searchString) ||
-                                         x.UserProfile.PatrName != null && x.UserProfile.PatrName.Contains(searchString)
-                );
-            }
-
-            // ordering
             Expression<Func<User, object>> userValue = u => EF.Property<object>(u, sortPropName);
             Expression<Func<User, object>> profileValue = u => EF.Property<object>(u.UserProfile, sortPropName);
             switch (propClass)
@@ -191,14 +207,67 @@ namespace Website.Service.Services
                     query = query.OrderBy(x => x.UserName);
                     break;
             }
+        }
 
-            // paginating
-            var totalUsers = await query.CountAsync();
-            query = query.Skip((page - 1) * pageCount).Take(pageCount);
+        private IQueryable<User> GetUsersByRoleAsQuery(RoleSelector rolePick)
+        {
+            this.ThrowIfDisposed();
 
-            var usersDto = await query.ProjectTo<UserDTO>(_mapper.ConfigurationProvider).ToListAsync();
+            var userSet = _dbContext.Set<User>();
+            var roleSet = _dbContext.Set<Role>();
+            var userRoleSet = _dbContext.Set<UserRole>();
 
-            return new SortPageResult<UserDTO> { FilteredData = usersDto, TotalN = totalUsers };
+            var anonymQuery = userRoleSet // можно проще с нав свойствами которые я добавил позже чем написал это
+                .Join(userSet, userRole => userRole.UserId, user => user.Id, (userRole, user) => new { user, userRole })
+                .Join(roleSet, userToUserRole => userToUserRole.userRole.RoleId, role => role.Id, (userToUserRole, role) => new { userToUserRole.user, role });
+
+            IQueryable<User> finalQuery;
+
+            switch (rolePick)
+            {
+                case RoleSelector.Administrators:
+                    finalQuery = anonymQuery
+                        .Where(x => x.role.Name == "admin")
+                        .Select(x => x.user);
+
+                    break;
+
+                case RoleSelector.Users:
+                    finalQuery = anonymQuery
+                        .Where(x => x.role.Name == "user")
+                        .Select(x => x.user);
+                    break;
+
+                default:
+                    finalQuery = anonymQuery
+                        .Where(x => x.role.Name == "user" || x.role.Name == "admin")
+                        .Select(x => x.user);
+                    break;
+            }
+
+            finalQuery = finalQuery
+                .Include(x => x.Claims)
+                .Include(x => x.UserProfile);
+
+            return finalQuery;
+        }
+
+        private IQueryable<User> SearchUsersQuery(string searchString, IQueryable<User> query)
+        {
+            this.ThrowIfDisposed();
+
+            if (!String.IsNullOrEmpty(searchString))
+            {
+                query = query.Where(x => x.UserName.Contains(searchString) ||
+                                         x.Email.Contains(searchString) ||
+                                         x.PhoneNumber != null && x.PhoneNumber.Contains(searchString) ||
+                                         x.UserProfile.FirstName != null && x.UserProfile.FirstName.Contains(searchString) ||
+                                         x.UserProfile.LastName != null && x.UserProfile.LastName.Contains(searchString) ||
+                                         x.UserProfile.PatrName != null && x.UserProfile.PatrName.Contains(searchString)
+                );
+            }
+
+            return query;
         }
 
         /// <summary>
@@ -256,9 +325,9 @@ namespace Website.Service.Services
                     throw new NotSupportedException("Current UserStore doesn't implement IUserRoleStore");
                 }
 
-                var roles = newClaims.Where(x => x.Type == ClaimTypes.Role).Select(x=>x.Value);
-                var userRoleList = await roleStore.GetRolesAsync(user, CancellationToken); 
-                var compResult = ChangeCompare(userRoleList, roles, x => x);
+                var roles = newClaims.Where(x => x.Type == ClaimTypes.Role).Select(x => x.Value);
+                var userRoleList = await roleStore.GetRolesAsync(user, CancellationToken);
+                var compResult = StoreHelpers.ChangeCompare(userRoleList, roles, x => x);
                 var rolesToRemove = compResult.Deleted;
                 var rolesToAdd = compResult.Inserted.Distinct();
 
@@ -286,7 +355,7 @@ namespace Website.Service.Services
 
                 var claims = newClaims.Where(x => x.Type != ClaimTypes.Role).ToList();
                 var userClaims = await GetClaimsAsync(user);
-                var claimCompResult = ChangeCompare(userClaims, claims, x=>x.Type);
+                var claimCompResult = StoreHelpers.ChangeCompare(userClaims, claims, x => x.Type);
                 var claimsToRemove = claimCompResult.Deleted;
                 var claimsToAdd = claimCompResult.Inserted.Distinct();
 
@@ -302,108 +371,7 @@ namespace Website.Service.Services
 
         #region helpers
 
-        private static ChangeResult<TSource> ChangeCompare<TSource, TKey>(IEnumerable<TSource> local, IEnumerable<TSource> remote, Func<TSource, TKey> keySelector)
-        {
-            if (local == null)
-                throw new ArgumentNullException(nameof(local));
-            if (remote == null)
-                throw new ArgumentNullException(nameof(remote));
-            if (keySelector == null)
-                throw new ArgumentNullException(nameof(keySelector));
-
-            var remoteKeyValues = remote.ToDictionary(keySelector);
-
-            var deleted = new List<TSource>();
-            var changed = new List<TSource>();
-            var localKeys = new HashSet<TKey>();
-
-            foreach (var localItem in local)
-            {
-                var localKey = keySelector(localItem);
-                localKeys.Add(localKey);
-
-                /* Check if primary key exists in both local and remote 
-                 * and if so check if changed, if not it has been deleted
-                 */
-                if (remoteKeyValues.TryGetValue(localKey, out var changeCandidate))
-                {
-                    if (!changeCandidate.Equals(localItem))
-                        changed.Add(changeCandidate);
-                }
-                else
-                {
-                    deleted.Add(localItem);
-                }
-            }
-            var inserted = remoteKeyValues
-                .Where(x => !localKeys.Contains(x.Key))
-                .Select(x => x.Value)
-                .ToList();
-
-            return new ChangeResult<TSource>(deleted, changed, inserted);
-        }
-
-        /// <summary>
-        /// Immutable class containing changes
-        /// </summary>
-        private sealed class ChangeResult<T>
-        {
-            public ChangeResult(IList<T> deleted, IList<T> changed, IList<T> inserted)
-            {
-                Deleted = new ReadOnlyCollection<T>(deleted);
-                Changed = new ReadOnlyCollection<T>(changed);
-                Inserted = new ReadOnlyCollection<T>(inserted);
-            }
-
-            public IList<T> Deleted { get; private set; }
-            public IList<T> Changed { get; private set; }
-            public IList<T> Inserted { get; private set; }
-        }
-
-        private IQueryable<User> GetUsersByRoleAsQuery(RoleSelector rolePick)
-        {
-            this.ThrowIfDisposed();
-
-            var userSet = _dbContext.Set<User>();
-            var roleSet = _dbContext.Set<Role>();
-            var userRoleSet = _dbContext.Set<UserRole>();
-
-            var anonymQuery = userRoleSet // можно проще с нав свойствами которые я добавил позже чем написал это
-                .Join(userSet, userRole => userRole.UserId, user => user.Id, (userRole, user) => new { user, userRole })
-                .Join(roleSet, userToUserRole => userToUserRole.userRole.RoleId, role => role.Id, (userToUserRole, role) => new { userToUserRole.user, role });
-
-            IQueryable<User> finalQuery;
-
-            switch (rolePick)
-            {
-                case RoleSelector.Administrators:
-                    finalQuery = anonymQuery
-                        .Where(x => x.role.Name == "admin")
-                        .Select(x => x.user);
-  
-                    break;
-
-                case RoleSelector.Users:
-                    finalQuery = anonymQuery
-                        .Where(x => x.role.Name == "user")
-                        .Select(x => x.user);
-                    break;
-
-                default:
-                    finalQuery = anonymQuery
-                        .Where(x => x.role.Name == "user" || x.role.Name == "admin")
-                        .Select(x => x.user);
-                    break;
-            }
-
-            finalQuery = finalQuery
-                .Include(x => x.Claims)
-                .Include(x => x.UserProfile);
-
-            return finalQuery;
-        }
-
-        protected async Task<IdentityResult> SetPasswordAsync(UserDTO user, string newPassword)
+        private async Task<IdentityResult> SetPasswordAsync(UserDTO user, string newPassword)
         {
             if (user == null)
             {
@@ -429,32 +397,6 @@ namespace Website.Service.Services
             await passwordStore.SetPasswordHashAsync(user, newPasswordHash, CancellationToken);
             await UpdateSecurityStampAsync(user);
             return IdentityResult.Success;
-        }
-
-        private PropertyCheckResult CheckIfPropertyExists(string sortPropName, params Type[] types)
-        {
-            foreach (var type in types)
-            {
-                var typeProps = type.GetProperties(System.Reflection.BindingFlags.Public
-                                                              | System.Reflection.BindingFlags.Instance
-                                                              | System.Reflection.BindingFlags.DeclaredOnly)
-                    .Select(x => x.Name).ToArray();
-                if (typeProps.Contains(sortPropName))
-                    return new PropertyCheckResult(true, type);
-            }
-            return new PropertyCheckResult(false);
-        }
-
-        private class PropertyCheckResult
-        {
-            public Type Type;
-            public bool Result;
-
-            public PropertyCheckResult(bool result, Type type = null)
-            {
-                Type = type;
-                Result = result;
-            }
         }
 
         #endregion
