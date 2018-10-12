@@ -149,21 +149,21 @@ namespace Website.Service.Services
             IQueryable<User> query = GetUsersByRoleAsQuery(roleSelector);
 
             // searching
-            SearchUsersQuery(searchString, query);
+            SearchUsersQuery(searchString, ref query);
 
             // ordering
-            OrderUserQuery(sortPropName, query);
+            OrderUserQuery(sortPropName, ref query);
 
             // paginating
             var totalUsers = await query.CountAsync();
             query = query.Skip((page - 1) * pageCount).Take(pageCount);
 
-            var usersDto = await query.ProjectTo<UserDTO>(_mapper.ConfigurationProvider).ToListAsync();
+            var usersDto = await query.ProjectTo<UserDTO>(_mapper.ConfigurationProvider).ToListAsync(CancellationToken);
 
             return new SortPageResult<UserDTO> { FilteredData = usersDto, TotalN = totalUsers };
         }
 
-        private void OrderUserQuery(string sortPropName, IQueryable<User> query)
+        private void OrderUserQuery(string sortPropName, ref IQueryable<User> query)
         {
             this.ThrowIfDisposed();
             if (sortPropName.IsNullOrEmpty())
@@ -252,7 +252,7 @@ namespace Website.Service.Services
             return finalQuery;
         }
 
-        private IQueryable<User> SearchUsersQuery(string searchString, IQueryable<User> query)
+        private IQueryable<User> SearchUsersQuery(string searchString, ref IQueryable<User> query)
         {
             this.ThrowIfDisposed();
 

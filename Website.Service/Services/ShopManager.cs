@@ -19,26 +19,24 @@ using Website.Service.Stores;
 
 namespace Website.Service.Services
 {
-    public sealed class ShopManager : IDisposable, IStoreManager
+    public class ShopManager : IDisposable, IStoreManager
     {
-        public ShopManager(IShopStore<ProductDTO, Product> store, ILogger<ShopManager> logger, /*DbContext dbContext,*/ IHttpContextAccessor context, IHostingEnvironment environment, StoreErrorDescriber errorDescriber = null)
+        public ShopManager(IShopStore<ProductDTO, Product> store, ILogger<ShopManager> logger, IHttpContextAccessor context, IHostingEnvironment environment, StoreErrorDescriber errorDescriber = null)
         {
-            Store = store ?? throw new ArgumentNullException(nameof(store));
-            Logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            ErrorDescriber = errorDescriber ?? new StoreErrorDescriber();
-            //_dbContext = dbContext ?? throw new ArgumentException(nameof(dbContext));
+            _store = store ?? throw new ArgumentNullException(nameof(store));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _errorDescriber = errorDescriber ?? new StoreErrorDescriber();
             _cancel = context?.HttpContext?.RequestAborted ?? CancellationToken.None;
-            HostingEnvironment = environment;
+            _hostingEnvironment = environment;
         }
-
-        //private readonly DbContext _dbContext; // DI scoped context
-        private IShopStore<ProductDTO, Product> Store;
-        private StoreErrorDescriber ErrorDescriber;
-        private ILogger<ShopManager> Logger;
-        private IHostingEnvironment HostingEnvironment;
+        
+        private readonly IShopStore<ProductDTO, Product> _store;
+        private readonly StoreErrorDescriber _errorDescriber;
+        private readonly ILogger<ShopManager> _logger;
+        private readonly IHostingEnvironment _hostingEnvironment;
         private readonly CancellationToken _cancel;
 
-        private CancellationToken CancellationToken
+        public CancellationToken CancellationToken
         {
             get { return this._cancel; }
         }
@@ -57,14 +55,14 @@ namespace Website.Service.Services
                 throw new ArgumentNullException(nameof(product));
             }
 
-            Store.AutoSaveChanges = false;
+            _store.AutoSaveChanges = false;
 
-            await Store.CreateProductAsync(product, CancellationToken);
+            await _store.CreateProductAsync(product, CancellationToken);
 
             if (!product.CategoryName.IsNullOrEmpty())
             {
                 //TODO add prod to cat
-                await Store.CreateCategoryAsync(product.CategoryName, CancellationToken);
+                await _store.CreateCategoryAsync(product.CategoryName, CancellationToken);
             }
 
             if (!product.Images.IsNullOrEmpty())
@@ -72,16 +70,15 @@ namespace Website.Service.Services
                 //TODO add images
             }
 
-            Store.AutoSaveChanges = true;
+            _store.AutoSaveChanges = true;
 
-            await Store.SaveChanges(CancellationToken);
+            await _store.SaveChanges(CancellationToken);
             return OperationResult.Success();
         }
 
         public async Task<SortPageResult<ProductDTO>> GetSortFilterPageAsync(ItemTypeSelector types, string searchString, string sortPropName, int currPage, int countPerPage)
         {
             ThrowIfDisposed();
-
             // check inputs
             if (sortPropName == null) throw new ArgumentNullException(nameof(sortPropName));
             if (countPerPage < 0) throw new ArgumentOutOfRangeException(nameof(countPerPage));
@@ -89,24 +86,24 @@ namespace Website.Service.Services
             if (!Enum.IsDefined(typeof(ItemTypeSelector), types))
                 throw new InvalidEnumArgumentException(nameof(ItemTypeSelector), (int)types, typeof(ItemTypeSelector));
 
-            IQueryable<Product> prodQuery = Store.ProductsQueryable;
+            IQueryable<Product> prodQuery = _store.ProductsQueryable;
 
             // filter roles
-            Store.FilterProducstTypeQuery(types, prodQuery);
+            _store.FilterProducstTypeQuery(types, ref prodQuery);
 
             // searching
-            Store.SearchProductsQuery(searchString, prodQuery);
+            _store.SearchProductsQuery(searchString, ref prodQuery);
 
             // ordering
-            Store.OrderProductsQuery(sortPropName, prodQuery);
+            _store.OrderProductsQuery(sortPropName, ref prodQuery);
 
             // paginating
             int skip = (currPage - 1) * countPerPage;
             int take = countPerPage;
-            int totalProductsN = await Store.CountThenSkipTakeQuery(skip, take, prodQuery, CancellationToken);
+            int totalProductsN = await _store.CountQueryAsync(prodQuery, CancellationToken);
+            _store.SkipTakeQuery(skip, take, ref prodQuery);
 
-            IEnumerable<ProductDTO> productsDto = await Store.ExecuteProductsQuery(prodQuery, CancellationToken);
-
+            IEnumerable<ProductDTO> productsDto = await _store.ExecuteProductsQuery(prodQuery, CancellationToken);
             return new SortPageResult<ProductDTO> { FilteredData = productsDto, TotalN = totalProductsN };
         }
 
@@ -128,7 +125,7 @@ namespace Website.Service.Services
 
             // free unmanaged resources (unmanaged objects) and override a finalizer below.
             // set large fields to null.
-            this.Store?.Dispose();
+            this._store?.Dispose();
             _disposed = true;
 
         }
@@ -136,7 +133,7 @@ namespace Website.Service.Services
         public void Dispose()
         {
             Dispose(true);
-            GC.SuppressFinalize(this);
+            //GC.SuppressFinalize(this);
         }
 
         #endregion

@@ -39,10 +39,11 @@ namespace Website.Service.Interfaces
         Task<OperationResult> RemoveCategoryAsync(string categoryName, CancellationToken cancellationToken = default(CancellationToken));
         Task<OperationResult> SaveImage(Bitmap image, string savePath, CancellationToken cancellationToken = default(CancellationToken));
         Task<OperationResult> RemoveImage(Bitmap image, string removePath, CancellationToken cancellationToken = default(CancellationToken));
-        void FilterProducstTypeQuery(ItemTypeSelector types, IQueryable<Product> prodQuery);
-        void SearchProductsQuery(string searchString, IQueryable<Product> prodQuery);
-        void OrderProductsQuery(string sortPropName, IQueryable<Product> prodQuery);
-        Task<int> CountThenSkipTakeQuery(int skip, int take, IQueryable<Product> prodQuery, CancellationToken cancellationToken = default(CancellationToken));
+        void FilterProducstTypeQuery(ItemTypeSelector types, ref IQueryable<Product> prodQuery);
+        void SearchProductsQuery(string searchString, ref IQueryable<Product> prodQuery);
+        void OrderProductsQuery(string sortPropName, ref IQueryable<Product> prodQuery);
+        Task<int> CountQueryAsync(IQueryable<Product> prodQuery, CancellationToken cancellationToken = default(CancellationToken));
+        void SkipTakeQuery(int skip, int take, ref IQueryable<Product> prodQuery);
         Task<IEnumerable<ProductDTO>> ExecuteProductsQuery(IQueryable<Product> prodQuery, CancellationToken cancellationToken = default(CancellationToken));
     }
 }

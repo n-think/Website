@@ -5,11 +5,13 @@ using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net.Mime;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Castle.Core.Internal;
 using Castle.DynamicProxy.Generators.Emitters.SimpleAST;
 using Microsoft.AspNetCore.Hosting;
@@ -239,7 +241,7 @@ namespace Website.Service.Stores
             return Task.FromResult(OperationResult.Success());
         }
 
-        public void FilterProducstTypeQuery(ItemTypeSelector types, IQueryable<Product> productQuery)
+        public void FilterProducstTypeQuery(ItemTypeSelector types, ref IQueryable<Product> productQuery)
         {
             ThrowIfDisposed();
             if (productQuery == null)
@@ -258,41 +260,56 @@ namespace Website.Service.Stores
             }
         }
 
-        public void SearchProductsQuery(string searchString, IQueryable<Product> prodQuery)
+        public void SearchProductsQuery(string searchString, ref IQueryable<Product> prodQuery)
         {
             this.ThrowIfDisposed();
 
             if (!String.IsNullOrEmpty(searchString))
             {
                 prodQuery = prodQuery.Where(x =>
-                    x.Name.Contains(searchString) || x.Description.Contains(searchString));
+                    x.Name.Contains(searchString) || x.Code.ToString().Contains(searchString));
             }
         }
 
-        public void OrderProductsQuery(string sortPropName, IQueryable<Product> prodQuery)
+        public void OrderProductsQuery(string sortPropName, ref IQueryable<Product> prodQuery)
         {
-            throw new NotImplementedException();
-
             this.ThrowIfDisposed();
             if (sortPropName.IsNullOrEmpty())
                 throw new ArgumentNullException(nameof(sortPropName));
 
+            bool descending = false;
+            if (sortPropName.EndsWith("_desc"))
+            {
+                sortPropName = sortPropName.Substring(0, sortPropName.Length - 5);
+                descending = true;
+            }
+
             var check = StoreHelpers.CheckIfPropertyExists(sortPropName, typeof(ProductDTO));
             if (!check.Result)
                 throw new ArgumentNullException(nameof(sortPropName));
-            
 
+            Expression<Func<Product, object>> property = p => EF.Property<object>(p, sortPropName);
+
+            if (descending)
+                prodQuery = prodQuery.OrderByDescending(property);
+            else
+                prodQuery = prodQuery.OrderBy(property);
         }
 
-        public Task<int> CountThenSkipTakeQuery(int skip, int take, IQueryable<Product> prodQuery,
+        public async Task<int> CountQueryAsync(IQueryable<Product> Query,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException();
+            return await Query.CountAsync(cancellationToken);
         }
 
-        public Task<IEnumerable<ProductDTO>> ExecuteProductsQuery(IQueryable<Product> prodQuery, CancellationToken cancellationToken = default(CancellationToken))
+        public void SkipTakeQuery(int skipN, int takeN, ref IQueryable<Product> prodQuery)
         {
-            throw new NotImplementedException();
+            prodQuery = prodQuery.Skip(skipN).Take(takeN);
+        }
+
+        public async Task<IEnumerable<ProductDTO>> ExecuteProductsQuery(IQueryable<Product> prodQuery, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return await prodQuery.ProjectTo<ProductDTO>(_mapper.ConfigurationProvider).ToListAsync(cancellationToken);
         }
 
         #endregion
@@ -306,7 +323,7 @@ namespace Website.Service.Stores
             if (categoryName.IsNullOrEmpty())
                 throw new ArgumentNullException(nameof(categoryName));
 
-
+            throw new NotImplementedException();
 
             return OperationResult.Success();
         }

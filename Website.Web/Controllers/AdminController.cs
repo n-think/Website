@@ -194,7 +194,7 @@ namespace Website.Web.Controllers
 
            SortPageResult<ProductDTO> result = await _storeManager.GetSortFilterPageAsync(types, search, sortOrder, currPage, countPerPage);
 
-            ViewBag.itemCount = 2;//result.TotalN;
+            ViewBag.itemCount = result.TotalN;
 
             var model = new ItemsViewModel()
             {
@@ -204,15 +204,10 @@ namespace Website.Web.Controllers
                 CurrentPage = currPage,
                 CountPerPage = countPerPage,
                 Types = (int)types,
-                ItemCount = 2,//result.TotalN,
-                Items = new ProductDTO[]
-                {
-                    new ProductDTO(){Name = "asd",Price = 123.32},
-                    new ProductDTO(){Name = "fghj", Price = 33.32, Enabled = true}
-                }//result.FilteredData
+                ItemCount = result.TotalN,
+                Items = result.FilteredData
             };
 
-            await Task.CompletedTask;
             return View(model);
         }
 
