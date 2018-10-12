@@ -20,7 +20,7 @@ namespace Website.Service.Stores
     /// of <see cref="T:Website.Data.EF.Models.User" /> with a string as a primary key.
     /// </summary>
     public class CustomUserStore : CustomUserStoreBase<UserDTO, User, RoleDTO, Role, UserClaim,
-        UserRole, UserLogin, UserToken, RoleClaim>
+        UserRole, UserLogin, UserToken, RoleClaim, UserProfileDTO, UserProfile>
     {
         public CustomUserStore(DbContext context, IMapper mapper, IdentityErrorDescriber describer = null)
             : base(context, mapper, describer)
@@ -40,7 +40,7 @@ namespace Website.Service.Stores
     /// <typeparam name="TDbUserLogin">The type representing a user external login in database.</typeparam>
     /// <typeparam name="TDbUserToken">The type representing a user token in database.</typeparam>
     /// <typeparam name="TDbRoleClaim">The type representing a role claim in database.</typeparam>
-    public class CustomUserStoreBase<TDtoUser, TDbUser, TDtoRole, TDbRole, TDbUserClaim, TDbUserRole, TDbUserLogin, TDbUserToken, TDbRoleClaim> :
+    public class CustomUserStoreBase<TDtoUser, TDbUser, TDtoRole, TDbRole, TDbUserClaim, TDbUserRole, TDbUserLogin, TDbUserToken, TDbRoleClaim, TDtoUserProfile, TDbUserProfile> :
             IUserStore<TDtoUser>,
             IUserPasswordStore<TDtoUser>,
             IUserEmailStore<TDtoUser>,
@@ -51,13 +51,16 @@ namespace Website.Service.Stores
             IUserAuthenticationTokenStore<TDtoUser>,
             IUserTwoFactorStore<TDtoUser>,
             IUserPhoneNumberStore<TDtoUser>,
-            IUserLockoutStore<TDtoUser>
-            //,IQueryableUserStore<TUser> не получится через dto
+            IUserLockoutStore<TDtoUser>,
+            IUserProfileStore<TDtoUserProfile>
+        //,IQueryableUserStore<TUser> не получится через dto
 
         where TDtoUser : UserDTO
         where TDbUser : User
         where TDtoRole : RoleDTO
         where TDbRole : Role
+        where TDtoUserProfile : UserProfileDTO
+        where TDbUserProfile : UserProfile, new()
         where TDbUserClaim : UserClaim, new()
         where TDbUserRole : UserRole, new()
         where TDbUserLogin : UserLogin, new()
@@ -222,7 +225,9 @@ namespace Website.Service.Stores
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
             var id = userId;
-            var dbUser = UsersSet.FindAsync(new object[] { id }, cancellationToken);
+            Context.ChangeTracker.LazyLoadingEnabled = true;
+            //var dbUser = UsersSet.FindAsync(new object[] { id }, cancellationToken);
+            var dbUser = UsersSet.Include(x => x.UserProfile).FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
             return dbUser == null ? Task.FromResult<TDtoUser>(null) : _mapper.Map<Task<TDtoUser>>(dbUser);
         }
 
@@ -238,7 +243,8 @@ namespace Website.Service.Stores
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
-            var dbUser = UsersSet.FirstOrDefaultAsync(u => u.NormalizedUserName == normalizedUserName, cancellationToken);
+            //var dbUser = UsersSet.FirstOrDefaultAsync(u => u.NormalizedUserName == normalizedUserName, cancellationToken);
+            var dbUser = UsersSet.Include(x => x.UserProfile).FirstOrDefaultAsync(u => u.NormalizedUserName == normalizedUserName, cancellationToken);
             return dbUser == null ? Task.FromResult<TDtoUser>(null) : _mapper.Map<Task<TDtoUser>>(dbUser);
         }
 
@@ -273,7 +279,8 @@ namespace Website.Service.Stores
         /// <returns>The user if it exists.</returns>
         protected virtual Task<TDbUser> FindUserAsync(string userId, CancellationToken cancellationToken)
         {
-            return UsersSet.SingleOrDefaultAsync(u => u.Id.Equals(userId), cancellationToken);
+            //return UsersSet.SingleOrDefaultAsync(u => u.Id.Equals(userId), cancellationToken);
+            return UsersSet.Include(x => x.UserProfile).SingleOrDefaultAsync(u => u.Id.Equals(userId), cancellationToken);
         }
 
         /// <summary>
@@ -639,7 +646,8 @@ namespace Website.Service.Stores
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
-            var dbUser = UsersSet.FirstOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail, cancellationToken);
+            //var dbUser = UsersSet.FirstOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail, cancellationToken);
+            var dbUser = UsersSet.Include(x => x.UserProfile).FirstOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail, cancellationToken);
             return dbUser == null ? Task.FromResult<TDtoUser>(null) : _mapper.Map<Task<TDtoUser>>(dbUser);
         }
 
@@ -1493,6 +1501,21 @@ namespace Website.Service.Stores
                 return true;
             }
             return false;
+        }
+
+        public async Task<TDtoUserProfile> FindProfileByUserIdAsync(string userId, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+
+            var profileSet = Context.Set<TDbUserProfile>();
+            var dbProfile = await profileSet.FindAsync(new object[] { userId }, cancellationToken);
+            if (dbProfile == null)
+            {
+                return null;
+            }
+            var dtoProfile = _mapper.Map<TDtoUserProfile>(dbProfile);
+            return dtoProfile;
         }
 
         /// <summary>

@@ -24,7 +24,7 @@ using Website.Service.Stores;
 
 namespace Website.Service.Services
 {
-    //TODO refactor using store
+    //TODO refactor using store (then remove mapper, dbcontext)
 
     public class UserManager : AspNetUserManager<UserDTO>, IUserManager
     {
@@ -55,8 +55,6 @@ namespace Website.Service.Services
         }
 
         private readonly DbContext _dbContext; // DI scoped context
-
-        //TODO remove mapper, add store.ExecuteQuery
         private readonly IMapper _mapper; //DI
 
         /// <summary>
@@ -70,7 +68,6 @@ namespace Website.Service.Services
 
             if (userProfileDto?.Login == null) return OperationResult.Failure("Некорректный профиль.", nameof(userProfileDto));
 
-            //TODO use store for db ops
             var userDbSet = _dbContext.Set<User>();
 
             var user = await userDbSet.Where(x => x.NormalizedUserName == userProfileDto.Login.ToUpper()).Include(x => x.UserProfile).FirstOrDefaultAsync();
@@ -111,7 +108,6 @@ namespace Website.Service.Services
         {
             this.ThrowIfDisposed();
             // check inputs
-
             if (!Enum.IsDefined(typeof(RoleSelector), roleSelector))
                 throw new InvalidEnumArgumentException(nameof(roleSelector), (int)roleSelector, typeof(RoleSelector));
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
@@ -134,10 +130,7 @@ namespace Website.Service.Services
 
         public async Task<SortPageResult<UserDTO>> GetSortFilterPageAsync(RoleSelector roleSelector, string searchString, string sortPropName, int page, int pageCount)
         {
-            //TODO delegate implementation to store? and get rid of dbcontext in manager
-
             ThrowIfDisposed();
-
             // check inputs
             if (sortPropName == null) throw new ArgumentNullException(nameof(sortPropName));
             if (pageCount < 0) throw new ArgumentOutOfRangeException(nameof(pageCount));
@@ -283,7 +276,7 @@ namespace Website.Service.Services
             var user = set.FirstOrDefault(x => x.UserName == userLogin);
             if (user == null)
             {
-                Logger.LogError("Попытка зарегистрировать активность несущeствующего пользователя"); //lul
+                //Logger.LogError("Попытка зарегистрировать активность несущeствующего пользователя"); //lul
                 return;
             }
             user.LastActivityDate = DateTimeOffset.Now;
@@ -300,7 +293,7 @@ namespace Website.Service.Services
         /// <returns></returns>
         public async Task<IdentityResult> UpdateUserPasswordClaims(UserDTO user, string newPassword, IEnumerable<Claim> newClaims)
         {
-            //TODO tests
+            //TODO tests?
             //TODO refactor into smaller methods
 
             if (user == null) throw new ArgumentNullException(nameof(user));
@@ -367,6 +360,19 @@ namespace Website.Service.Services
 
             //update user return result
             return await UpdateAsync(user);
+        }
+
+        public async Task<UserProfileDTO> FindProfileByUserIdAsync(string userId)
+        {
+            ThrowIfDisposed();
+            if (userId.IsNullOrEmpty())
+                throw new ArgumentNullException(nameof(userId));
+            var profileStore = Store as IUserProfileStore<UserProfileDTO>;
+            if (profileStore == null)
+            {
+                throw new NotSupportedException("Current UserStore doesn't implement IUserProfileStore");
+            }
+            return await profileStore.FindProfileByUserIdAsync(userId, CancellationToken);
         }
 
         #region helpers

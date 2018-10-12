@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Globalization;
@@ -45,7 +46,7 @@ namespace Website.Service.Stores
     /// </summary>
     /// <typeparam name="TDtoProduct">The type representing a dto product.</typeparam>
     /// <typeparam name="TDbProduct">The type representing a product in database.</typeparam>
-    public class ShopStoreBase<TDtoProduct, TDbProduct, TDbCategory> : IShopStore<TDtoProduct, TDbProduct>, IDisposable
+    public class ShopStoreBase<TDtoProduct, TDbProduct, TDbCategory> : IShopStore<TDtoProduct>, IDisposable
         where TDtoProduct : ProductDTO
         where TDbProduct : Product
         where TDbCategory : Category, new()
@@ -83,8 +84,6 @@ namespace Website.Service.Stores
         /// </value>
         public bool AutoSaveChanges { get; set; } = true;
 
-        public IQueryable<TDbProduct> ProductsQueryable { get => ProductsSet.AsQueryable(); }
-
         /// <summary>Saves the current store.</summary>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation.</returns>
@@ -108,15 +107,29 @@ namespace Website.Service.Stores
             return OperationResult.Success();
         }
 
-        public async Task<TDtoProduct> FindProductByIdAsync(string productId, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<TDtoProduct> FindProductByIdAsync(int productId, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
-            if (productId.IsNullOrEmpty())
-                throw new ArgumentNullException(nameof(productId));
+            
+            var product = await ProductsSet
+                .Where(x=>x.Id==productId)
+                .Include(x => x.Descriptions)
+                .Include(x=>x.ProductCategory)
+                .ThenInclude(x=>x.Category)
+                .FirstAsync(cancellationToken);
 
-            var product = await ProductsSet.FindAsync(new object[] { productId }, cancellationToken);
-            return product == null ? null : _mapper.Map<TDtoProduct>(product);
+            if (product == null)
+            {
+                return null;
+            }
+            var dto = _mapper.Map<TDtoProduct>(product);
+            foreach (var productToCategory in product.ProductCategory)
+            {
+                var cat = _mapper.Map<CategoryDTO>(productToCategory.Category);
+                dto.Categories.Add(cat);
+            }
+            return dto;
         }
 
         public async Task<OperationResult> UpdateProductAsync(TDtoProduct product, CancellationToken cancellationToken = default(CancellationToken))
@@ -132,12 +145,10 @@ namespace Website.Service.Stores
             return OperationResult.Success();
         }
 
-        public async Task<OperationResult> RemoveProductAsync(string productId, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<OperationResult> RemoveProductAsync(int productId, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
-            if (productId.IsNullOrEmpty())
-                throw new ArgumentNullException(nameof(productId));
 
             var entry = await ProductsSet.FindAsync(new object[] { productId }, cancellationToken);
             if (entry != null)
@@ -241,12 +252,48 @@ namespace Website.Service.Stores
             return Task.FromResult(OperationResult.Success());
         }
 
-        public void FilterProducstTypeQuery(ItemTypeSelector types, ref IQueryable<Product> productQuery)
+
+        #endregion
+
+        public async Task<SortPageResult<ProductDTO>> SortFilterPageResultAsync(ItemTypeSelector types, string searchString, string sortPropName, int currPage,
+            int countPerPage, CancellationToken cancellationToken = default(CancellationToken))
         {
             ThrowIfDisposed();
-            if (productQuery == null)
-                throw new ArgumentNullException(nameof(productQuery));
+            // check inputs
+            if (sortPropName == null) throw new ArgumentNullException(nameof(sortPropName));
+            if (countPerPage < 0) throw new ArgumentOutOfRangeException(nameof(countPerPage));
+            if (currPage < 0) throw new ArgumentOutOfRangeException(nameof(currPage));
+            if (!Enum.IsDefined(typeof(ItemTypeSelector), types))
+                throw new InvalidEnumArgumentException(nameof(ItemTypeSelector), (int)types, typeof(ItemTypeSelector));
 
+            IQueryable<Product> prodQuery = ProductsSet.AsQueryable();
+
+            // filter roles
+            FilterProducstTypeQuery(types, ref prodQuery);
+
+            // searching
+            SearchProductsQuery(searchString, ref prodQuery);
+
+            // ordering
+            OrderProductsQuery(sortPropName, ref prodQuery);
+
+            // paginating
+            PaginateProductsQuery(currPage, countPerPage, ref prodQuery);
+
+            int totalProductsN = await prodQuery.CountAsync(cancellationToken);
+            var productsDto = await prodQuery.ProjectTo<ProductDTO>(_mapper.ConfigurationProvider).ToListAsync(cancellationToken);
+            return new SortPageResult<ProductDTO> { FilteredData = productsDto, TotalN = totalProductsN };
+        }
+
+        private void PaginateProductsQuery(int currPage, int countPerPage, ref IQueryable<Product> prodQuery)
+        {
+            int skip = (currPage - 1) * countPerPage;
+            int take = countPerPage;
+            prodQuery = prodQuery.Skip(skip).Take(take);
+        }
+
+        private void FilterProducstTypeQuery(ItemTypeSelector types, ref IQueryable<Product> productQuery)
+        {
             switch (types)
             {
                 case ItemTypeSelector.Enabled:
@@ -260,10 +307,8 @@ namespace Website.Service.Stores
             }
         }
 
-        public void SearchProductsQuery(string searchString, ref IQueryable<Product> prodQuery)
+        private void SearchProductsQuery(string searchString, ref IQueryable<Product> prodQuery)
         {
-            this.ThrowIfDisposed();
-
             if (!String.IsNullOrEmpty(searchString))
             {
                 prodQuery = prodQuery.Where(x =>
@@ -271,12 +316,8 @@ namespace Website.Service.Stores
             }
         }
 
-        public void OrderProductsQuery(string sortPropName, ref IQueryable<Product> prodQuery)
+        private void OrderProductsQuery(string sortPropName, ref IQueryable<Product> prodQuery)
         {
-            this.ThrowIfDisposed();
-            if (sortPropName.IsNullOrEmpty())
-                throw new ArgumentNullException(nameof(sortPropName));
-
             bool descending = false;
             if (sortPropName.EndsWith("_desc"))
             {
@@ -286,7 +327,7 @@ namespace Website.Service.Stores
 
             var check = StoreHelpers.CheckIfPropertyExists(sortPropName, typeof(ProductDTO));
             if (!check.Result)
-                throw new ArgumentNullException(nameof(sortPropName));
+                throw new ArgumentException(nameof(sortPropName));
 
             Expression<Func<Product, object>> property = p => EF.Property<object>(p, sortPropName);
 
@@ -296,25 +337,8 @@ namespace Website.Service.Stores
                 prodQuery = prodQuery.OrderBy(property);
         }
 
-        public async Task<int> CountQueryAsync(IQueryable<Product> Query,
-            CancellationToken cancellationToken = default(CancellationToken))
-        {
-            return await Query.CountAsync(cancellationToken);
-        }
 
-        public void SkipTakeQuery(int skipN, int takeN, ref IQueryable<Product> prodQuery)
-        {
-            prodQuery = prodQuery.Skip(skipN).Take(takeN);
-        }
-
-        public async Task<IEnumerable<ProductDTO>> ExecuteProductsQuery(IQueryable<Product> prodQuery, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            return await prodQuery.ProjectTo<ProductDTO>(_mapper.ConfigurationProvider).ToListAsync(cancellationToken);
-        }
-
-        #endregion
-
-        public async Task<OperationResult> AddProductToCategory(ProductDTO product, string categoryName, CancellationToken cancellationToken = default(CancellationToken))
+        private async Task<OperationResult> AddProductToCategory(ProductDTO product, string categoryName, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -327,6 +351,7 @@ namespace Website.Service.Stores
 
             return OperationResult.Success();
         }
+
         protected void ThrowIfDisposed()
         {
             if (_disposed)

@@ -28,16 +28,16 @@ namespace Website.Web.Controllers
         private readonly IMapper _mapper;
         private readonly IdentityErrorDescriber _errorDescriber;
         private readonly SignInManager _signInManager;
-        private readonly IStoreManager _storeManager;
+        private readonly IShopManager _shopManager;
 
-        public AdminController(IUserManager userManager, IStoreManager storeManager, RoleManager roleManager, SignInManager signInManager, IMapper mapper, IdentityErrorDescriber describer = null)
+        public AdminController(IUserManager userManager, IShopManager shopManager, RoleManager roleManager, SignInManager signInManager, IMapper mapper, IdentityErrorDescriber describer = null)
         {
             _errorDescriber = describer ?? new IdentityErrorDescriber();
             _userManager = userManager;
             _roleManager = roleManager;
             _signInManager = signInManager;
             _mapper = mapper;
-            _storeManager = storeManager;
+            _shopManager = shopManager;
         }
         public IActionResult Index()
         {
@@ -192,7 +192,7 @@ namespace Website.Web.Controllers
             var currPage = page ?? 1;
             var countPerPage = pageCount ?? 30; // get from client js?
 
-           SortPageResult<ProductDTO> result = await _storeManager.GetSortFilterPageAsync(types, search, sortOrder, currPage, countPerPage);
+           SortPageResult<ProductDTO> result = await _shopManager.GetSortFilterPageAsync(types, search, sortOrder, currPage, countPerPage);
 
             ViewBag.itemCount = result.TotalN;
 
@@ -213,9 +213,9 @@ namespace Website.Web.Controllers
 
         [HttpGet]
         [Authorize(Policy = "ViewItems")]
-        public async Task<IActionResult> ViewItem()
+        public async Task<IActionResult> ViewItem(int id)
         {
-            await Task.CompletedTask;
+            var prod = await _shopManager.GetProductById(id);
             return View();
         }
 

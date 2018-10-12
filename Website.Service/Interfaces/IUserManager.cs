@@ -26,5 +26,6 @@ namespace Website.Service.Interfaces
         Task<SortPageResult<UserDTO>> GetSortFilterPageAsync(RoleSelector roleSelector, string searchString, string sortOrder, int page, int count);
         Task LogUserActivity(string userLogin);
         Task<IdentityResult> UpdateUserPasswordClaims(UserDTO user, string newPassword, IEnumerable<Claim> claims);
+        Task<UserProfileDTO> FindProfileByUserIdAsync(string userId);
     }
 }

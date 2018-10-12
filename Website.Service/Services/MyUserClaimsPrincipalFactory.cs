@@ -25,18 +25,14 @@ namespace Website.Service.Services
         protected override async Task<ClaimsIdentity> GenerateClaimsAsync(UserDTO user)
         {
             var identity = await base.GenerateClaimsAsync(user);
-
             //
             //Ниже добавлять свои клеймы которые добавятся при логине в куки
             //
-
             identity.AddClaim(new Claim("Email", user.Email));
-
-            //тут лениво загружается профиль, чтобы убрать ленивую загрузку надо сделать свой user manager который будет явно загружать профиль
-            //или хранить данные профиля вместо с логинами
-            identity.AddClaim(new Claim("FullName", user.UserProfile?.FullName ?? ""));
-            var asd = user.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
+            var userProfile = await _userManager.FindProfileByUserIdAsync(user.Id);
+            identity.AddClaim(new Claim("FullName", userProfile?.FullName ?? ""));
             await _userManager.LogUserActivity(user.UserName);
+
             return identity;
         }
     }

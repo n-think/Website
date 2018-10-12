@@ -11,6 +11,7 @@ namespace Website.Data.EF.Models
         public WebsiteDbContext(DbContextOptions<WebsiteDbContext> options)
             : base(options)
         {
+            ChangeTracker.LazyLoadingEnabled = false; // /* DbContext.ChangeTracker.LazyLoadingEnabled = true чтобы включать там где надо */
         }
 
         public virtual DbSet<User> Users { get; set; }

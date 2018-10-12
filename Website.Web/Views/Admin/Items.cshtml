@@ -41,10 +41,6 @@
             </th>
             <th class="col-sm-1">
                 <sort-header action="Items" search="@Model.CurrentSearch" selector="@Model.Types" descending="@Model.Descending" current="@Model.CurrentSortOrder"
-                             property="CategoryName" content="@Html.DisplayNameFor(x => x.Items.First().CategoryName)" />
-            </th>
-            <th class="col-sm-1">
-                <sort-header action="Items" search="@Model.CurrentSearch" selector="@Model.Types" descending="@Model.Descending" current="@Model.CurrentSortOrder"
                              property="Stock" content="@Html.DisplayNameFor(x => x.Items.First().Stock)" />
             </th>
             <th class="col-sm-1">
@@ -67,7 +63,6 @@
                 <td>@Html.DisplayFor(m => item.Enabled)</td>
                 <td>@Html.DisplayFor(m => item.Added.DateTime)</td>
                 <td>@Html.DisplayFor(m => item.Changed.DateTime)</td>
-                <td>@Html.DisplayFor(m => item.CategoryName)</td>
                 <td>@Html.DisplayFor(m => item.Stock)</td>
                 <td>@Html.DisplayFor(m => item.Reserved)</td>
                 <td>@Html.DisplayFor(m => item.Price)</td>

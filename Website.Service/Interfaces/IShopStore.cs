@@ -11,9 +11,8 @@ using Website.Service.Infrastructure;
 
 namespace Website.Service.Interfaces
 {
-    public interface IShopStore<TDtoProduct, TDbProduct> : IDisposable
+    public interface IShopStore<TDtoProduct> : IDisposable
         where TDtoProduct : class
-        where TDbProduct : class
     {
         /// <summary>
         /// Gets or sets a flag indicating if changes should be persisted after CreateAsync, UpdateAsync and DeleteAsync are called.
@@ -23,27 +22,21 @@ namespace Website.Service.Interfaces
         /// </value>
         bool AutoSaveChanges { get; set; }
 
-        IQueryable<TDbProduct> ProductsQueryable { get; }
-
         /// <summary>Saves the current store.</summary>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation.</returns>
         Task SaveChanges(CancellationToken cancellationToken);
 
-        Task<OperationResult> CreateProductAsync(TDtoProduct product, CancellationToken cancellationToken = default(CancellationToken));
-        Task<TDtoProduct> FindProductByIdAsync(string productId, CancellationToken cancellationToken = default(CancellationToken));
-        Task<OperationResult> UpdateProductAsync(TDtoProduct product, CancellationToken cancellationToken = default(CancellationToken));
-        Task<OperationResult> RemoveProductAsync(string productId, CancellationToken cancellationToken = default(CancellationToken));
-        Task<OperationResult> CreateCategoryAsync(string categoryName, CancellationToken cancellationToken = default(CancellationToken));
-        Task<bool> FindCategoryByNameAsync(string categoryName, CancellationToken cancellationToken = default(CancellationToken));
-        Task<OperationResult> RemoveCategoryAsync(string categoryName, CancellationToken cancellationToken = default(CancellationToken));
-        Task<OperationResult> SaveImage(Bitmap image, string savePath, CancellationToken cancellationToken = default(CancellationToken));
-        Task<OperationResult> RemoveImage(Bitmap image, string removePath, CancellationToken cancellationToken = default(CancellationToken));
-        void FilterProducstTypeQuery(ItemTypeSelector types, ref IQueryable<Product> prodQuery);
-        void SearchProductsQuery(string searchString, ref IQueryable<Product> prodQuery);
-        void OrderProductsQuery(string sortPropName, ref IQueryable<Product> prodQuery);
-        Task<int> CountQueryAsync(IQueryable<Product> prodQuery, CancellationToken cancellationToken = default(CancellationToken));
-        void SkipTakeQuery(int skip, int take, ref IQueryable<Product> prodQuery);
-        Task<IEnumerable<ProductDTO>> ExecuteProductsQuery(IQueryable<Product> prodQuery, CancellationToken cancellationToken = default(CancellationToken));
+        Task<OperationResult> CreateProductAsync(TDtoProduct product, CancellationToken cancellationToken);
+        Task<TDtoProduct> FindProductByIdAsync(int productId, CancellationToken cancellationToken);
+        Task<OperationResult> UpdateProductAsync(TDtoProduct product, CancellationToken cancellationToken);
+        Task<OperationResult> RemoveProductAsync(int productId, CancellationToken cancellationToken);
+        Task<OperationResult> CreateCategoryAsync(string categoryName, CancellationToken cancellationToken);
+        Task<bool> FindCategoryByNameAsync(string categoryName, CancellationToken cancellationToken);
+        Task<OperationResult> RemoveCategoryAsync(string categoryName, CancellationToken cancellationToken);
+        Task<OperationResult> SaveImage(Bitmap image, string savePath, CancellationToken cancellationToken);
+        Task<OperationResult> RemoveImage(Bitmap image, string removePath, CancellationToken cancellationToken);
+        Task<SortPageResult<ProductDTO>> SortFilterPageResultAsync(ItemTypeSelector types, string searchString, string sortPropName,
+            int currentPage, int countPerPage, CancellationToken cancellationToken);
     }
 }

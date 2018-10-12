@@ -7,6 +7,10 @@ namespace Website.Service.DTO
 {
     public class ProductDTO
     {
+        public ProductDTO()
+        {
+            Categories = new List<CategoryDTO>();
+        }
         public int Id { get; set; }
         [Display(Name = "Название")]
         public string Name { get; set; }
@@ -30,8 +34,7 @@ namespace Website.Service.DTO
 
         //category
         [Display(Name = "Категория")]
-        public string CategoryName { get; set; }
-        //images
-        public byte[][] Images { get; set; }
+        public List<CategoryDTO> Categories { get; set; }
+
     }
 }

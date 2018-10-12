@@ -8,44 +8,36 @@ using System.Threading.Tasks;
 using Castle.Core.Internal;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Website.Data.EF.Models;
 using Website.Service.DTO;
 using Website.Service.Enums;
 using Website.Service.Infrastructure;
 using Website.Service.Interfaces;
-using Website.Service.Stores;
 
 namespace Website.Service.Services
 {
-    public class ShopManager : IDisposable, IStoreManager
+    public class ShopManager : IDisposable, IShopManager
     {
-        public ShopManager(IShopStore<ProductDTO, Product> store, ILogger<ShopManager> logger, IHttpContextAccessor context, IHostingEnvironment environment, StoreErrorDescriber errorDescriber = null)
+        public ShopManager(IShopStore<ProductDTO> store, ILogger<ShopManager> logger, IHttpContextAccessor context, IHostingEnvironment environment, StoreErrorDescriber errorDescriber = null)
         {
             _store = store ?? throw new ArgumentNullException(nameof(store));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _errorDescriber = errorDescriber ?? new StoreErrorDescriber();
-            _cancel = context?.HttpContext?.RequestAborted ?? CancellationToken.None;
+            CancellationToken = context?.HttpContext?.RequestAborted ?? CancellationToken.None;
             _hostingEnvironment = environment;
         }
-        
-        private readonly IShopStore<ProductDTO, Product> _store;
+
+        private readonly IShopStore<ProductDTO> _store;
         private readonly StoreErrorDescriber _errorDescriber;
         private readonly ILogger<ShopManager> _logger;
         private readonly IHostingEnvironment _hostingEnvironment;
-        private readonly CancellationToken _cancel;
 
-        public CancellationToken CancellationToken
-        {
-            get { return this._cancel; }
-        }
+        public CancellationToken CancellationToken { get; }
 
         /// <summary>
         /// Creates product with images and category in db.
         /// </summary>
         /// <param name="product"></param>
-        /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public async Task<OperationResult> CreateItemAsync(ProductDTO product)
         {
@@ -59,10 +51,10 @@ namespace Website.Service.Services
 
             await _store.CreateProductAsync(product, CancellationToken);
 
-            if (!product.CategoryName.IsNullOrEmpty())
+            if (!product.Categories.IsNullOrEmpty())
             {
                 //TODO add prod to cat
-                await _store.CreateCategoryAsync(product.CategoryName, CancellationToken);
+                //await _store.CreateCategoryAsync(product.CategoryName, CancellationToken);
             }
 
             if (!product.Images.IsNullOrEmpty())
@@ -86,25 +78,16 @@ namespace Website.Service.Services
             if (!Enum.IsDefined(typeof(ItemTypeSelector), types))
                 throw new InvalidEnumArgumentException(nameof(ItemTypeSelector), (int)types, typeof(ItemTypeSelector));
 
-            IQueryable<Product> prodQuery = _store.ProductsQueryable;
+            SortPageResult<ProductDTO> result = await
+                _store.SortFilterPageResultAsync(types, searchString, sortPropName, currPage, countPerPage, CancellationToken);
 
-            // filter roles
-            _store.FilterProducstTypeQuery(types, ref prodQuery);
+            return result;
+        }
 
-            // searching
-            _store.SearchProductsQuery(searchString, ref prodQuery);
-
-            // ordering
-            _store.OrderProductsQuery(sortPropName, ref prodQuery);
-
-            // paginating
-            int skip = (currPage - 1) * countPerPage;
-            int take = countPerPage;
-            int totalProductsN = await _store.CountQueryAsync(prodQuery, CancellationToken);
-            _store.SkipTakeQuery(skip, take, ref prodQuery);
-
-            IEnumerable<ProductDTO> productsDto = await _store.ExecuteProductsQuery(prodQuery, CancellationToken);
-            return new SortPageResult<ProductDTO> { FilteredData = productsDto, TotalN = totalProductsN };
+        public async Task<ProductDTO> GetProductById(int id)
+        {
+            ThrowIfDisposed();
+            return await _store.FindProductByIdAsync(id, CancellationToken);
         }
 
         /// <summary>Throws if this class has been disposed.</summary>
