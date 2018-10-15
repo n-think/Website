@@ -32,9 +32,12 @@ namespace Website.Service.DTO
         public DateTimeOffset Changed { get; set; }
         public byte[] Timestamp { get; set; }
 
-        //category
+        //categories
         [Display(Name = "Категория")]
         public List<CategoryDTO> Categories { get; set; }
+        //images
+        [ScaffoldColumn(false)]
+        public ProductImageDTO[] Images { get; set; }
 
     }
 }

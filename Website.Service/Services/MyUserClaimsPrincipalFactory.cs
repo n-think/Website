@@ -29,8 +29,7 @@ namespace Website.Service.Services
             //Ниже добавлять свои клеймы которые добавятся при логине в куки
             //
             identity.AddClaim(new Claim("Email", user.Email));
-            var userProfile = await _userManager.FindProfileByUserIdAsync(user.Id);
-            identity.AddClaim(new Claim("FullName", userProfile?.FullName ?? ""));
+            identity.AddClaim(new Claim("FullName", user?.UserProfile?.FullName ?? ""));
             await _userManager.LogUserActivity(user.UserName);
 
             return identity;

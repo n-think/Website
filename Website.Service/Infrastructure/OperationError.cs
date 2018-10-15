@@ -5,7 +5,7 @@ using System.Text;
 namespace Website.Service.Infrastructure
 {
     /// <summary>Encapsulates an error from the store subsystem.</summary>
-    public class StoreError
+    public class OperationError
     {
         /// <summary>Gets or sets the code for this error.</summary>
         /// <value>The code for this error.</value>

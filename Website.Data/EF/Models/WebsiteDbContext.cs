@@ -26,6 +26,7 @@ namespace Website.Data.EF.Models
         public virtual DbSet<DescriptionGroup> DescriptionGroups { get; set; }
         public virtual DbSet<Description> Descriptions { get; set; }
         public virtual DbSet<Product> Products { get; set; }
+        public virtual DbSet<ProductImage> ProductImages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -38,6 +39,14 @@ namespace Website.Data.EF.Models
                 entity.HasOne(e => e.Parent)
                     .WithMany(e => e.Children)
                     .HasForeignKey(e => e.ParentId);
+            });
+
+            modelBuilder.Entity<ProductImage>(entity =>
+            {
+                entity.Property(e => e.Format).HasMaxLength(10);
+                entity.HasIndex(e => new {e.ProductId, e.Primary})
+                    .HasFilter("[Primary] = 1 AND [ProductId] IS NOT Null")
+                    .IsUnique();
             });
 
             modelBuilder.Entity<DescriptionGroup>(entity =>
@@ -76,6 +85,11 @@ namespace Website.Data.EF.Models
 
                 entity.Property(x => x.Timestamp)
                     .IsRowVersion();
+
+                entity.HasMany(e => e.Images)
+                    .WithOne(e => e.Product)
+                    .HasForeignKey(e => e.ProductId)
+                    .OnDelete(DeleteBehavior.SetNull);
             });
 
             modelBuilder.Entity<User>(entity =>

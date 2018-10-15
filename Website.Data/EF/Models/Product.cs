@@ -10,6 +10,7 @@ namespace Website.Data.EF.Models
         {
             Descriptions = new HashSet<Description>();
             ProductCategory = new HashSet<ProductToCategory>();
+            Images = new HashSet<ProductImage>();
         }
 
         public int Id { get; set; }
@@ -26,5 +27,6 @@ namespace Website.Data.EF.Models
 
         public virtual ICollection<Description> Descriptions { get; set; }
         public virtual ICollection<ProductToCategory> ProductCategory { get; set; }
+        public virtual ICollection<ProductImage> Images { get; set; }
     }
 }

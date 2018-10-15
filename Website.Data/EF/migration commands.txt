@@ -1,2 +1,3 @@
 ﻿Add-Migration Initial -Project Website.Data -Output EF/Migrations
+Remove-Migration -Project Website.Data
 Add-Migration Initial -Project projectName -Output projectName/ProjectFolder

@@ -216,7 +216,7 @@ namespace Website.Web.Controllers
         public async Task<IActionResult> ViewItem(int id)
         {
             var prod = await _shopManager.GetProductById(id);
-            return View();
+            return View(prod);
         }
 
         [HttpGet]

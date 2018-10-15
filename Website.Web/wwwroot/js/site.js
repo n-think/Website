@@ -12,6 +12,11 @@ function stickyNavbar() {
     }
 }
 
+function image_select(img) {
+    var newSrc = img.src.slice(0, img.src.length - 6) + ".jpg";
+    $("#item-image-view")[0].src = newSrc;
+}
+
 
 $("#role-selector").change(function () {
     if ($(this).val() === "admin") {
@@ -43,7 +48,7 @@ $(".admin-options input:checkbox, .admin-options label").click(function () {
         $("." + "edit" + "." + group + ":checkbox").prop("checked", false).prop("disabled", false);
         $("." + "create" + "." + group + ":checkbox").prop("checked", false).prop("disabled", false);
     }
-    if (action === "create" && this.checked === true) {
+    else if (action === "create" && this.checked === true) {
         $("." + "view" + "." + group + ":checkbox").prop("checked", true).prop("disabled", true);
         $("." + "edit" + "." + group + ":checkbox").prop("checked", true).prop("disabled", true);
     }
@@ -51,10 +56,12 @@ $(".admin-options input:checkbox, .admin-options label").click(function () {
         $("." + "view" + "." + group + ":checkbox").prop("checked", false).prop("disabled", false);
         $("." + "edit" + "." + group + ":checkbox").prop("checked", false).prop("disabled", false);
     }
-    if (action === "edit" && this.checked === true) {
+    else if (action === "edit" && this.checked === true) {
         $("." + "view" + "." + group + ":checkbox").prop("checked", true).prop("disabled", true);
     }
     else if (action === "edit" && this.checked === false) {
         $("." + "view" + "." + group + ":checkbox").prop("checked", false).prop("disabled", false);
     }
 });
+
+

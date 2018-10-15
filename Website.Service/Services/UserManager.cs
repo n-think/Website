@@ -66,13 +66,13 @@ namespace Website.Service.Services
         {
             this.ThrowIfDisposed();
 
-            if (userProfileDto?.Login == null) return OperationResult.Failure("Некорректный профиль.", nameof(userProfileDto));
+            if (userProfileDto?.Login == null) return OperationResult.Failure(new OperationError() { Description = "Некорректный профиль." });
 
             var userDbSet = _dbContext.Set<User>();
 
             var user = await userDbSet.Where(x => x.NormalizedUserName == userProfileDto.Login.ToUpper()).Include(x => x.UserProfile).FirstOrDefaultAsync();
             if (user == null)
-                return OperationResult.Failure("Пользователь с таким логином не найден.", nameof(userProfileDto.Login));
+                return OperationResult.Failure(new OperationError() { Description = "Пользователь с таким логином не найден." });
 
             OperationResult opResult;
             var clProfile = user.UserProfile;
@@ -81,14 +81,14 @@ namespace Website.Service.Services
             {
                 clProfile = _mapper.Map<UserProfile>(userProfileDto);
                 profileDbSet.Update(clProfile);
-                opResult = OperationResult.Success("Профиль успешно изменен.", "");
+                opResult = OperationResult.Success();
             }
             else
             {
                 clProfile = _mapper.Map<UserProfile>(userProfileDto);
                 clProfile.Id = user.Id;
                 profileDbSet.Add(clProfile);
-                opResult = OperationResult.Success("Профиль успешно создан.");
+                opResult = OperationResult.Success();
             }
 
             try
@@ -96,9 +96,9 @@ namespace Website.Service.Services
                 await _dbContext.SaveChangesAsync();
             }
             catch (DbUpdateException e)
-            {
-                Logger.Log(LogLevel.Error, e, "Возникла ошибка при обновлении профиля клиента.");
-                return new OperationResult(false, "Возникла ошибка при обновлении профиля.", "");
+            { //TODO
+                Logger.Log(LogLevel.Error, e, "Возникла ошибка при обновлении профиля клиента."); 
+                return OperationResult.Failure(new OperationError() { Description = "Возникла ошибка при обновлении профиля." });
             }
 
             return opResult;

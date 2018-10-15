@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
@@ -7,17 +8,28 @@ namespace Website.Service.Infrastructure
 {
     public class OperationResult
     {
-        public OperationResult(bool succeeded, string message, string prop)
-        {
-            Succeeded = succeeded;
-            Message = message;
-            Property = prop;
-        }
-        public bool Succeeded { get; private set; }
-        public string Message { get; private set; }
-        public string Property { get; private set; }
+        private List<OperationError> _errors = new List<OperationError>();
 
-        public static OperationResult Success(string message = null, string property = null) => new OperationResult(true, message, property);
-        public static OperationResult Failure(string message, string property = null) => new OperationResult(false, message, property);
+        public bool Succeeded { get; private set; }
+        public IEnumerable<OperationError> Errors => _errors;
+
+        public static OperationResult Success() => new OperationResult() {Succeeded = true};
+
+        public static OperationResult Failure(params OperationError[] errors)
+        {
+            var result = new OperationResult() {Succeeded = false};
+            if (errors != null)
+            {
+                result._errors.AddRange(errors);
+            }
+            return result;
+        }
+
+        public override string ToString()
+        {
+            return Succeeded ?
+                "Succeeded" :
+                string.Format("{0} : {1}", "Failed", string.Join(",", Errors.Select(x => x.Code).ToList()));
+        }
     }
 }

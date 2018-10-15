@@ -24,58 +24,43 @@ using Website.Service.DTO;
 using Website.Service.Enums;
 using Website.Service.Infrastructure;
 using Website.Service.Interfaces;
+using NewArrayExpression = Castle.DynamicProxy.Generators.Emitters.SimpleAST.NewArrayExpression;
 
 namespace Website.Service.Stores
 {
-
-
-    /// <inheritdoc />
-    /// <summary>
-    /// Represents a new instance of a persistence store for products, using the default implementation.
-    /// </summary>
-    public class CustomShopStore : ShopStoreBase<ProductDTO, Product, Category>
-    {
-        public CustomShopStore(DbContext context, IMapper mapper, IHostingEnvironment environment, StoreErrorDescriber describer = null)
-            : base(context, mapper, describer)
-        {
-        }
-    }
-
     /// <summary>
     /// Represents a new instance of a persistence store for the specified types.
     /// </summary>
-    /// <typeparam name="TDtoProduct">The type representing a dto product.</typeparam>
-    /// <typeparam name="TDbProduct">The type representing a product in database.</typeparam>
-    public class ShopStoreBase<TDtoProduct, TDbProduct, TDbCategory> : IShopStore<TDtoProduct>, IDisposable
-        where TDtoProduct : ProductDTO
-        where TDbProduct : Product
-        where TDbCategory : Category, new()
-
+    public class ShopStore : IShopStore<ProductDTO, ProductImageDTO, OrderDTO>
     {
         /// <summary>
         /// Constructs a new instance of CustomProductStoreBase".
         /// </summary>
         /// <param name="dbContext">The <see cref="DbContext"/>.</param>
         /// <param name="mapper">The <see cref="AutoMapper.Mapper"/>.</param>
-        /// <param name="describer">The <see cref="StoreErrorDescriber"/>.</param>
-        public ShopStoreBase(DbContext dbContext, IMapper mapper, StoreErrorDescriber describer = null)
+        /// <param name="describer">The <see cref="OperationErrorDescriber"/>.</param>
+        public ShopStore(DbContext dbContext, IMapper mapper, IHostingEnvironment environment, OperationErrorDescriber describer = null)
         {
-            ErrorDescriber = describer ?? new StoreErrorDescriber();
+            ErrorDescriber = describer ?? new OperationErrorDescriber();
             Context = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _hostingEnvironment = environment;
 
         }
 
         public DbContext Context { get; private set; }
-        public StoreErrorDescriber ErrorDescriber { get; set; }
+        public OperationErrorDescriber ErrorDescriber { get; set; }
 
         private bool _disposed;
         private readonly IMapper _mapper;
         private readonly object _lock = new object();
-        protected DbSet<TDbProduct> ProductsSet => Context.Set<TDbProduct>();
-        protected DbSet<TDbCategory> CategoriesSet => Context.Set<TDbCategory>();
+        private readonly IHostingEnvironment _hostingEnvironment;
+        private DbSet<Product> ProductsSet => Context.Set<Product>();
+        private DbSet<Category> CategoriesSet => Context.Set<Category>();
+        private DbSet<ProductImage> ImagesSet => Context.Set<ProductImage>();
 
-        private const string ImagesSavePath = "\\images\\products";
+        private const string ImagesSavePath = "images\\items";
+
         /// <summary>
         /// Gets or sets a flag indicating if changes should be persisted after CreateAsync, UpdateAsync and DeleteAsync are called.
         /// </summary>
@@ -94,36 +79,52 @@ namespace Website.Service.Stores
 
         #region CRUD product
 
-        public async Task<OperationResult> CreateProductAsync(TDtoProduct product, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<OperationResult> CreateProductAsync(ProductDTO product, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
             if (product == null)
                 throw new ArgumentNullException(nameof(product));
 
-            var dbProduct = _mapper.Map<TDbProduct>(product);
+            var dbProduct = _mapper.Map<Product>(product);
             ProductsSet.Add(dbProduct);
-            await SaveChanges(cancellationToken);
+            try
+            {
+                await SaveChanges(cancellationToken);
+            }
+            catch (DbUpdateConcurrencyException e)
+            {
+                return OperationResult.Failure(ErrorDescriber.ConcurrencyFailure());
+            }
+
+            var result = await CreateImagesAsync(dbProduct.Id, product.Images, cancellationToken);
+            if (!result.Succeeded)
+                return result;
             return OperationResult.Success();
         }
 
-        public async Task<TDtoProduct> FindProductByIdAsync(int productId, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<ProductDTO> FindProductByIdAsync(int productId, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
-            
+
             var product = await ProductsSet
-                .Where(x=>x.Id==productId)
+                .Where(x => x.Id == productId)
+                .Include(x => x.Images)
                 .Include(x => x.Descriptions)
-                .Include(x=>x.ProductCategory)
-                .ThenInclude(x=>x.Category)
+                .Include(x => x.ProductCategory)
+                .ThenInclude(x => x.Category)
                 .FirstAsync(cancellationToken);
 
             if (product == null)
             {
                 return null;
             }
-            var dto = _mapper.Map<TDtoProduct>(product);
+            var dto = _mapper.Map<ProductDTO>(product);
+
+            //images
+            dto.Images = ConvertDbImageToDto(product.Images);
+
             foreach (var productToCategory in product.ProductCategory)
             {
                 var cat = _mapper.Map<CategoryDTO>(productToCategory.Category);
@@ -132,20 +133,23 @@ namespace Website.Service.Stores
             return dto;
         }
 
-        public async Task<OperationResult> UpdateProductAsync(TDtoProduct product, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<OperationResult> UpdateProductAsync(ProductDTO product, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
             if (product == null)
                 throw new ArgumentNullException(nameof(product));
 
-            var dbProduct = _mapper.Map<TDbProduct>(product);
+            var dbProduct = _mapper.Map<Product>(product);
+
             ProductsSet.Update(dbProduct);
             await SaveChanges(cancellationToken);
+            await UpdateImagesAsync(dbProduct.Id, product.Images, cancellationToken);
+
             return OperationResult.Success();
         }
 
-        public async Task<OperationResult> RemoveProductAsync(int productId, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<OperationResult> DeleteProductAsync(int productId, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -170,7 +174,7 @@ namespace Website.Service.Stores
             if (categoryName.IsNullOrEmpty())
                 throw new ArgumentNullException(nameof(categoryName));
 
-            var category = new TDbCategory() { Name = categoryName };
+            var category = new Category() { Name = categoryName };
             CategoriesSet.Add(category);
             await SaveChanges(cancellationToken);
             return OperationResult.Success();
@@ -222,44 +226,131 @@ namespace Website.Service.Stores
 
         #region CRUD images
 
-        public Task<OperationResult> SaveImage(Bitmap image, string savePath, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            ThrowIfDisposed();
-            if (image == null)
-                throw new ArgumentNullException(nameof(image));
-            if (savePath.IsNullOrEmpty())
-                throw new ArgumentNullException(nameof(savePath));
-            if (Directory.Exists(savePath))
-                throw new ArgumentException(nameof(savePath));
 
-            image.Save(savePath);
-            return Task.FromResult(OperationResult.Success());
+        private async Task<OperationResult> CreateImageAsync(int productId, Bitmap image,
+            CancellationToken cancellationToken)
+        {
+
+            throw new NotImplementedException();
         }
 
-        public Task<OperationResult> RemoveImage(Bitmap image, string removePath, CancellationToken cancellationToken = default(CancellationToken))
+        private async Task<OperationResult> CreateImagesAsync(int productId, ProductImageDTO[] images, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+            if (images == null)
+                throw new ArgumentNullException(nameof(images));
+
+            int counter = 0;
+            string type = "jpg";
+            var pathToFiles = Path.Combine(_hostingEnvironment.WebRootPath, ImagesSavePath);
+
+            foreach (var image in images) //TODO tests 
+            {
+                //TODO input orig - save normalized+thumb+orig
+                //TODO ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                //TODO ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                //TODO ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                //TODO ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                if (image.Primary)
+                {
+                    string fileName = $"{productId}.{type}";
+                    string savePath = Path.Combine(pathToFiles, fileName);
+                    await CheckPathAndDeleteIfExists(savePath);
+                    image.Bitmap.Save(savePath);
+
+                    string dbPath = $"~/{ImagesSavePath.Replace("\\", "/")}/{fileName}";
+                    var imageToAdd = new ProductImage() { Path = dbPath, ProductId = productId };
+                    ImagesSet.Add(imageToAdd);
+                }
+                else
+                {
+                    string fileName = $"{productId}_{counter}.{type}";
+                    string savePath = Path.Combine(pathToFiles, fileName);
+                    await CheckPathAndDeleteIfExists(savePath);
+                    image.Bitmap.Save(savePath);
+
+                    string dbPath = $"~/{ImagesSavePath.Replace("\\", "/")}/{fileName}";
+                    counter++;
+                    var imageToAdd = new ProductImage() { Path = dbPath, ProductId = productId };
+                    ImagesSet.Add(imageToAdd);
+                }
+            }
+
+            try
+            {
+                await SaveChanges(cancellationToken);
+            }
+            catch (DbUpdateException)
+            {
+                return OperationResult.Failure(ErrorDescriber.DbUpdateFailure());
+            }
+            return OperationResult.Success();
+        }
+
+        private Task CheckPathAndDeleteIfExists(string path)
+        {
+            if (System.IO.File.Exists(path))
+            {
+                System.IO.File.Delete(path);
+            }
+            return Task.CompletedTask;
+        }
+
+        private async Task<ProductImageDTO[]> FindImagesAsync(Product product, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
-            if (image == null)
-                throw new ArgumentNullException(nameof(image));
-            if (removePath.IsNullOrEmpty())
-                throw new ArgumentNullException(nameof(removePath));
-            if (!Directory.Exists(removePath))
-                throw new ArgumentException(nameof(removePath));
+            if (product == null)
+                throw new ArgumentNullException(nameof(product));
 
-            File.Delete(removePath);
-            return Task.FromResult(OperationResult.Success());
+            var dbImages = await ImagesSet.Where(x => x.ProductId == product.Id).ToListAsync(cancellationToken);
+            return dbImages.Any() ? null : ConvertDbImageToDto(dbImages);
+        }
+
+        private async Task<OperationResult> UpdateImagesAsync(int productId, ProductImageDTO[] images, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+            throw new NotImplementedException();
+            //DeleteImagesAsync();
+            //CreateImagesAsync();
+        }
+
+        private async Task<OperationResult> DeleteImagesAsync(int productId, ProductImageDTO[] images, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+
+            throw new NotImplementedException();
+            return OperationResult.Success();
         }
 
 
         #endregion
 
+        private ProductImageDTO[] ConvertDbImageToDto(ICollection<ProductImage> productImages)
+        {
+            if (productImages == null)
+                throw new ArgumentNullException(nameof(productImages));
+
+            var images = productImages
+                .Select(x => new ProductImageDTO()
+                {
+                    Path = $"{x.Path}/{x.Name}.{x.Format}",
+                    ThumbPath = $"{x.Path}/{x.ThumbName}.{x.Format}",
+                    Primary = x.Primary
+                })
+                .OrderBy(x => !x.Primary)
+                .ToArray();
+            return images;
+        }
+
         public async Task<SortPageResult<ProductDTO>> SortFilterPageResultAsync(ItemTypeSelector types, string searchString, string sortPropName, int currPage,
             int countPerPage, CancellationToken cancellationToken = default(CancellationToken))
         {
             ThrowIfDisposed();
-            // check inputs
             if (sortPropName == null) throw new ArgumentNullException(nameof(sortPropName));
             if (countPerPage < 0) throw new ArgumentOutOfRangeException(nameof(countPerPage));
             if (currPage < 0) throw new ArgumentOutOfRangeException(nameof(currPage));
@@ -268,16 +359,9 @@ namespace Website.Service.Stores
 
             IQueryable<Product> prodQuery = ProductsSet.AsQueryable();
 
-            // filter roles
             FilterProducstTypeQuery(types, ref prodQuery);
-
-            // searching
             SearchProductsQuery(searchString, ref prodQuery);
-
-            // ordering
             OrderProductsQuery(sortPropName, ref prodQuery);
-
-            // paginating
             PaginateProductsQuery(currPage, countPerPage, ref prodQuery);
 
             int totalProductsN = await prodQuery.CountAsync(cancellationToken);
@@ -327,7 +411,7 @@ namespace Website.Service.Stores
 
             var check = StoreHelpers.CheckIfPropertyExists(sortPropName, typeof(ProductDTO));
             if (!check.Result)
-                throw new ArgumentException(nameof(sortPropName));
+                throw new ArgumentException(nameof(sortPropName)); //or set to default
 
             Expression<Func<Product, object>> property = p => EF.Property<object>(p, sortPropName);
 

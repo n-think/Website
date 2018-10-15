@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Website.Service.DTO
 {
-    class OrderDTO
+    public class OrderDTO
     {
     }
 }

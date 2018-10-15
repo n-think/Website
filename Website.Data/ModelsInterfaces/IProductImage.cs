@@ -4,8 +4,6 @@
     {
         int Id { get; set; }
         int? ProductId { get; set; }
-        string Name { get; set; }
-        string Description { get; set; }
-        byte[] Data { get; set; }
+        string Path { get; set; }
     }
 }

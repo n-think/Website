@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Website.Data.EF.Models;
 
 namespace Website.Data.EF.Migrations
 {
     [DbContext(typeof(WebsiteDbContext))]
-    partial class WebsiteDbContextModelSnapshot : ModelSnapshot
+    [Migration("20181014035800_add_images")]
+    partial class add_images
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -124,24 +126,13 @@ namespace Website.Data.EF.Migrations
                         .ValueGeneratedOnAdd()
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<string>("Format")
-                        .HasMaxLength(10);
-
-                    b.Property<string>("Name");
-
                     b.Property<string>("Path");
-
-                    b.Property<bool>("Primary");
 
                     b.Property<int?>("ProductId");
 
-                    b.Property<string>("ThumbName");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("ProductId", "Primary")
-                        .IsUnique()
-                        .HasFilter("[Primary] = 1  AND [ProductId] IS NOT Null");
+                    b.HasIndex("ProductId");
 
                     b.ToTable("ProductImages");
                 });

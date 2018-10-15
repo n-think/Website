@@ -18,19 +18,18 @@ namespace Website.Service.Services
 {
     public class ShopManager : IDisposable, IShopManager
     {
-        public ShopManager(IShopStore<ProductDTO> store, ILogger<ShopManager> logger, IHttpContextAccessor context, IHostingEnvironment environment, StoreErrorDescriber errorDescriber = null)
+        public ShopManager(IShopStore<ProductDTO, ProductImageDTO, OrderDTO> store, ILogger<ShopManager> logger, IHttpContextAccessor context,  OperationErrorDescriber errorDescriber = null)
         {
             _store = store ?? throw new ArgumentNullException(nameof(store));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _errorDescriber = errorDescriber ?? new StoreErrorDescriber();
+            _errorDescriber = errorDescriber ?? new OperationErrorDescriber();
             CancellationToken = context?.HttpContext?.RequestAborted ?? CancellationToken.None;
-            _hostingEnvironment = environment;
         }
 
-        private readonly IShopStore<ProductDTO> _store;
-        private readonly StoreErrorDescriber _errorDescriber;
+        private readonly IShopStore<ProductDTO, ProductImageDTO, OrderDTO> _store;
+        private readonly OperationErrorDescriber _errorDescriber;
         private readonly ILogger<ShopManager> _logger;
-        private readonly IHostingEnvironment _hostingEnvironment;
+        
 
         public CancellationToken CancellationToken { get; }
 
@@ -57,7 +56,7 @@ namespace Website.Service.Services
                 //await _store.CreateCategoryAsync(product.CategoryName, CancellationToken);
             }
 
-            if (!product.Images.IsNullOrEmpty())
+            if (product != null)
             {
                 //TODO add images
             }

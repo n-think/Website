@@ -11,8 +11,10 @@ using Website.Service.Infrastructure;
 
 namespace Website.Service.Interfaces
 {
-    public interface IShopStore<TDtoProduct> : IDisposable
+    public interface IShopStore<TDtoProduct, TDtoImage, TDtoOrder> : IDisposable
         where TDtoProduct : class
+        where TDtoImage : class
+        where TDtoOrder : class
     {
         /// <summary>
         /// Gets or sets a flag indicating if changes should be persisted after CreateAsync, UpdateAsync and DeleteAsync are called.
@@ -30,12 +32,10 @@ namespace Website.Service.Interfaces
         Task<OperationResult> CreateProductAsync(TDtoProduct product, CancellationToken cancellationToken);
         Task<TDtoProduct> FindProductByIdAsync(int productId, CancellationToken cancellationToken);
         Task<OperationResult> UpdateProductAsync(TDtoProduct product, CancellationToken cancellationToken);
-        Task<OperationResult> RemoveProductAsync(int productId, CancellationToken cancellationToken);
+        Task<OperationResult> DeleteProductAsync(int productId, CancellationToken cancellationToken);
         Task<OperationResult> CreateCategoryAsync(string categoryName, CancellationToken cancellationToken);
         Task<bool> FindCategoryByNameAsync(string categoryName, CancellationToken cancellationToken);
         Task<OperationResult> RemoveCategoryAsync(string categoryName, CancellationToken cancellationToken);
-        Task<OperationResult> SaveImage(Bitmap image, string savePath, CancellationToken cancellationToken);
-        Task<OperationResult> RemoveImage(Bitmap image, string removePath, CancellationToken cancellationToken);
         Task<SortPageResult<ProductDTO>> SortFilterPageResultAsync(ItemTypeSelector types, string searchString, string sortPropName,
             int currentPage, int countPerPage, CancellationToken cancellationToken);
     }

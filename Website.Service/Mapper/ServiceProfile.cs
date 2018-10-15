@@ -17,7 +17,9 @@ namespace Website.Service.Mapper
             CreateMap<User, UserDTO>(MemberList.Source).ReverseMap();
             CreateMap<Role, RoleDTO>().ReverseMap();
             CreateMap<UserProfile, UserProfileDTO>().ReverseMap();
-            CreateMap<Product, ProductDTO>(MemberList.Destination).ReverseMap();
+            CreateMap<Product, ProductDTO>(MemberList.Destination)
+                .ForMember(x => x.Images, o => o.Ignore())
+                .ReverseMap();
             CreateMap<Category, CategoryDTO>(MemberList.Destination).ReverseMap();
 
             CreateMap<Task<User>, Task<UserDTO>>().ReverseMap();
