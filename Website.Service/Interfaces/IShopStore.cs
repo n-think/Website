@@ -38,5 +38,7 @@ namespace Website.Service.Interfaces
         Task<OperationResult> RemoveCategoryAsync(string categoryName, CancellationToken cancellationToken);
         Task<SortPageResult<ProductDTO>> SortFilterPageResultAsync(ItemTypeSelector types, string searchString, string sortPropName,
             int currentPage, int countPerPage, CancellationToken cancellationToken);
+
+        Task<List<DescriptionGroupDTO>> GetProductDescriptions(int productId, CancellationToken cancellationToken);
     }
 }

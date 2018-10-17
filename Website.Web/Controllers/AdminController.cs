@@ -216,6 +216,7 @@ namespace Website.Web.Controllers
         public async Task<IActionResult> ViewItem(int id)
         {
             var prod = await _shopManager.GetProductById(id);
+            prod.Descriptions = await _shopManager.GetProductDescriptions(id);
             return View(prod);
         }
 
@@ -232,6 +233,13 @@ namespace Website.Web.Controllers
         public async Task<IActionResult> AddItem()
         {
             await Task.CompletedTask;
+            return View();
+        }
+
+        [HttpGet]
+        [Authorize(Policy = "ViewOrders")]
+        public IActionResult Orders()
+        {
             return View();
         }
     }

@@ -10,8 +10,8 @@ using Website.Data.EF.Models;
 namespace Website.Data.EF.Migrations
 {
     [DbContext(typeof(WebsiteDbContext))]
-    [Migration("20181009175348_remove_images_from_Db")]
-    partial class remove_images_from_Db
+    [Migration("20181016104145_desc_groups")]
+    partial class desc_groups
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -34,6 +34,10 @@ namespace Website.Data.EF.Migrations
 
                     b.Property<int?>("ParentId");
 
+                    b.Property<byte[]>("Timestamp")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate();
+
                     b.HasKey("Id");
 
                     b.HasIndex("ParentId");
@@ -43,20 +47,22 @@ namespace Website.Data.EF.Migrations
 
             modelBuilder.Entity("Website.Data.EF.Models.Description", b =>
                 {
-                    b.Property<int>("Id");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<int?>("DescriptionGroup");
+                    b.Property<int?>("DescriptionGroupId");
 
                     b.Property<string>("Name")
                         .HasMaxLength(50);
 
                     b.Property<int?>("ProductId");
 
-                    b.Property<int?>("SubDescrGroup");
+                    b.Property<string>("Value");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DescriptionGroup");
+                    b.HasIndex("DescriptionGroupId");
 
                     b.HasIndex("ProductId");
 
@@ -87,19 +93,25 @@ namespace Website.Data.EF.Migrations
                         .ValueGeneratedOnAdd()
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
+                    b.Property<DateTimeOffset>("Added");
+
+                    b.Property<DateTimeOffset>("Changed");
+
                     b.Property<int>("Code");
 
                     b.Property<string>("Description");
+
+                    b.Property<bool>("Enabled");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50);
 
-                    b.Property<int>("Price");
+                    b.Property<double>("Price");
 
-                    b.Property<int>("Quantity");
+                    b.Property<int>("Reserved");
 
-                    b.Property<byte[]>("ThumbImage");
+                    b.Property<int>("Stock");
 
                     b.Property<byte[]>("Timestamp")
                         .IsConcurrencyToken()
@@ -108,6 +120,34 @@ namespace Website.Data.EF.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Products");
+                });
+
+            modelBuilder.Entity("Website.Data.EF.Models.ProductImage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("Format")
+                        .HasMaxLength(10);
+
+                    b.Property<string>("Name");
+
+                    b.Property<string>("Path");
+
+                    b.Property<bool>("Primary");
+
+                    b.Property<int?>("ProductId");
+
+                    b.Property<string>("ThumbName");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId", "Primary")
+                        .IsUnique()
+                        .HasFilter("[Primary] = 1 AND [ProductId] IS NOT Null");
+
+                    b.ToTable("ProductImages");
                 });
 
             modelBuilder.Entity("Website.Data.EF.Models.ProductToCategory", b =>
@@ -330,7 +370,7 @@ namespace Website.Data.EF.Migrations
                 {
                     b.HasOne("Website.Data.EF.Models.DescriptionGroup", "DescriptionGroupNavigation")
                         .WithMany("Descriptions")
-                        .HasForeignKey("DescriptionGroup")
+                        .HasForeignKey("DescriptionGroupId")
                         .HasConstraintName("FK_Descriptions_DescriptionGroups")
                         .OnDelete(DeleteBehavior.SetNull);
 
@@ -338,6 +378,14 @@ namespace Website.Data.EF.Migrations
                         .WithMany("Descriptions")
                         .HasForeignKey("ProductId")
                         .HasConstraintName("FK_Descriptions_Products")
+                        .OnDelete(DeleteBehavior.SetNull);
+                });
+
+            modelBuilder.Entity("Website.Data.EF.Models.ProductImage", b =>
+                {
+                    b.HasOne("Website.Data.EF.Models.Product", "Product")
+                        .WithMany("Images")
+                        .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.SetNull);
                 });
 

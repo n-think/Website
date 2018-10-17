@@ -45,20 +45,22 @@ namespace Website.Data.EF.Migrations
 
             modelBuilder.Entity("Website.Data.EF.Models.Description", b =>
                 {
-                    b.Property<int>("Id");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<int?>("DescriptionGroup");
+                    b.Property<int?>("DescriptionGroupId");
 
                     b.Property<string>("Name")
                         .HasMaxLength(50);
 
                     b.Property<int?>("ProductId");
 
-                    b.Property<int?>("SubDescrGroup");
+                    b.Property<string>("Value");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DescriptionGroup");
+                    b.HasIndex("DescriptionGroupId");
 
                     b.HasIndex("ProductId");
 
@@ -141,7 +143,7 @@ namespace Website.Data.EF.Migrations
 
                     b.HasIndex("ProductId", "Primary")
                         .IsUnique()
-                        .HasFilter("[Primary] = 1  AND [ProductId] IS NOT Null");
+                        .HasFilter("[Primary] = 1 AND [ProductId] IS NOT Null");
 
                     b.ToTable("ProductImages");
                 });
@@ -366,7 +368,7 @@ namespace Website.Data.EF.Migrations
                 {
                     b.HasOne("Website.Data.EF.Models.DescriptionGroup", "DescriptionGroupNavigation")
                         .WithMany("Descriptions")
-                        .HasForeignKey("DescriptionGroup")
+                        .HasForeignKey("DescriptionGroupId")
                         .HasConstraintName("FK_Descriptions_DescriptionGroups")
                         .OnDelete(DeleteBehavior.SetNull);
 

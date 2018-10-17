@@ -70,14 +70,11 @@ namespace Website.Web
                 .AddErrorDescriber<RusIdentityErrorDescriberRes>();
             AddCustomInterfaces(services);
 
-            //custom sign in manager. пока не нужен
-            //services.AddScoped<SignInManager<UserDTO>, ApplicationSignInManager<UserDTO>>();
-
             services.AddScoped<IUserClaimsPrincipalFactory<UserDTO>, MyUserClaimsPrincipalFactory>();
 
             services.Configure<SecurityStampValidatorOptions>(options =>
             {
-                //options.ValidationInterval = TimeSpan.FromSeconds(1);
+                //options.ValidationInterval = TimeSpan.FromSeconds(10);
                 options.ValidationInterval = TimeSpan.FromMinutes(10);
             });
 
@@ -87,7 +84,7 @@ namespace Website.Web
                 // option.LoginPath = new PathString("/Login");
                 // option.LogoutPath = new PathString("/Logout");
                 option.AccessDeniedPath = new PathString("/error/403");
-                //option.SlidingExpiration = 
+                //option.SlidingExpiration = true;
                 //option.Cookie.SecurePolicy = CookieSecurePolicy.Always;
             });
 
@@ -150,6 +147,16 @@ namespace Website.Web
 
                     options.AddPolicy("DeleteItems",
                         policy => policy.RequireClaim("DeleteItems"));
+
+                    //orders manage policies
+                    options.AddPolicy("ViewOrders",
+                        policy => policy.RequireAssertion(context => context.User.HasClaim(c =>
+                            c.Type == "ViewOrders" || c.Type == "EditOrders" || c.Type == "DeleteOrders")));
+                    options.AddPolicy("EditOrders",
+                        policy => policy.RequireAssertion(context => context.User.HasClaim(c =>
+                            c.Type == "EditOrders" || c.Type == "DeleteOrders")));
+                    options.AddPolicy("DeleteUOrders",
+                        policy => policy.RequireClaim("DeleteOrders"));
                 }
             );
         }

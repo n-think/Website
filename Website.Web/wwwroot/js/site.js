@@ -13,10 +13,11 @@ function stickyNavbar() {
 }
 
 function image_select(img) {
-    var newSrc = img.src.slice(0, img.src.length - 6) + ".jpg";
+    var split = img.src.split(".");
+    var imgFormat = split[split.length - 1];
+    var newSrc = img.src.slice(0, img.src.length - 6) + "." + imgFormat;
     $("#item-image-view")[0].src = newSrc;
 }
-
 
 $("#role-selector").change(function () {
     if ($(this).val() === "admin") {

@@ -37,7 +37,10 @@ namespace Website.Service.DTO
         public List<CategoryDTO> Categories { get; set; }
         //images
         [ScaffoldColumn(false)]
-        public ProductImageDTO[] Images { get; set; }
+        public List<ProductImageDTO> Images { get; set; }
+        //descriptions
+        [ScaffoldColumn(false)]
+        public List<DescriptionGroupDTO> Descriptions { get; set; }
 
     }
 }

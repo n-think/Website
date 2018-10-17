@@ -15,11 +15,19 @@ namespace Website.Data.EF.Migrations
                     Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
                     Name = table.Column<string>(maxLength: 50, nullable: true),
-                    Description = table.Column<string>(nullable: true)
+                    Description = table.Column<string>(nullable: true),
+                    ParentId = table.Column<int>(nullable: true),
+                    Timestamp = table.Column<byte[]>(rowVersion: true, nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Categories", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Categories_Categories_ParentId",
+                        column: x => x.ParentId,
+                        principalTable: "Categories",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -29,11 +37,18 @@ namespace Website.Data.EF.Migrations
                     Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
                     Name = table.Column<string>(maxLength: 50, nullable: false),
-                    Description = table.Column<string>(maxLength: 50, nullable: true)
+                    Description = table.Column<string>(maxLength: 50, nullable: true),
+                    ParentId = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_DescriptionGroups", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_DescriptionGroups_DescriptionGroups_ParentId",
+                        column: x => x.ParentId,
+                        principalTable: "DescriptionGroups",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -45,9 +60,12 @@ namespace Website.Data.EF.Migrations
                     Name = table.Column<string>(maxLength: 50, nullable: false),
                     Description = table.Column<string>(nullable: true),
                     Code = table.Column<int>(nullable: false),
-                    Price = table.Column<int>(nullable: false),
-                    Quantity = table.Column<int>(nullable: false),
-                    ThumbImage = table.Column<byte[]>(nullable: true),
+                    Price = table.Column<double>(nullable: false),
+                    Stock = table.Column<int>(nullable: false),
+                    Reserved = table.Column<int>(nullable: false),
+                    Enabled = table.Column<bool>(nullable: false),
+                    Added = table.Column<DateTimeOffset>(nullable: false),
+                    Changed = table.Column<DateTimeOffset>(nullable: false),
                     Timestamp = table.Column<byte[]>(rowVersion: true, nullable: true)
                 },
                 constraints: table =>
@@ -74,9 +92,9 @@ namespace Website.Data.EF.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(nullable: false),
-                    UserName = table.Column<string>(maxLength: 256, nullable: true),
+                    UserName = table.Column<string>(maxLength: 256, nullable: false),
                     NormalizedUserName = table.Column<string>(maxLength: 256, nullable: true),
-                    Email = table.Column<string>(maxLength: 256, nullable: true),
+                    Email = table.Column<string>(maxLength: 256, nullable: false),
                     NormalizedEmail = table.Column<string>(maxLength: 256, nullable: true),
                     EmailConfirmed = table.Column<bool>(nullable: false),
                     PasswordHash = table.Column<string>(nullable: true),
@@ -99,18 +117,18 @@ namespace Website.Data.EF.Migrations
                 name: "Descriptions",
                 columns: table => new
                 {
-                    Id = table.Column<int>(nullable: false),
+                    Id = table.Column<int>(nullable: false)
+                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
                     Name = table.Column<string>(maxLength: 50, nullable: true),
                     ProductId = table.Column<int>(nullable: true),
-                    DescriptionGroup = table.Column<int>(nullable: true),
-                    SubDescrGroup = table.Column<int>(nullable: true)
+                    DescriptionGroupId = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Descriptions", x => x.Id);
                     table.ForeignKey(
                         name: "FK_Descriptions_DescriptionGroups",
-                        column: x => x.DescriptionGroup,
+                        column: x => x.DescriptionGroupId,
                         principalTable: "DescriptionGroups",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.SetNull);
@@ -129,15 +147,17 @@ namespace Website.Data.EF.Migrations
                     Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
                     ProductId = table.Column<int>(nullable: true),
-                    Name = table.Column<string>(maxLength: 50, nullable: true),
-                    Description = table.Column<string>(maxLength: 50, nullable: true),
-                    Data = table.Column<byte[]>(nullable: true)
+                    Path = table.Column<string>(nullable: true),
+                    Name = table.Column<string>(nullable: true),
+                    ThumbName = table.Column<string>(nullable: true),
+                    Format = table.Column<string>(maxLength: 10, nullable: true),
+                    Primary = table.Column<bool>(nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ProductImages", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ProductImages_Products",
+                        name: "FK_ProductImages_Products_ProductId",
                         column: x => x.ProductId,
                         principalTable: "Products",
                         principalColumn: "Id",
@@ -197,8 +217,7 @@ namespace Website.Data.EF.Migrations
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
                     UserId = table.Column<string>(nullable: false),
                     ClaimType = table.Column<string>(nullable: true),
-                    ClaimValue = table.Column<string>(nullable: true),
-                    UserId1 = table.Column<string>(nullable: true)
+                    ClaimValue = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -209,12 +228,6 @@ namespace Website.Data.EF.Migrations
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_UserClaims_Users_UserId1",
-                        column: x => x.UserId1,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -224,8 +237,7 @@ namespace Website.Data.EF.Migrations
                     LoginProvider = table.Column<string>(nullable: false),
                     ProviderKey = table.Column<string>(nullable: false),
                     ProviderDisplayName = table.Column<string>(nullable: true),
-                    UserId = table.Column<string>(nullable: false),
-                    UserId1 = table.Column<string>(nullable: true)
+                    UserId = table.Column<string>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -236,12 +248,6 @@ namespace Website.Data.EF.Migrations
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_UserLogins_Users_UserId1",
-                        column: x => x.UserId1,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -254,7 +260,7 @@ namespace Website.Data.EF.Migrations
                     PatrName = table.Column<string>(nullable: true),
                     Address = table.Column<string>(nullable: true),
                     City = table.Column<string>(nullable: true),
-                    RegistrationDate = table.Column<DateTimeOffset>(nullable: false),
+                    RegistrationDate = table.Column<DateTimeOffset>(nullable: true),
                     Timestamp = table.Column<byte[]>(rowVersion: true, nullable: true)
                 },
                 constraints: table =>
@@ -273,8 +279,7 @@ namespace Website.Data.EF.Migrations
                 columns: table => new
                 {
                     UserId = table.Column<string>(nullable: false),
-                    RoleId = table.Column<string>(nullable: false),
-                    UserId1 = table.Column<string>(nullable: true)
+                    RoleId = table.Column<string>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -291,12 +296,6 @@ namespace Website.Data.EF.Migrations
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_UserRoles_Users_UserId1",
-                        column: x => x.UserId1,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -320,9 +319,19 @@ namespace Website.Data.EF.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Descriptions_DescriptionGroup",
+                name: "IX_Categories_ParentId",
+                table: "Categories",
+                column: "ParentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DescriptionGroups_ParentId",
+                table: "DescriptionGroups",
+                column: "ParentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Descriptions_DescriptionGroupId",
                 table: "Descriptions",
-                column: "DescriptionGroup");
+                column: "DescriptionGroupId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Descriptions_ProductId",
@@ -330,9 +339,11 @@ namespace Website.Data.EF.Migrations
                 column: "ProductId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ProductImages_ProductId",
+                name: "IX_ProductImages_ProductId_Primary",
                 table: "ProductImages",
-                column: "ProductId");
+                columns: new[] { "ProductId", "Primary" },
+                unique: true,
+                filter: "[Primary] = 1 AND [ProductId] IS NOT Null");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ProductToCategory_CategoryId",
@@ -357,19 +368,9 @@ namespace Website.Data.EF.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserClaims_UserId1",
-                table: "UserClaims",
-                column: "UserId1");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_UserLogins_UserId",
                 table: "UserLogins",
                 column: "UserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_UserLogins_UserId1",
-                table: "UserLogins",
-                column: "UserId1");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserRoles_RoleId",
@@ -377,9 +378,10 @@ namespace Website.Data.EF.Migrations
                 column: "RoleId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserRoles_UserId1",
-                table: "UserRoles",
-                column: "UserId1");
+                name: "IX_Users_Email",
+                table: "Users",
+                column: "Email",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "EmailIndex",
@@ -392,6 +394,12 @@ namespace Website.Data.EF.Migrations
                 column: "NormalizedUserName",
                 unique: true,
                 filter: "[NormalizedUserName] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_UserName",
+                table: "Users",
+                column: "UserName",
+                unique: true);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

@@ -58,6 +58,8 @@ namespace Website.Service.Stores
         private DbSet<Product> ProductsSet => Context.Set<Product>();
         private DbSet<Category> CategoriesSet => Context.Set<Category>();
         private DbSet<ProductImage> ImagesSet => Context.Set<ProductImage>();
+        private DbSet<DescriptionGroup> DescGroupsSet => Context.Set<DescriptionGroup>();
+        private DbSet<Description> DescriptionsSet => Context.Set<Description>();
 
         private const string ImagesSavePath = "images\\items";
 
@@ -234,7 +236,7 @@ namespace Website.Service.Stores
             throw new NotImplementedException();
         }
 
-        private async Task<OperationResult> CreateImagesAsync(int productId, ProductImageDTO[] images, CancellationToken cancellationToken)
+        private async Task<OperationResult> CreateImagesAsync(int productId, List<ProductImageDTO> images, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
             cancellationToken.ThrowIfCancellationRequested();
@@ -298,7 +300,7 @@ namespace Website.Service.Stores
             return Task.CompletedTask;
         }
 
-        private async Task<ProductImageDTO[]> FindImagesAsync(Product product, CancellationToken cancellationToken)
+        private async Task<List<ProductImageDTO>> FindImagesAsync(Product product, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -309,7 +311,7 @@ namespace Website.Service.Stores
             return dbImages.Any() ? null : ConvertDbImageToDto(dbImages);
         }
 
-        private async Task<OperationResult> UpdateImagesAsync(int productId, ProductImageDTO[] images, CancellationToken cancellationToken)
+        private async Task<OperationResult> UpdateImagesAsync(int productId, List<ProductImageDTO> images, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -318,7 +320,7 @@ namespace Website.Service.Stores
             //CreateImagesAsync();
         }
 
-        private async Task<OperationResult> DeleteImagesAsync(int productId, ProductImageDTO[] images, CancellationToken cancellationToken)
+        private async Task<OperationResult> DeleteImagesAsync(int productId, List<ProductImageDTO> images, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -330,7 +332,61 @@ namespace Website.Service.Stores
 
         #endregion
 
-        private ProductImageDTO[] ConvertDbImageToDto(ICollection<ProductImage> productImages)
+        #region Descriptions
+
+        public async Task<List<DescriptionGroupDTO>> GetProductDescriptions(int productId, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+
+            var descs = await DescriptionsSet //get descriptions
+                .Where(x => x.ProductId == productId)
+                .Include(x => x.DescriptionGroupNavigation)
+                .ToListAsync(cancellationToken);
+
+            var descGroups = descs //get flattened description groups from description nav property
+                .Select(desc => desc.DescriptionGroupNavigation)
+                .GroupBy(x => x.Id)
+                .Select(g => g.First())
+                .Select(x => new DescriptionGroupDTO() //convert description groups to dto
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    Description = x.Description
+                })
+                .OrderBy(x => x.Name != "Общие характеристики") //ordering
+                .ThenBy(x => x.Name)
+                .ToList();
+
+            var descItems = descs //convert descriptions to dto items
+                .OrderBy(x => x.Name) //ordering
+                .Select(x => new DescriptionItem()
+                {
+                    Id = x.Id,
+                    GroupId = x.DescriptionGroupId.GetValueOrDefault(),
+                    Name = x.Name,
+                    Value = x.Value
+                })
+                .ToList();
+
+            //add descriptions to their respective groups
+            foreach (var descGroup in descGroups)
+            {
+                foreach (var descItem in descItems)
+                {
+                    if (descItem.GroupId == descGroup.Id)
+                    {
+                        descGroup.Items.Add(descItem);
+                    }
+                }
+            }
+
+            return descGroups;
+        }
+
+        #endregion
+
+        private List<ProductImageDTO> ConvertDbImageToDto(ICollection<ProductImage> productImages)
         {
             if (productImages == null)
                 throw new ArgumentNullException(nameof(productImages));
@@ -343,7 +399,7 @@ namespace Website.Service.Stores
                     Primary = x.Primary
                 })
                 .OrderBy(x => !x.Primary)
-                .ToArray();
+                .ToList();
             return images;
         }
 

@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Website.Service.DTO;
 using Website.Service.Enums;
@@ -19,5 +20,7 @@ namespace Website.Service.Interfaces
         Task<SortPageResult<ProductDTO>> GetSortFilterPageAsync(ItemTypeSelector types, string search, string sortOrder, int currPage, int countPerPage);
 
         Task<ProductDTO> GetProductById(int id);
+
+        Task<List<DescriptionGroupDTO>> GetProductDescriptions(int productId);
     }
 }

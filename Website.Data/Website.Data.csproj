@@ -5,17 +5,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="EF\Migrations\20181011061439_cat_upd.cs" />
-    <Compile Remove="EF\Migrations\20181011062920_cat_upd.cs" />
-    <Compile Remove="EF\Migrations\20181015073022_image_index.cs" />
-    <Compile Remove="EF\Migrations\20181015073443_image_index_1.cs" />
-    <Compile Remove="EF\Migrations\20181015073606_image_index_2.cs" />
-    <Compile Remove="EF\Migrations\20181015074413_image_index.cs" />
-    <Compile Remove="EF\Migrations\20181015074922_image_index.cs" />
-    <Compile Remove="EF\Migrations\20181015075438_image_index.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="2.1.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="2.1.4" />

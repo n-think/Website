@@ -52,7 +52,6 @@ namespace Website.Data.EF.Models
             modelBuilder.Entity<DescriptionGroup>(entity =>
             {
                 entity.Property(e => e.Description).HasMaxLength(50);
-
                 entity.Property(e => e.Name)
                     .IsRequired()
                     .HasMaxLength(50);
@@ -60,13 +59,11 @@ namespace Website.Data.EF.Models
 
             modelBuilder.Entity<Description>(entity =>
             {
-                entity.Property(e => e.Id).ValueGeneratedNever();
-
                 entity.Property(e => e.Name).HasMaxLength(50);
 
                 entity.HasOne(d => d.DescriptionGroupNavigation)
                     .WithMany(p => p.Descriptions)
-                    .HasForeignKey(d => d.DescriptionGroup)
+                    .HasForeignKey(d => d.DescriptionGroupId)
                     .OnDelete(DeleteBehavior.SetNull)
                     .HasConstraintName("FK_Descriptions_DescriptionGroups");
 

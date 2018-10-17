@@ -89,6 +89,13 @@ namespace Website.Service.Services
             return await _store.FindProductByIdAsync(id, CancellationToken);
         }
 
+        public async Task<List<DescriptionGroupDTO>> GetProductDescriptions(int productId)
+        {
+            ThrowIfDisposed();
+
+            return await _store.GetProductDescriptions(productId, CancellationToken); ;
+        }
+
         /// <summary>Throws if this class has been disposed.</summary>
         private void ThrowIfDisposed()
         {
