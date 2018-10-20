@@ -116,7 +116,7 @@ namespace Website.Service.Stores
                 .Include(x => x.Descriptions)
                 .Include(x => x.ProductCategory)
                 .ThenInclude(x => x.Category)
-                .FirstAsync(cancellationToken);
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (product == null)
             {

@@ -14,5 +14,10 @@ namespace Website.Web.Controllers
 
             return View(claimList);
         }
+
+        public IActionResult Calc()
+        {
+            return View();
+        }
     }
 }

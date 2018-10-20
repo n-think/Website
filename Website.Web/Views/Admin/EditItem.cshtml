@@ -1,6 +1,84 @@
-﻿
-@{
-    ViewData["Title"] = "User";
+﻿@{
+    ViewData["Title"] = "Item";
 }
 
+@model EditItemViewModel
+
 <h2>Редактирование товара</h2>
+<div asp-validation-summary="All" class="text-danger"></div>
+<form asp-action="EditItem" id="edit-form">
+    <input asp-for="Timestamp" type="hidden" class="form-control" />
+    <div class="col-md-12">
+        <h3>@Model.Name</h3>
+    </div>
+    <div class="col-md-6">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th class="col-sm-3">Параметр</th>
+                    <th class="col-sm-7">Значение</th>
+                </tr>
+            </thead>
+            <tbody class="tab-content">
+                <tr>
+                    <td><label asp-for="Id"></label></td>
+                    <td>@Model.Id<input asp-for="Id" type="hidden" /></td>
+                </tr>
+                @Html.EditorForModel("TableDataRowEdit")
+                <tr>
+                    <td><label asp-for="Enabled"></label></td>
+                    <td>
+                        <input class="check-box" id="Enabled" name="Enabled" type="checkbox" data-val="true" value="true" @if (Model.Enabled) { @: checked="checked"
+                               } />
+                    </td>
+                    <td><input id="Enabled" name="Enabled" type="checkbox" value="false" style="display: none" /></td>
+                </tr>
+            </tbody>
+        </table>
+        <div>
+            <h3>Категории</h3>
+            @foreach (var cat in Model?.Categories ?? Enumerable.Empty<CategoryDTO>())
+            {
+                <span>@cat.Name</span>@Html.Raw(" : ")<span>@cat.Description</span><br />
+            }
+        </div>
+        <div class="admin-item-descriptions">
+            @foreach (var descriptionGroup in Model?.Descriptions ?? Enumerable.Empty<DescriptionGroupDTO>())
+            {
+                <h3>@descriptionGroup.Name</h3>
+                foreach (var item in descriptionGroup.Items)
+                {
+                    <span>@item.Name</span>@Html.Raw(" : ")<span>@item.Value</span><br />
+                }
+            }
+        </div>
+        <br />
+    </div>
+    <div class="col-md-5">
+        <div>
+            <div class="admin-img-box">
+                <div id="image-remove-button" class="glyphicon-ring glyphicon-white">
+                     <span class="glyphicon glyphicon-remove glyphicon-bordered"></span>
+                </div>
+                <img id="admin-image-view" src="@Model.Images?.FirstOrDefault(x => x.Primary)?.Path"/>
+                <span></span>
+            </div>
+            <div id="image-container" class="admin-img-thumbs">
+                @foreach (var item in Model.Images ?? Enumerable.Empty<ProductImageDTO>())
+                {
+                    <img class="admin-img-thumb" data-path="@item.Path" src="@item.ThumbPath" />
+                }
+            </div>
+        </div>
+        <input id="file-upload-button" lang="" type="file" multiple />
+    </div>
+</form>
+<div class="col-md-12">
+    <button id="edit-form-submit" onclick="validateAndSubmitJson()" class="btn btn-default">Сохранить</button>
+    <a class="btn btn-default" asp-action="EditItem" asp-route-id="@Model.Id">Отмена</a>
+</div>
+
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

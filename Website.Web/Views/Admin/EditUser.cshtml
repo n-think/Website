@@ -13,44 +13,43 @@
     <input asp-for="ConcurrencyStamp" type="hidden" class="form-control" />
     <table class="table">
         <thead>
-            <tr>
-                <th class="col-sm-3">Параметр</th>
-                <th class="col-sm-7">Значение</th>
-            </tr>
+        <tr>
+            <th class="col-sm-3">Параметр</th>
+            <th class="col-sm-7">Значение</th>
+        </tr>
         </thead>
         <tbody class="tab-content">
-            <tr>
-                <td><label asp-for="Id"></label></td>
-                <td>@Model.Id<input asp-for="Id" type="hidden" /></td>
-            </tr>
-            <tr>
-                <td><label>Права доступа</label></td>
-                <td>
-                    <div>
-                        @{
-                            var selectList = new List <SelectListItem>
-                            {
-                                new SelectListItem("Пользователь", "user", Model.Role == "user"),
-                                new SelectListItem("Администратор", "admin", Model.Role == "admin")
-                            };
-                        }
-                        <select id="role-selector" name="Role" asp-items="selectList"></select>
-                    </div>
-                    <div class="admin-options @(Model.Role != "admin" ? "hidden" : "") unselectable">
-                        <user-claims name="newClaims" display="Пользователи:" actions="view edit delete" claims="@Model.CurrentClaims" />
-                        <user-claims name="newClaims" display="Товары:" actions="view edit create delete" claims="@Model.CurrentClaims" />
-                        <user-claims name="newClaims" display="Заказы:" actions="view edit delete" claims="@Model.CurrentClaims" />
-                    </div>
-                </td>
-            </tr>
-            @Html.EditorForModel("TableDataRowEdit")
+        <tr>
+            <td><label asp-for="Id"></label></td>
+            <td>@Model.Id<input asp-for="Id" type="hidden" /></td>
+        </tr>
+        <tr>
+            <td><label>Права доступа</label></td>
+            <td>
+                <div>
+                    @{
+                        var selectList = new List <SelectListItem>
+                        {
+                            new SelectListItem("Пользователь", "user", Model.Role == "user"),
+                            new SelectListItem("Администратор", "admin", Model.Role == "admin")
+                        };
+                    }
+                    <select id="role-selector" name="Role" asp-items="selectList"></select>
+                </div>
+                <div class="admin-options @(Model.Role != "admin" ? "hidden" : "") unselectable">
+                    <user-claims name="newClaims" display="Пользователи:" actions="view edit delete" claims="@Model.CurrentClaims" />
+                    <user-claims name="newClaims" display="Товары:" actions="view edit create delete" claims="@Model.CurrentClaims" />
+                    <user-claims name="newClaims" display="Заказы:" actions="view edit delete" claims="@Model.CurrentClaims" />
+                </div>
+            </td>
+        </tr>
+        @Html.EditorForModel("TableDataRowEdit")
         </tbody>
     </table>
-
-
     <button type="submit" class="btn btn-default">Сохранить</button>
     <a class="btn btn-default" asp-action="ViewUser" asp-route-id="@Model.Id">Отмена</a>
 </form>
+
 
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")

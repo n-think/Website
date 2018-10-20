@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Website.Service.DTO;
 using Website.Service.Services;
 
-namespace Website.Web.Initializers
+namespace Website.Web.Infrastructure.Initializers
 {
     public class DbUserProfileSeed
     {

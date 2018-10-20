@@ -8,7 +8,7 @@ namespace Website.Data.ModelsInterfaces
         string Name { get; set; }
         string Description { get; set; }
         int Code { get; set; }
-        double Price { get; set; }
+        decimal Price { get; set; }
         int Stock { get; set; }
         int Reserved { get; set; }
         bool Enabled { get; set; }

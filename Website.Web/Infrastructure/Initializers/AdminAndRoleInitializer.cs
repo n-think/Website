@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
@@ -9,7 +6,7 @@ using Website.Service.DTO;
 using Website.Service.Interfaces;
 using Website.Service.Services;
 
-namespace Website.Web.Initializers
+namespace Website.Web.Infrastructure.Initializers
 {
     public class AdminAndRoleInitializer
     {

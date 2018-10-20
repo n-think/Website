@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Localization;
 using Website.Web.Resources;
 
-namespace Website.Web.Localization
+namespace Website.Web.Infrastructure.Localization
 {
     // Локализация через файл ресурсов
 

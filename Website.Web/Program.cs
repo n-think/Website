@@ -12,7 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Website.Service.Interfaces;
 using Website.Service.Services;
-using Website.Web.Initializers;
+using Website.Web.Infrastructure.Initializers;
 
 namespace Website.Web
 {

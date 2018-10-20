@@ -16,6 +16,7 @@ namespace Website.Web.Views.Admin
         public static string Users => "Users";
 
         public static string Items => "Items";
+        public static string Categories => "Categories";
 
         public static string Orders => "Orders";
 
@@ -25,6 +26,7 @@ namespace Website.Web.Views.Admin
         public static string UsersNavClass(ViewContext viewContext) => PageNavClass(viewContext, Users);
 
         public static string ItemsNavClass(ViewContext viewContext) => PageNavClass(viewContext, Items);
+        public static string CategoriesNavClass(ViewContext viewContext) => PageNavClass(viewContext, Categories);
 
         public static string OrdersNavClass(ViewContext viewContext) => PageNavClass(viewContext, Orders);
 

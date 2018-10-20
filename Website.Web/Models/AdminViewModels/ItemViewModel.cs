@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Text;
+using System.Linq;
+using System.Security.Claims;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Website.Service.DTO;
 
-namespace Website.Service.DTO
+namespace Website.Web.Models.AdminViewModels
 {
-    public class ProductDTO
+    public class ItemViewModel
     {
-        public ProductDTO()
-        {
-            Categories = new List<CategoryDTO>();
-        }
         public int Id { get; set; }
         [Display(Name = "Название")]
         public string Name { get; set; }
@@ -33,10 +34,13 @@ namespace Website.Service.DTO
         public byte[] Timestamp { get; set; }
 
         //categories
+        [ScaffoldColumn(false)]
         public List<CategoryDTO> Categories { get; set; }
         //images
+        [ScaffoldColumn(false)]
         public List<ProductImageDTO> Images { get; set; }
         //descriptions
+        [ScaffoldColumn(false)]
         public List<DescriptionGroupDTO> Descriptions { get; set; }
     }
 }

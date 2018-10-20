@@ -1,5 +1,4 @@
 ﻿@using Microsoft.Extensions.Configuration
-@using Website.Web.Initializers
 
 @inject IConfiguration Configuration
 
@@ -9,7 +8,6 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@Html.Raw(ViewData["Title"])</title>
-
     <environment include="Development">
         <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
         <link rel="stylesheet" href="~/css/site.css" />
@@ -22,14 +20,14 @@
     </environment>
 </head>
 <body>
-<div class="jumbotron">
-    <div class="container text-center">
-        @*<video id="jumbo-video" src="/videos/sloth.webm" autoplay height="160" loop style="position: absolute; left: 10%;">sloth</video> 
-        <img src="/images/1.jpg" height="160" style="position: absolute; right: 10%;" alt="eagle pic"/>*@
-        <h1>Сайт</h1>
-        <p>Логин: "admin" Пароль: "@(Configuration.GetSection("AdminAccount").GetValue<string>("Password"))"</p>
+    <div class="jumbotron">
+        <div class="container text-center">
+            @*<video id="jumbo-video" src="/videos/sloth.webm" autoplay height="160" loop style="position: absolute; left: 10%;">sloth</video>
+                <img src="/images/1.jpg" height="160" style="position: absolute; right: 10%;" alt="eagle pic"/>*@
+            <h1>Сайт</h1>
+            <p>Логин: "admin" Пароль: "@(Configuration.GetSection("AdminAccount").GetValue<string>("Password"))"</p>
+        </div>
     </div>
-</div>
     <nav id="navbar" class="navbar navbar-inverse">
         <div class="container-fluid">
             <div class="navbar-header">
@@ -44,7 +42,7 @@
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
                     <li><a asp-area="" asp-controller="" asp-action="">Магазин</a></li>
-                    <li><a asp-area="" asp-controller="" asp-action="">Калькулятор</a></li>
+                    <li><a asp-area="" asp-controller="Test" asp-action="Calc">Калькулятор</a></li>
                     <li><a asp-area="" asp-controller="Home" asp-action="About">О нас</a></li>
                     <li><a asp-area="" asp-controller="Home" asp-action="Contact">Контакты</a></li>
                     <li><a href="#"><span class="glyphicon glyphicon-search"></span> Поиск</a></li>
@@ -53,16 +51,15 @@
             </div>
         </div>
     </nav>
-<div class="main-body">
-    @RenderBody()
-</div>
-<div class="footer">
-    <hr />
-    <footer class="text-center">
-        <p>&copy; 2018 - сайт</p>
-    </footer>
-</div>
-
+    <div class="main-body">
+        @RenderBody()
+    </div>
+    <div class="footer">
+        <hr />
+        <footer class="text-center">
+            <p>&copy; 2018 - сайт</p>
+        </footer>
+    </div>
     <environment include="Development">
         <script src="~/lib/jquery/dist/jquery.js"></script>
         <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
@@ -83,7 +80,6 @@
         </script>
         <script src="~/js/site.min.js" asp-append-version="true"></script>
     </environment>
-
     @RenderSection("Scripts", required: false)
 </body>
 </html>

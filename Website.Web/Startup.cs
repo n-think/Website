@@ -23,8 +23,9 @@ using Website.Service.Mapper;
 using Website.Service.Services;
 using Website.Web.Resources;
 using Website.Service.Stores;
-using Website.Web.Localization;
-using Website.Web.Mapper;
+using Website.Web.Infrastructure;
+using Website.Web.Infrastructure.Localization;
+using Website.Web.Infrastructure.Mapper;
 
 
 namespace Website.Web
@@ -90,7 +91,10 @@ namespace Website.Web
 
             services.AddScoped<DbContext, WebsiteDbContext>();
 
-            services.AddMvc()
+            services.AddMvc(config =>
+                {
+                    config.ModelBinderProviders.Insert(0, new InvariantDecimalModelBinderProvider());
+                })
                 .AddDataAnnotationsLocalization(options =>
                     {
                         options.DataAnnotationLocalizerProvider = (type, factory) =>

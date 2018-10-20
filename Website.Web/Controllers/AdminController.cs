@@ -192,8 +192,8 @@ namespace Website.Web.Controllers
             var currPage = page ?? 1;
             var countPerPage = pageCount ?? 30; // get from client js?
 
-           SortPageResult<ProductDTO> result = await _shopManager.GetSortFilterPageAsync(types, search, sortOrder, currPage, countPerPage);
-
+            SortPageResult<ProductDTO> result = await _shopManager.GetSortFilterPageAsync(types, search, sortOrder, currPage, countPerPage);
+            //TODO categories filter List<CategoryDTO> allCategories = await _shopManager.GetAllCategories();
             ViewBag.itemCount = result.TotalN;
 
             var model = new ItemsViewModel()
@@ -206,6 +206,7 @@ namespace Website.Web.Controllers
                 Types = (int)types,
                 ItemCount = result.TotalN,
                 Items = result.FilteredData
+                //,Categories = allCategories
             };
 
             return View(model);
@@ -216,16 +217,87 @@ namespace Website.Web.Controllers
         public async Task<IActionResult> ViewItem(int id)
         {
             var prod = await _shopManager.GetProductById(id);
-            prod.Descriptions = await _shopManager.GetProductDescriptions(id);
-            return View(prod);
+            if (prod == null)
+            {
+                return View("Error", new ErrorViewModel { Message = $"Товар с id {id} не найден." });
+            }
+            var viewModel = _mapper.Map<ItemViewModel>(prod);
+            viewModel.Descriptions = await _shopManager.GetProductDescriptions(id);
+            return View(viewModel);
         }
 
         [HttpGet]
         [Authorize(Policy = "EditItems")]
-        public async Task<IActionResult> EditItem()
+        public async Task<IActionResult> EditItem(int id)
         {
-            await Task.CompletedTask;
-            return View();
+            var prod = await _shopManager.GetProductById(id);
+            if (prod == null)
+            {
+                return View("Error", new ErrorViewModel { Message = $"Товар с id {id} не найден." });
+            }
+
+            var viewModel = _mapper.Map<EditItemViewModel>(prod);
+            viewModel.Descriptions = await _shopManager.GetProductDescriptions(id);
+            //modelUser.CurrentClaims = await _userManager.GetClaimsAsync(user);
+            //modelUser.Role = (await _userManager.GetRolesAsync(user)).FirstOrDefault() ?? "без роли";
+
+            return View(viewModel);
+        }
+
+        [HttpPost("Admin/EditItem")]
+        [ValidateAntiForgeryToken]
+        [Authorize(Policy = "EditUsers")]
+        public async Task<IActionResult> EditItem([FromBody]EditItemViewModel item)
+        {
+            if (item == null || item.Id == 0 || item.Timestamp == null)
+            {
+                return RedirectToAction("Items");
+            }
+
+            if (ModelState.IsValid)
+            {
+                //var dtoUser = await _userManager.FindByIdAsync(user.Id);
+                //if (dtoUser == null)
+                //{
+                //    return View("Error", new ErrorViewModel { Message = $"Пользователь с id {user.Id} не найден." });
+                //}
+                //var dbConcStamp = dtoUser.ConcurrencyStamp;
+                //_mapper.Map(user, dtoUser);
+
+                //var newClaims = new List<Claim>();
+                //if (!user.NewClaims.IsNullOrEmpty() && user?.Role == "admin")
+                //{
+                //    newClaims = user.NewClaims.Select(x => new Claim(x, "")).ToList();
+                //}
+                //if (!user.Role.IsNullOrEmpty())
+                //{
+                //    newClaims.Add(new Claim(ClaimTypes.Role, user.Role));
+                //}
+                ////try update
+                //var result = await _userManager.UpdateUserPasswordClaims(dtoUser, user.Password, newClaims);
+
+                //if (result.Succeeded) // update successful
+                //{
+                //    if (HttpContext.User.Claims.First(x => x.Type == ClaimTypes.NameIdentifier).Value == dtoUser.Id)
+                //    {
+                //        await _signInManager.RefreshSignInAsync(dtoUser);
+                //    }
+                //    TempData["Message"] = "Изменения успешно сохранены";
+                //    return RedirectToAction("ViewUser", new { id = user.Id });
+                //}
+
+                ////add new errors
+                //foreach (var identityError in result.Errors)
+                //{
+                //    ModelState.AddModelError(identityError.Code, identityError.Description);
+                //    if (identityError.Code == "ConcurrencyFailure")
+                //    {
+                //        user.ConcurrencyStamp = dbConcStamp; // to enable save after conc error
+                //        ModelState.Remove("ConcurrencyStamp"); // remove from the model state or HTML helpers will use the original value
+                //    }
+                //}
+            }
+            return View(item);
         }
 
         [HttpGet]
@@ -239,6 +311,11 @@ namespace Website.Web.Controllers
         [HttpGet]
         [Authorize(Policy = "ViewOrders")]
         public IActionResult Orders()
+        {
+            return View();
+        }
+
+        public IActionResult Categories()
         {
             return View();
         }

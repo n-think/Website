@@ -4,10 +4,11 @@
 }
 
 @using System.IO
-@model ProductDTO
+@model ItemViewModel
 
 <h2>Просмотр товара</h2>
-
+<div class="text-success">@TempData["Message"]</div>
+<a asp-action="EditItem" asp-route-id="@Model.Id">Редактировать</a>
 <div class="admin-product-view">
     <div class="col-md-12">
         <h3>@Model.Name</h3>
@@ -15,15 +16,22 @@
     <div class="col-md-6">
         <table class="table">
             <thead>
-                <tr>
-                    <th class="col-sm-3">Параметр</th>
-                    <th class="col-sm-7">Значение</th>
-                </tr>
+            <tr>
+                <th class="col-sm-3">Параметр</th>
+                <th class="col-sm-7">Значение</th>
+            </tr>
             </thead>
             <tbody class="tab-content">
-                @Html.DisplayForModel("TableDataRowDisplay")
+            @Html.DisplayForModel("TableDataRowDisplay")
             </tbody>
         </table>
+        <div>
+            <h3>Категории</h3>
+            @foreach (var cat in Model.Categories)
+            {
+                <span>@cat.Name</span>@Html.Raw(" : ")<span>@cat.Description</span><br />
+            }
+        </div>
         <div class="admin-item-descriptions">
             @foreach (var descriptionGroup in Model.Descriptions)
             {

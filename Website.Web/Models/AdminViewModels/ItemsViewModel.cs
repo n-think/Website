@@ -19,5 +19,6 @@ namespace Website.Web.Models.AdminViewModels
         #endregion
 
         public IEnumerable<ProductDTO> Items { get; set; }
+        public IEnumerable<CategoryDTO> Categories { get; set; }
     }
 }
