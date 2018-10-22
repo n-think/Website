@@ -36,9 +36,9 @@ namespace Website.Service.Interfaces
         Task<OperationResult> CreateCategoryAsync(string categoryName, CancellationToken cancellationToken);
         Task<bool> FindCategoryByNameAsync(string categoryName, CancellationToken cancellationToken);
         Task<OperationResult> RemoveCategoryAsync(string categoryName, CancellationToken cancellationToken);
-        Task<SortPageResult<ProductDTO>> SortFilterPageResultAsync(ItemTypeSelector types, string searchString, string sortPropName,
+        Task<SortPageResult<ProductDto>> SortFilterPageResultAsync(ItemTypeSelector types, string searchString, string sortPropName,
             int currentPage, int countPerPage, CancellationToken cancellationToken);
 
-        Task<List<DescriptionGroupDTO>> GetProductDescriptions(int productId, CancellationToken cancellationToken);
+        Task<List<DescriptionGroupDto>> GetProductDescriptions(int productId, CancellationToken cancellationToken);
     }
 }

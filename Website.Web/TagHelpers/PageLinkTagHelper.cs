@@ -13,10 +13,10 @@ namespace Website.Web.TagHelpers
     [HtmlTargetElement("page-link", TagStructure = TagStructure.WithoutEndTag)]
     public class PageLinkTagHelper : TagHelper
     {
-        private IUrlHelperFactory urlHelperFactory;
+        private IUrlHelperFactory _urlHelperFactory;
         public PageLinkTagHelper(IUrlHelperFactory helperFactory)
         {
-            urlHelperFactory = helperFactory;
+            _urlHelperFactory = helperFactory;
         }
         [ViewContext]
         [HtmlAttributeNotBound]
@@ -31,7 +31,7 @@ namespace Website.Web.TagHelpers
 
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
-            IUrlHelper urlHelper = urlHelperFactory.GetUrlHelper(ViewContext);
+            IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(ViewContext);
             output.TagName = "div";
             output.TagMode = TagMode.StartTagAndEndTag;
 

@@ -26,19 +26,19 @@ namespace Website.Service.Services
 {
     //TODO refactor using store (then remove mapper, dbcontext)
 
-    public class UserManager : AspNetUserManager<UserDTO>, IUserManager
+    public class UserManager : AspNetUserManager<UserDto>, IUserManager
     {
         public UserManager(
             DbContext context,
-            IUserStore<UserDTO> store,
+            IUserStore<UserDto> store,
             IOptions<IdentityOptions> optionsAccessor,
-            IPasswordHasher<UserDTO> passwordHasher,
-            IEnumerable<IUserValidator<UserDTO>> userValidators,
-            IEnumerable<IPasswordValidator<UserDTO>> passwordValidators,
+            IPasswordHasher<UserDto> passwordHasher,
+            IEnumerable<IUserValidator<UserDto>> userValidators,
+            IEnumerable<IPasswordValidator<UserDto>> passwordValidators,
             ILookupNormalizer keyNormalizer,
             IdentityErrorDescriber errors,
             IServiceProvider services,
-            ILogger<UserManager<UserDTO>> logger,
+            ILogger<UserManager<UserDto>> logger,
             IMapper mapper)
             : base(store,
                 optionsAccessor,
@@ -62,7 +62,7 @@ namespace Website.Service.Services
         /// </summary>
         /// <param name="userProfileDto"></param>
         /// <returns></returns>
-        public async Task<OperationResult> CreateOrUpdateProfileAsync(UserProfileDTO userProfileDto)
+        public async Task<OperationResult> CreateOrUpdateProfileAsync(UserProfileDto userProfileDto)
         {
             this.ThrowIfDisposed();
 
@@ -104,7 +104,7 @@ namespace Website.Service.Services
             return opResult;
         }
 
-        public async Task<IEnumerable<UserDTO>> GetUsersAsync(RoleSelector roleSelector, int skip, int take)
+        public async Task<IEnumerable<UserDto>> GetUsersAsync(RoleSelector roleSelector, int skip, int take)
         {
             this.ThrowIfDisposed();
             // check inputs
@@ -117,10 +117,10 @@ namespace Website.Service.Services
 
             List<User> users = await query.Skip(skip).Take(take).ToListAsync();
 
-            var clientList = new List<UserDTO>();
+            var clientList = new List<UserDto>();
             foreach (var user in users)
             {
-                var client = _mapper.Map<UserDTO>(user);
+                var client = _mapper.Map<UserDto>(user);
                 clientList.Add(client);
             }
 
@@ -128,7 +128,7 @@ namespace Website.Service.Services
         }
 
 
-        public async Task<SortPageResult<UserDTO>> GetSortFilterPageAsync(RoleSelector roleSelector, string searchString, string sortPropName, int page, int pageCount)
+        public async Task<SortPageResult<UserDto>> GetSortFilterPageAsync(RoleSelector roleSelector, string searchString, string sortPropName, int page, int pageCount)
         {
             ThrowIfDisposed();
             // check inputs
@@ -151,9 +151,9 @@ namespace Website.Service.Services
             var totalUsers = await query.CountAsync();
             query = query.Skip((page - 1) * pageCount).Take(pageCount);
 
-            var usersDto = await query.ProjectTo<UserDTO>(_mapper.ConfigurationProvider).ToListAsync(CancellationToken);
+            var usersDto = await query.ProjectTo<UserDto>(_mapper.ConfigurationProvider).ToListAsync(CancellationToken);
 
-            return new SortPageResult<UserDTO> { FilteredData = usersDto, TotalN = totalUsers };
+            return new SortPageResult<UserDto> { FilteredData = usersDto, TotalN = totalUsers };
         }
 
         private void OrderUserQuery(string sortPropName, ref IQueryable<User> query)
@@ -171,7 +171,7 @@ namespace Website.Service.Services
 
             // checking property name
             string propClass = "";
-            var check = StoreHelpers.CheckIfPropertyExists(sortPropName, typeof(UserDTO), typeof(UserProfileDTO));
+            var check = StoreHelpers.CheckIfPropertyExists(sortPropName, typeof(UserDto), typeof(UserProfileDto));
             if (check.Result)
             {
                 propClass = check.Type.Name;
@@ -183,14 +183,14 @@ namespace Website.Service.Services
             Expression<Func<User, object>> profileValue = u => EF.Property<object>(u.UserProfile, sortPropName);
             switch (propClass)
             {
-                case nameof(UserDTO):
+                case nameof(UserDto):
                     if (descending)
                         query = query.OrderByDescending(userValue);
                     else
                         query = query.OrderBy(userValue);
                     break;
 
-                case nameof(UserProfileDTO):
+                case nameof(UserProfileDto):
                     if (descending)
                         query = query.OrderByDescending(profileValue);
                     else
@@ -291,7 +291,7 @@ namespace Website.Service.Services
         /// <param name="newPassword"></param>
         /// <param name="newClaims"></param>
         /// <returns></returns>
-        public async Task<IdentityResult> UpdateUserPasswordClaims(UserDTO user, string newPassword, IEnumerable<Claim> newClaims)
+        public async Task<IdentityResult> UpdateUserPasswordClaims(UserDto user, string newPassword, IEnumerable<Claim> newClaims)
         {
             //TODO tests?
             //TODO refactor into smaller methods
@@ -313,7 +313,7 @@ namespace Website.Service.Services
             {
                 #region update roles
 
-                if (!(Store is IUserRoleStore<UserDTO> roleStore))
+                if (!(Store is IUserRoleStore<UserDto> roleStore))
                 {
                     throw new NotSupportedException("Current UserStore doesn't implement IUserRoleStore");
                 }
@@ -341,7 +341,7 @@ namespace Website.Service.Services
                 #endregion
                 #region update claims
 
-                if (!(Store is IUserClaimStore<UserDTO> claimStore))
+                if (!(Store is IUserClaimStore<UserDto> claimStore))
                 {
                     throw new NotSupportedException("Current UserStore doesn't implement IUserClaimStore");
                 }
@@ -362,12 +362,12 @@ namespace Website.Service.Services
             return await UpdateAsync(user);
         }
 
-        public async Task<UserProfileDTO> FindProfileByUserIdAsync(string userId)
+        public async Task<UserProfileDto> FindProfileByUserIdAsync(string userId)
         {
             ThrowIfDisposed();
             if (userId.IsNullOrEmpty())
                 throw new ArgumentNullException(nameof(userId));
-            var profileStore = Store as IUserProfileStore<UserProfileDTO>;
+            var profileStore = Store as IUserProfileStore<UserProfileDto>;
             if (profileStore == null)
             {
                 throw new NotSupportedException("Current UserStore doesn't implement IUserProfileStore");
@@ -377,13 +377,13 @@ namespace Website.Service.Services
 
         #region helpers
 
-        private async Task<IdentityResult> SetPasswordAsync(UserDTO user, string newPassword)
+        private async Task<IdentityResult> SetPasswordAsync(UserDto user, string newPassword)
         {
             if (user == null)
             {
                 throw new ArgumentNullException(nameof(user));
             }
-            var passwordStore = Store as IUserPasswordStore<UserDTO>;
+            var passwordStore = Store as IUserPasswordStore<UserDto>;
             if (passwordStore == null)
             {
                 var error = new IdentityError

@@ -21,7 +21,7 @@ namespace Website.Web.Models.AdminViewModels
         [Display(Name = "Артикул")]
         public int Code { get; set; }
         [Display(Name = "Цена")]
-        [DataType(DataType.Currency)]
+        [RegularExpression("\\d+[,.]\\d+", ErrorMessage = "Поле должно содержать цифры, разделенные запятой или точкой.")]// custom binder converts , -> .
         public decimal Price { get; set; }
         [Display(Name = "Склад")]
         public int Stock { get; set; }
@@ -39,19 +39,19 @@ namespace Website.Web.Models.AdminViewModels
 
         //categories
         [ScaffoldColumn(false)]
-        public List<CategoryDTO> Categories { get; set; }
+        public List<CategoryDto> Categories { get; set; }
         //images
         [ScaffoldColumn(false)]
-        public List<ProductImageDTO> Images { get; set; }
+        public ProductImageDto[] Images { get; set; }
         //descriptions
         [ScaffoldColumn(false)]
-        public List<DescriptionGroupDTO> Descriptions { get; set; }
+        public List<DescriptionGroupDto> Descriptions { get; set; }
 
         [ScaffoldColumn(false)]
         public string JsonData { get; set; }
         [ScaffoldColumn(false)]
-        public List<DescriptionGroupDTO> AllDescriptionGroups { get; set; }
+        public List<DescriptionGroupDto> AllDescriptionGroups { get; set; }
         [ScaffoldColumn(false)]
-        public List<CategoryDTO> AllCategories { get; set; }
+        public List<CategoryDto> AllCategories { get; set; }
     }
 }

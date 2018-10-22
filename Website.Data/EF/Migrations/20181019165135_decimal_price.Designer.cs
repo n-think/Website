@@ -11,7 +11,7 @@ namespace Website.Data.EF.Migrations
 {
     [DbContext(typeof(WebsiteDbContext))]
     [Migration("20181019165135_decimal_price")]
-    partial class decimal_price
+    partial class DecimalPrice
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

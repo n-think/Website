@@ -17,10 +17,10 @@ namespace Website.Web.TagHelpers
     [HtmlTargetElement("user-claims", TagStructure = TagStructure.WithoutEndTag)]
     public class UserClaimsTagHelper : TagHelper
     {
-        private IUrlHelperFactory urlHelperFactory;
+        private IUrlHelperFactory _urlHelperFactory;
         public UserClaimsTagHelper(IUrlHelperFactory helperFactory)
         {
-            urlHelperFactory = helperFactory;
+            _urlHelperFactory = helperFactory;
         }
         [ViewContext]
         [HtmlAttributeNotBound]
@@ -33,7 +33,7 @@ namespace Website.Web.TagHelpers
 
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
-            IUrlHelper urlHelper = urlHelperFactory.GetUrlHelper(ViewContext);
+            IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(ViewContext);
             output.TagName = "div";
             output.TagMode = TagMode.StartTagAndEndTag;
 
@@ -103,7 +103,7 @@ namespace Website.Web.TagHelpers
                     input.Attributes.Add("disabled", "");
                 }
 
-                if (masterFlag || Claims.Any(x => x.Type == capAction + capType))
+                if (masterFlag || (Claims != null && Claims.Any(x => x.Type == capAction + capType)))
                 {
                     input.Attributes.Add("checked","");
                     masterFlag = true;

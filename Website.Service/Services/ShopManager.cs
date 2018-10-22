@@ -18,7 +18,7 @@ namespace Website.Service.Services
 {
     public class ShopManager : IDisposable, IShopManager
     {
-        public ShopManager(IShopStore<ProductDTO, ProductImageDTO, OrderDTO> store, ILogger<ShopManager> logger, IHttpContextAccessor context,  OperationErrorDescriber errorDescriber = null)
+        public ShopManager(IShopStore<ProductDto, ProductImageDto, OrderDto> store, ILogger<ShopManager> logger, IHttpContextAccessor context,  OperationErrorDescriber errorDescriber = null)
         {
             _store = store ?? throw new ArgumentNullException(nameof(store));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -26,7 +26,7 @@ namespace Website.Service.Services
             CancellationToken = context?.HttpContext?.RequestAborted ?? CancellationToken.None;
         }
 
-        private readonly IShopStore<ProductDTO, ProductImageDTO, OrderDTO> _store;
+        private readonly IShopStore<ProductDto, ProductImageDto, OrderDto> _store;
         private readonly OperationErrorDescriber _errorDescriber;
         private readonly ILogger<ShopManager> _logger;
         
@@ -38,7 +38,7 @@ namespace Website.Service.Services
         /// </summary>
         /// <param name="product"></param>
         /// <returns></returns>
-        public async Task<OperationResult> CreateItemAsync(ProductDTO product)
+        public async Task<OperationResult> CreateItemAsync(ProductDto product)
         {
             ThrowIfDisposed();
             if (product == null)
@@ -67,7 +67,7 @@ namespace Website.Service.Services
             return OperationResult.Success();
         }
 
-        public async Task<SortPageResult<ProductDTO>> GetSortFilterPageAsync(ItemTypeSelector types, string searchString, string sortPropName, int currPage, int countPerPage)
+        public async Task<SortPageResult<ProductDto>> GetSortFilterPageAsync(ItemTypeSelector types, string searchString, string sortPropName, int currPage, int countPerPage)
         {
             ThrowIfDisposed();
             // check inputs
@@ -77,19 +77,19 @@ namespace Website.Service.Services
             if (!Enum.IsDefined(typeof(ItemTypeSelector), types))
                 throw new InvalidEnumArgumentException(nameof(ItemTypeSelector), (int)types, typeof(ItemTypeSelector));
 
-            SortPageResult<ProductDTO> result = await
+            SortPageResult<ProductDto> result = await
                 _store.SortFilterPageResultAsync(types, searchString, sortPropName, currPage, countPerPage, CancellationToken);
 
             return result;
         }
 
-        public async Task<ProductDTO> GetProductById(int id)
+        public async Task<ProductDto> GetProductById(int id)
         {
             ThrowIfDisposed();
             return await _store.FindProductByIdAsync(id, CancellationToken);
         }
 
-        public async Task<List<DescriptionGroupDTO>> GetProductDescriptions(int productId)
+        public async Task<List<DescriptionGroupDto>> GetProductDescriptions(int productId)
         {
             ThrowIfDisposed();
 

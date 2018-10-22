@@ -10,27 +10,27 @@ namespace Website.Service.DTO
     /// <summary>
     /// Represents a user in the identity system
     /// </summary>
-    public class UserDTO : ClaimsIdentity
+    public class UserDto : ClaimsIdentity
     {
         /// <summary>
-        /// Initializes a new instance of <see cref="UserDTO" />.
+        /// Initializes a new instance of <see cref="UserDto" />.
         /// </summary>
         /// <remarks>
         /// The Id property is initialized to form a new GUID string value.
         /// </remarks>
-        public UserDTO()
+        public UserDto()
         {
             this.Id = Guid.NewGuid().ToString();
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="UserDTO" />.
+        /// Initializes a new instance of <see cref="UserDto" />.
         /// </summary>
         /// <param name="userName">The user name.</param>
         /// <remarks>
         /// The Id property is initialized to form a new GUID string value.
         /// </remarks>
-        public UserDTO(string userName)
+        public UserDto(string userName)
             : this()
         {
             this.UserName = userName;
@@ -59,7 +59,7 @@ namespace Website.Service.DTO
         public bool TwoFactorEnabled { get; set; }
         [Display(Name = "Неудачных попыток входа")]
         public int AccessFailedCount { get; set; }
-        public UserProfileDTO UserProfile { get; set; }
+        public UserProfileDto UserProfile { get; set; }
         [Display(Name = "Дата последней активности")]
         public DateTimeOffset? LastActivityDate { get; set; }
 

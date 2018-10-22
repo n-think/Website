@@ -19,8 +19,8 @@ namespace Website.Service.Stores
     /// Represents a new instance of a persistence store for users, using the default implementation
     /// of <see cref="T:Website.Data.EF.Models.User" /> with a string as a primary key.
     /// </summary>
-    public class CustomUserStore : CustomUserStoreBase<UserDTO, User, RoleDTO, Role, UserClaim,
-        UserRole, UserLogin, UserToken, RoleClaim, UserProfileDTO, UserProfile>
+    public class CustomUserStore : CustomUserStoreBase<UserDto, User, RoleDto, Role, UserClaim,
+        UserRole, UserLogin, UserToken, RoleClaim, UserProfileDto, UserProfile>
     {
         public CustomUserStore(DbContext context, IMapper mapper, IdentityErrorDescriber describer = null)
             : base(context, mapper, describer)
@@ -55,11 +55,11 @@ namespace Website.Service.Stores
             IUserProfileStore<TDtoUserProfile>
         //,IQueryableUserStore<TUser> не получится через dto
 
-        where TDtoUser : UserDTO
+        where TDtoUser : UserDto
         where TDbUser : User
-        where TDtoRole : RoleDTO
+        where TDtoRole : RoleDto
         where TDbRole : Role
-        where TDtoUserProfile : UserProfileDTO
+        where TDtoUserProfile : UserProfileDto
         where TDbUserProfile : UserProfile, new()
         where TDbUserClaim : UserClaim, new()
         where TDbUserRole : UserRole, new()
@@ -77,14 +77,14 @@ namespace Website.Service.Stores
         {
             ErrorDescriber = describer ?? new IdentityErrorDescriber();
             Context = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
-            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            Mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
         public DbContext Context { get; private set; }
         public IdentityErrorDescriber ErrorDescriber { get; set; }
 
         private bool _disposed;
-        protected readonly IMapper _mapper;
+        protected readonly IMapper Mapper;
         private DbSet<TDbUser> UsersSet => Context.Set<TDbUser>();
         private DbSet<TDbRole> Roles => Context.Set<TDbRole>();
         private DbSet<TDbUserClaim> UserClaims => Context.Set<TDbUserClaim>();
@@ -123,7 +123,7 @@ namespace Website.Service.Stores
                 throw new ArgumentNullException(nameof(user));
             }
 
-            var dbUser = _mapper.Map<TDbUser>(user);
+            var dbUser = Mapper.Map<TDbUser>(user);
             Context.Add(dbUser);
             await SaveChanges(cancellationToken);
             return IdentityResult.Success;
@@ -153,12 +153,12 @@ namespace Website.Service.Stores
                     return IdentityResult.Failed(ErrorDescriber.ConcurrencyFailure());
                 }
 
-                _mapper.Map(user, dbUser);
+                Mapper.Map(user, dbUser);
                 dbUser.ConcurrencyStamp = Guid.NewGuid().ToString();
             }
             else
             {
-                dbUser = _mapper.Map<TDbUser>(user);
+                dbUser = Mapper.Map<TDbUser>(user);
                 Context.Attach(dbUser);
                 dbUser.ConcurrencyStamp = Guid.NewGuid().ToString();
                 Context.Update(dbUser);
@@ -228,7 +228,7 @@ namespace Website.Service.Stores
             Context.ChangeTracker.LazyLoadingEnabled = true;
             //var dbUser = UsersSet.FindAsync(new object[] { id }, cancellationToken);
             var dbUser = UsersSet.Include(x => x.UserProfile).FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
-            return dbUser == null ? Task.FromResult<TDtoUser>(null) : _mapper.Map<Task<TDtoUser>>(dbUser);
+            return dbUser == null ? Task.FromResult<TDtoUser>(null) : Mapper.Map<Task<TDtoUser>>(dbUser);
         }
 
         /// <summary>
@@ -245,7 +245,7 @@ namespace Website.Service.Stores
             ThrowIfDisposed();
             //var dbUser = UsersSet.FirstOrDefaultAsync(u => u.NormalizedUserName == normalizedUserName, cancellationToken);
             var dbUser = UsersSet.Include(x => x.UserProfile).FirstOrDefaultAsync(u => u.NormalizedUserName == normalizedUserName, cancellationToken);
-            return dbUser == null ? Task.FromResult<TDtoUser>(null) : _mapper.Map<Task<TDtoUser>>(dbUser);
+            return dbUser == null ? Task.FromResult<TDtoUser>(null) : Mapper.Map<Task<TDtoUser>>(dbUser);
         }
 
         /// <summary>
@@ -337,7 +337,7 @@ namespace Website.Service.Stores
                 throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, "Role {0} does not exist.", normalizedRoleName));
             }
 
-            var dbUser = _mapper.Map<TDbUser>(user);
+            var dbUser = Mapper.Map<TDbUser>(user);
             UserRoles.Add(CreateUserRole(dbUser, dbRoleEntity));
         }
 
@@ -473,7 +473,7 @@ namespace Website.Service.Stores
                 throw new ArgumentNullException(nameof(claims));
             }
 
-            var dbUser = _mapper.Map<TDbUser>(user);
+            var dbUser = Mapper.Map<TDbUser>(user);
             foreach (var claim in claims)
             {
                 UserClaims.Add(CreateUserClaim(dbUser, claim));
@@ -629,7 +629,7 @@ namespace Website.Service.Stores
             if (userLogin != null)
             {
                 var dbUser = await FindUserAsync(userLogin.UserId, cancellationToken);
-                return _mapper.Map<TDtoUser>(dbUser);
+                return Mapper.Map<TDtoUser>(dbUser);
             }
             return null;
         }
@@ -648,7 +648,7 @@ namespace Website.Service.Stores
             ThrowIfDisposed();
             //var dbUser = UsersSet.FirstOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail, cancellationToken);
             var dbUser = UsersSet.Include(x => x.UserProfile).FirstOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail, cancellationToken);
-            return dbUser == null ? Task.FromResult<TDtoUser>(null) : _mapper.Map<Task<TDtoUser>>(dbUser);
+            return dbUser == null ? Task.FromResult<TDtoUser>(null) : Mapper.Map<Task<TDtoUser>>(dbUser);
         }
 
         /// <summary>
@@ -674,7 +674,7 @@ namespace Website.Service.Stores
                         && userclaims.ClaimType == claim.Type
                         select user;
 
-            return await query.Select(x => _mapper.Map<TDtoUser>(x)).ToListAsync(cancellationToken);
+            return await query.Select(x => Mapper.Map<TDtoUser>(x)).ToListAsync(cancellationToken);
         }
 
         /// <summary>
@@ -703,7 +703,7 @@ namespace Website.Service.Stores
                             where userrole.RoleId.Equals(role.Id)
                             select user;
 
-                return await query.Select(x => _mapper.Map<TDtoUser>(x)).ToListAsync(cancellationToken);
+                return await query.Select(x => Mapper.Map<TDtoUser>(x)).ToListAsync(cancellationToken);
             }
             return new List<TDtoUser>();
         }
@@ -754,7 +754,7 @@ namespace Website.Service.Stores
         }
 
         /// <summary>
-        /// Called to create a new instance of a <see cref="UserDTO"/>.
+        /// Called to create a new instance of a <see cref="UserDto"/>.
         /// </summary>
         /// <param name="user">The associated user.</param>
         /// <param name="login">The sasociated login.</param>
@@ -1514,7 +1514,7 @@ namespace Website.Service.Stores
             {
                 return null;
             }
-            var dtoProfile = _mapper.Map<TDtoUserProfile>(dbProfile);
+            var dtoProfile = Mapper.Map<TDtoUserProfile>(dbProfile);
             return dtoProfile;
         }
 

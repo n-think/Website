@@ -5,9 +5,9 @@ using System.Text;
 
 namespace Website.Service.DTO
 {
-    public class DescriptionGroupDTO
+    public class DescriptionGroupDto
     {
-        public DescriptionGroupDTO()
+        public DescriptionGroupDto()
         {
             Items = new List<DescriptionItem>();
         }

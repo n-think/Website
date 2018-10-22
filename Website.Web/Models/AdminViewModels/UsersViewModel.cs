@@ -18,6 +18,6 @@ namespace Website.Web.Models.AdminViewModels
         public int ItemCount { get; set; }
         #endregion
 
-        public IEnumerable<UserDTO> users { get; set; }
+        public IEnumerable<UserDto> Users { get; set; }
     }
 }

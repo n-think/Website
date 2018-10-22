@@ -22,13 +22,13 @@ namespace xUnitTests
         public void CreateOrUpdateProfileTest()
         {
             var testUser = new User() { UserName = "test@email", NormalizedUserName = "TEST@EMAIL" };
-            var profile = new UserProfileDTO() { Login = "test@email", FirstName = "testName" };
-            var fakeProfile = new UserProfileDTO() { Login = "test@email1", FirstName = "testName" };
+            var profile = new UserProfileDto() { Login = "test@email", FirstName = "testName" };
+            var fakeProfile = new UserProfileDto() { Login = "test@email1", FirstName = "testName" };
             var customUserManager = GetUserManager();
-            var set = testContext.Set<User>();
+            var set = _testContext.Set<User>();
 
             set.Add(testUser);
-            testContext.SaveChanges();
+            _testContext.SaveChanges();
             var resultFalse = customUserManager.CreateOrUpdateProfileAsync(fakeProfile).Result;
             var resultTrue = customUserManager.CreateOrUpdateProfileAsync(profile).Result;
 
@@ -36,7 +36,7 @@ namespace xUnitTests
             Assert.True(resultTrue.Succeeded);
         }
 
-        private DbContext testContext;
+        private DbContext _testContext;
         //sqlite in-memory context
         private DbContext GetContext() => SqlLiteMemoryContext();
         private DbContext SqlLiteMemoryContext()
@@ -52,10 +52,10 @@ namespace xUnitTests
         }
         private UserManager GetUserManager()
         {
-            testContext = SqlLiteMemoryContext();
+            _testContext = SqlLiteMemoryContext();
             var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<ServiceProfile>()));
-            var userStore = new Mock<IUserStore<UserDTO>>();
-            var manager = new UserManager(testContext, userStore.Object, null, null, null, null, null, null, null, null, mapper);
+            var userStore = new Mock<IUserStore<UserDto>>();
+            var manager = new UserManager(_testContext, userStore.Object, null, null, null, null, null, null, null, null, mapper);
             return manager;
         }
     }

@@ -7,13 +7,13 @@ using Website.Service.DTO;
 
 namespace Website.Service.Services
 {
-    public class RoleManager : RoleManager<RoleDTO>
+    public class RoleManager : RoleManager<RoleDto>
     {
-        public RoleManager(IRoleStore<RoleDTO> store,
-            IEnumerable<IRoleValidator<RoleDTO>> roleValidators,
+        public RoleManager(IRoleStore<RoleDto> store,
+            IEnumerable<IRoleValidator<RoleDto>> roleValidators,
             ILookupNormalizer keyNormalizer,
             IdentityErrorDescriber errors,
-            ILogger<RoleManager<RoleDTO>> logger)
+            ILogger<RoleManager<RoleDto>> logger)
             : base(store, roleValidators, keyNormalizer, errors, logger)
         {
         }

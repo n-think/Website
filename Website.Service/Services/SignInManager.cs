@@ -10,13 +10,13 @@ using Website.Service.DTO;
 
 namespace Website.Service.Services
 {
-    public class SignInManager : SignInManager<UserDTO>
+    public class SignInManager : SignInManager<UserDto>
     {
-        public SignInManager(UserManager<UserDTO> userManager,
+        public SignInManager(UserManager<UserDto> userManager,
             IHttpContextAccessor contextAccessor,
-            IUserClaimsPrincipalFactory<UserDTO> claimsFactory,
+            IUserClaimsPrincipalFactory<UserDto> claimsFactory,
             IOptions<IdentityOptions> optionsAccessor,
-            ILogger<SignInManager<UserDTO>> logger,
+            ILogger<SignInManager<UserDto>> logger,
             IAuthenticationSchemeProvider schemeProvider)
             : base(userManager, contextAccessor, claimsFactory,
                 optionsAccessor, logger, schemeProvider)

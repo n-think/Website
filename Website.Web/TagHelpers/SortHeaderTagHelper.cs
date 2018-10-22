@@ -22,11 +22,11 @@ namespace Website.Web.TagHelpers
         public int Selector { get; set; } // значение выбранного селектора поиска
         public string Content { get; set; }// содержимое для отображения
 
-        private IUrlHelperFactory urlHelperFactory;
+        private IUrlHelperFactory _urlHelperFactory;
 
         public SortHeaderTagHelper(IUrlHelperFactory helperFactory)
         {
-            urlHelperFactory = helperFactory;
+            _urlHelperFactory = helperFactory;
         }
 
         [ViewContext]
@@ -68,7 +68,7 @@ namespace Website.Web.TagHelpers
             output.PostContent.AppendHtml(" "); // добавить пробел чтобы стерлка не была вплотную
             output.PostContent.AppendHtml(tag);
 
-            IUrlHelper urlHelper = urlHelperFactory.GetUrlHelper(ViewContext);
+            IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(ViewContext);
             output.TagName = "a";
             output.TagMode = TagMode.StartTagAndEndTag;
 

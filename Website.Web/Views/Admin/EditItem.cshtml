@@ -28,22 +28,21 @@
                 <tr>
                     <td><label asp-for="Enabled"></label></td>
                     <td>
-                        <input class="check-box" id="Enabled" name="Enabled" type="checkbox" data-val="true" value="true" @if (Model.Enabled) { @: checked="checked"
-                               } />
+                        <input class="check-box" id="Enabled" name="Enabled" type="checkbox" data-val="true" value="true" @(Model.Enabled ? " checked=\"checked\"" : "") />
                     </td>
-                    <td><input id="Enabled" name="Enabled" type="checkbox" value="false" style="display: none" /></td>
+                    <td class="hidden"><input id="EnabledHidden" name="Enabled" type="checkbox" value="false" /></td>
                 </tr>
             </tbody>
         </table>
         <div>
             <h3>Категории</h3>
-            @foreach (var cat in Model?.Categories ?? Enumerable.Empty<CategoryDTO>())
+            @foreach (var cat in Model?.Categories ?? Enumerable.Empty<CategoryDto>())
             {
                 <span>@cat.Name</span>@Html.Raw(" : ")<span>@cat.Description</span><br />
             }
         </div>
         <div class="admin-item-descriptions">
-            @foreach (var descriptionGroup in Model?.Descriptions ?? Enumerable.Empty<DescriptionGroupDTO>())
+            @foreach (var descriptionGroup in Model?.Descriptions ?? Enumerable.Empty<DescriptionGroupDto>())
             {
                 <h3>@descriptionGroup.Name</h3>
                 foreach (var item in descriptionGroup.Items)
@@ -57,20 +56,35 @@
     <div class="col-md-5">
         <div>
             <div class="admin-img-box">
-                <div id="image-remove-button" class="glyphicon-ring glyphicon-white">
-                     <span class="glyphicon glyphicon-remove glyphicon-bordered"></span>
-                </div>
-                <img id="admin-image-view" src="@Model.Images?.FirstOrDefault(x => x.Primary)?.Path"/>
+                @{var image = Model.Images?.FirstOrDefault(x => x.Primary);}
+                <img id="admin-image-view" class="@(image == null ? "img-primary" : "")"
+                     data-id="@image?.Id" src="@(image?.Path ?? image?.UriBase64Data)" />
                 <span></span>
             </div>
             <div id="image-container" class="admin-img-thumbs">
-                @foreach (var item in Model.Images ?? Enumerable.Empty<ProductImageDTO>())
+                @foreach (var item in Model.Images ?? Enumerable.Empty<ProductImageDto>())
                 {
-                    <img class="admin-img-thumb" data-path="@item.Path" src="@item.ThumbPath" />
+                    <img class="admin-img-thumb@(item.Primary ? " img-primary" : "")@(item.PendingAdd ? " img-add" : "")@(item.PendingDel ? " img-delete" : "")"
+                         data-path="@item.Path" data-id="@(item.Id ?? Guid.NewGuid().GetHashCode())" src="@(item.ThumbPath ?? item.UriBase64Data)" />
                 }
             </div>
         </div>
         <input id="file-upload-button" lang="" type="file" multiple />
+    </div>
+    <div class="col-md-1">
+        <div id="image-remove-button">
+            <div class="glyphicon-ring glyphicon-red">
+                <span class="glyphicon glyphicon-remove glyphicon-bordered"></span>
+            </div>
+            <div>Удалить/<br />отменить</div>
+        </div>
+        <br />
+        <div id="image-primary-button">
+            <div class="glyphicon-ring glyphicon-green">
+                <span class="glyphicon glyphicon-ok glyphicon-bordered"></span>
+            </div>
+            <div>Сделать<br />основной</div>
+        </div>
     </div>
 </form>
 <div class="col-md-12">

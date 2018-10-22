@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Website.Service.DTO
 {
-    public class CategoryDTO
+    public class CategoryDto
     {
         public virtual int Id { get; set; }
         public virtual string Name { get; set; }

@@ -2,7 +2,7 @@
 
 namespace Website.Data.EF.Migrations
 {
-    public partial class desc_groups : Migration
+    public partial class DescGroups : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

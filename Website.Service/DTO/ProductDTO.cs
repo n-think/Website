@@ -5,11 +5,11 @@ using System.Text;
 
 namespace Website.Service.DTO
 {
-    public class ProductDTO
+    public class ProductDto
     {
-        public ProductDTO()
+        public ProductDto()
         {
-            Categories = new List<CategoryDTO>();
+            Categories = new List<CategoryDto>();
         }
         public int Id { get; set; }
         [Display(Name = "Название")]
@@ -33,10 +33,10 @@ namespace Website.Service.DTO
         public byte[] Timestamp { get; set; }
 
         //categories
-        public List<CategoryDTO> Categories { get; set; }
+        public List<CategoryDto> Categories { get; set; }
         //images
-        public List<ProductImageDTO> Images { get; set; }
+        public List<ProductImageDto> Images { get; set; }
         //descriptions
-        public List<DescriptionGroupDTO> Descriptions { get; set; }
+        public List<DescriptionGroupDto> Descriptions { get; set; }
     }
 }

@@ -42,7 +42,7 @@ namespace Website.Web.Infrastructure.Initializers
             {
                 var name = item.Split();
 
-                var clProf = new UserProfileDTO()
+                var clProf = new UserProfileDto()
                 {
                     FirstName = name[1],
                     LastName = name[0],
@@ -53,7 +53,7 @@ namespace Website.Web.Infrastructure.Initializers
                 };
 
                 var phone = "+7-" + random.Next(100, 999) + "-" + random.Next(100, 999) + "-" + random.Next(10, 99) + "-" + random.Next(10, 99);
-                UserDTO user = new UserDTO {Email = i + email, UserName = i + email, UserProfile = clProf, PhoneNumber = phone, LastActivityDate = DateTimeOffset.Now };
+                UserDto user = new UserDto {Email = i + email, UserName = i + email, UserProfile = clProf, PhoneNumber = phone, LastActivityDate = DateTimeOffset.Now };
                 await userManager.CreateAsync(user, password);
                 await userManager.AddToRoleAsync(user, "user");
                 i++;

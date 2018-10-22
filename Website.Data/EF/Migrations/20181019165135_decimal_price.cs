@@ -2,7 +2,7 @@
 
 namespace Website.Data.EF.Migrations
 {
-    public partial class decimal_price : Migration
+    public partial class DecimalPrice : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

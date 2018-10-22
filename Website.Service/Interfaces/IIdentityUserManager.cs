@@ -13,7 +13,7 @@ namespace Website.Service.Interfaces
     /// <summary>
     /// Provides the APIs for managing <see cref="T:Website.Service.DTO.UserDTO" /> in a persistence store.
     /// </summary>
-    public interface IIdentityUserManager : IIdentityUserManager<UserDTO>
+    public interface IIdentityUserManager : IIdentityUserManager<UserDto>
     {
     }
 

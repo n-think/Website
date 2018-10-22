@@ -16,17 +16,17 @@ namespace Website.Web.Infrastructure.Initializers
         {
             if (await roleManager.FindByNameAsync("admin") == null)
             {
-                await roleManager.CreateAsync(new RoleDTO("admin"));
+                await roleManager.CreateAsync(new RoleDto("admin"));
             }
 
             if (await roleManager.FindByNameAsync("admin_generated") == null)
             {
-                await roleManager.CreateAsync(new RoleDTO("admin_generated"));
+                await roleManager.CreateAsync(new RoleDto("admin_generated"));
             }
 
             if (await roleManager.FindByNameAsync("user") == null)
             {
-                await roleManager.CreateAsync(new RoleDTO("user"));
+                await roleManager.CreateAsync(new RoleDto("user"));
             }
 
             string login = "admin";
@@ -56,7 +56,7 @@ namespace Website.Web.Infrastructure.Initializers
 
         private static async Task CreateAdmin(IUserManager userManager, string login, string email, string password)
         {
-            var adminUser = new UserDTO() { UserName = login, Email = email };
+            var adminUser = new UserDto() { UserName = login, Email = email };
             IdentityResult result = await userManager.CreateAsync(adminUser, password);
             if (result.Succeeded)
             {

@@ -15,7 +15,7 @@ namespace Website.Service.Stores
     /// <summary>
     /// Creates a new instance of a persistence store for roles.
     /// </summary>
-    public class CustomRoleStore : CustomRoleStoreBase<RoleDTO, Role, RoleClaim>
+    public class CustomRoleStore : CustomRoleStoreBase<RoleDto, Role, RoleClaim>
     {
         public CustomRoleStore(DbContext dbContext, IMapper mapper, IdentityErrorDescriber describer = null) : base(dbContext, mapper, describer)
         {
@@ -29,7 +29,7 @@ namespace Website.Service.Stores
     /// <typeparam name="TDbRole">The type of the class representing a role in database.</typeparam>
     /// <typeparam name="TDbRoleClaim">The type of the class representing a role claim in database.</typeparam>
     public class CustomRoleStoreBase<TRole, TDbRole, TDbRoleClaim> : IRoleStore<TRole>, IRoleClaimStore<TRole>
-        where TRole : RoleDTO
+        where TRole : RoleDto
         where TDbRole : Role
         where TDbRoleClaim : RoleClaim, new()
 

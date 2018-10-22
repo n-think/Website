@@ -8,18 +8,18 @@ namespace Website.Service.DTO
     /// <summary>
     /// Represents a role in the identity system
     /// </summary>
-    public class RoleDTO
+    public class RoleDto
     {
         /// <summary>
-        /// Initializes a new instance of <see cref="RoleDTO"/>.
+        /// Initializes a new instance of <see cref="RoleDto"/>.
         /// </summary>
-        public RoleDTO() { }
+        public RoleDto() { }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="RoleDTO"/>.
+        /// Initializes a new instance of <see cref="RoleDto"/>.
         /// </summary>
         /// <param name="roleName">The role name.</param>
-        public RoleDTO(string roleName) : this()
+        public RoleDto(string roleName) : this()
         {
             Name = roleName;
         }

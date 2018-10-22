@@ -5,6 +5,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Website.Web.Infrastructure
 {
@@ -16,7 +18,8 @@ namespace Website.Web.Infrastructure
 
             if (!context.Metadata.IsComplexType && (context.Metadata.ModelType == typeof(decimal) || context.Metadata.ModelType == typeof(decimal?)))
             {
-                return new InvariantDecimalModelBinder(context.Metadata.ModelType);
+                ILoggerFactory requiredService = context.Services.GetRequiredService<ILoggerFactory>();
+                return new InvariantDecimalModelBinder(context.Metadata.ModelType, requiredService);
             }
 
             return null;
@@ -27,9 +30,10 @@ namespace Website.Web.Infrastructure
     {
         private readonly SimpleTypeModelBinder _baseBinder;
 
-        public InvariantDecimalModelBinder(Type modelType)
+        public InvariantDecimalModelBinder(Type modelType, ILoggerFactory loggerFactory)
         {
-            _baseBinder = new SimpleTypeModelBinder(modelType);
+            
+            _baseBinder = new SimpleTypeModelBinder(modelType, loggerFactory);
         }
 
         public Task BindModelAsync(ModelBindingContext bindingContext)

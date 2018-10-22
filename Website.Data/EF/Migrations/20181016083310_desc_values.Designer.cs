@@ -11,7 +11,7 @@ namespace Website.Data.EF.Migrations
 {
     [DbContext(typeof(WebsiteDbContext))]
     [Migration("20181016083310_desc_values")]
-    partial class desc_values
+    partial class DescValues
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

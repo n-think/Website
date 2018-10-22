@@ -31,7 +31,7 @@ namespace Website.Service.Stores
     /// <summary>
     /// Represents a new instance of a persistence store for the specified types.
     /// </summary>
-    public class ShopStore : IShopStore<ProductDTO, ProductImageDTO, OrderDTO>
+    public class ShopStore : IShopStore<ProductDto, ProductImageDto, OrderDto>
     {
         /// <summary>
         /// Constructs a new instance of CustomProductStoreBase".
@@ -81,7 +81,7 @@ namespace Website.Service.Stores
 
         #region CRUD product
 
-        public async Task<OperationResult> CreateProductAsync(ProductDTO product, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<OperationResult> CreateProductAsync(ProductDto product, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -105,7 +105,7 @@ namespace Website.Service.Stores
             return OperationResult.Success();
         }
 
-        public async Task<ProductDTO> FindProductByIdAsync(int productId, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<ProductDto> FindProductByIdAsync(int productId, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -122,20 +122,20 @@ namespace Website.Service.Stores
             {
                 return null;
             }
-            var dto = _mapper.Map<ProductDTO>(product);
+            var dto = _mapper.Map<ProductDto>(product);
 
             //images
             dto.Images = ConvertDbImageToDto(product.Images);
 
             foreach (var productToCategory in product.ProductCategory)
             {
-                var cat = _mapper.Map<CategoryDTO>(productToCategory.Category);
+                var cat = _mapper.Map<CategoryDto>(productToCategory.Category);
                 dto.Categories.Add(cat);
             }
             return dto;
         }
 
-        public async Task<OperationResult> UpdateProductAsync(ProductDTO product, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<OperationResult> UpdateProductAsync(ProductDto product, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -236,7 +236,7 @@ namespace Website.Service.Stores
             throw new NotImplementedException();
         }
 
-        private async Task<OperationResult> CreateImagesAsync(int productId, List<ProductImageDTO> images, CancellationToken cancellationToken)
+        private async Task<OperationResult> CreateImagesAsync(int productId, List<ProductImageDto> images, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
             cancellationToken.ThrowIfCancellationRequested();
@@ -260,7 +260,7 @@ namespace Website.Service.Stores
                     string fileName = $"{productId}.{type}";
                     string savePath = Path.Combine(pathToFiles, fileName);
                     await CheckPathAndDeleteIfExists(savePath);
-                    image.Bitmap.Save(savePath);
+                    //image.DataUrl.Save(savePath);
 
                     string dbPath = $"~/{ImagesSavePath.Replace("\\", "/")}/{fileName}";
                     var imageToAdd = new ProductImage() { Path = dbPath, ProductId = productId };
@@ -271,7 +271,7 @@ namespace Website.Service.Stores
                     string fileName = $"{productId}_{counter}.{type}";
                     string savePath = Path.Combine(pathToFiles, fileName);
                     await CheckPathAndDeleteIfExists(savePath);
-                    image.Bitmap.Save(savePath);
+                    //image.DataUrl.Save(savePath);
 
                     string dbPath = $"~/{ImagesSavePath.Replace("\\", "/")}/{fileName}";
                     counter++;
@@ -300,7 +300,7 @@ namespace Website.Service.Stores
             return Task.CompletedTask;
         }
 
-        private async Task<List<ProductImageDTO>> FindImagesAsync(Product product, CancellationToken cancellationToken)
+        private async Task<List<ProductImageDto>> FindImagesAsync(Product product, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -311,7 +311,7 @@ namespace Website.Service.Stores
             return dbImages.Any() ? null : ConvertDbImageToDto(dbImages);
         }
 
-        private async Task<OperationResult> UpdateImagesAsync(int productId, List<ProductImageDTO> images, CancellationToken cancellationToken)
+        private async Task<OperationResult> UpdateImagesAsync(int productId, List<ProductImageDto> images, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -320,7 +320,7 @@ namespace Website.Service.Stores
             //CreateImagesAsync();
         }
 
-        private async Task<OperationResult> DeleteImagesAsync(int productId, List<ProductImageDTO> images, CancellationToken cancellationToken)
+        private async Task<OperationResult> DeleteImagesAsync(int productId, List<ProductImageDto> images, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -334,7 +334,7 @@ namespace Website.Service.Stores
 
         #region Descriptions
 
-        public async Task<List<DescriptionGroupDTO>> GetProductDescriptions(int productId, CancellationToken cancellationToken)
+        public async Task<List<DescriptionGroupDto>> GetProductDescriptions(int productId, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -348,7 +348,7 @@ namespace Website.Service.Stores
                 .Select(desc => desc.DescriptionGroupNavigation)
                 .GroupBy(x => x.Id)
                 .Select(g => g.First())
-                .Select(x => new DescriptionGroupDTO() //convert description groups to dto
+                .Select(x => new DescriptionGroupDto() //convert description groups to dto
                 {
                     Id = x.Id,
                     Name = x.Name,
@@ -386,14 +386,15 @@ namespace Website.Service.Stores
 
         #endregion
 
-        private List<ProductImageDTO> ConvertDbImageToDto(ICollection<ProductImage> productImages)
+        private List<ProductImageDto> ConvertDbImageToDto(ICollection<ProductImage> productImages)
         {
             if (productImages == null)
                 throw new ArgumentNullException(nameof(productImages));
 
             var images = productImages
-                .Select(x => new ProductImageDTO()
+                .Select(x => new ProductImageDto()
                 {
+                    Id = x.Id,
                     Path = $"{x.Path}/{x.Name}.{x.Format}",
                     ThumbPath = $"{x.Path}/{x.ThumbName}.{x.Format}",
                     Primary = x.Primary
@@ -403,7 +404,7 @@ namespace Website.Service.Stores
             return images;
         }
 
-        public async Task<SortPageResult<ProductDTO>> SortFilterPageResultAsync(ItemTypeSelector types, string searchString, string sortPropName, int currPage,
+        public async Task<SortPageResult<ProductDto>> SortFilterPageResultAsync(ItemTypeSelector types, string searchString, string sortPropName, int currPage,
             int countPerPage, CancellationToken cancellationToken = default(CancellationToken))
         {
             ThrowIfDisposed();
@@ -421,8 +422,8 @@ namespace Website.Service.Stores
             PaginateProductsQuery(currPage, countPerPage, ref prodQuery);
 
             int totalProductsN = await prodQuery.CountAsync(cancellationToken);
-            var productsDto = await prodQuery.ProjectTo<ProductDTO>(_mapper.ConfigurationProvider).ToListAsync(cancellationToken);
-            return new SortPageResult<ProductDTO> { FilteredData = productsDto, TotalN = totalProductsN };
+            var productsDto = await prodQuery.ProjectTo<ProductDto>(_mapper.ConfigurationProvider).ToListAsync(cancellationToken);
+            return new SortPageResult<ProductDto> { FilteredData = productsDto, TotalN = totalProductsN };
         }
 
         private void PaginateProductsQuery(int currPage, int countPerPage, ref IQueryable<Product> prodQuery)
@@ -465,7 +466,7 @@ namespace Website.Service.Stores
                 descending = true;
             }
 
-            var check = StoreHelpers.CheckIfPropertyExists(sortPropName, typeof(ProductDTO));
+            var check = StoreHelpers.CheckIfPropertyExists(sortPropName, typeof(ProductDto));
             if (!check.Result)
                 throw new ArgumentException(nameof(sortPropName)); //or set to default
 
@@ -478,7 +479,7 @@ namespace Website.Service.Stores
         }
 
 
-        private async Task<OperationResult> AddProductToCategory(ProductDTO product, string categoryName, CancellationToken cancellationToken = default(CancellationToken))
+        private async Task<OperationResult> AddProductToCategory(ProductDto product, string categoryName, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();

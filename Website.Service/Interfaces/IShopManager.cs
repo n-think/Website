@@ -15,12 +15,12 @@ namespace Website.Service.Interfaces
         /// <param name="product"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task<OperationResult> CreateItemAsync(ProductDTO product);
+        Task<OperationResult> CreateItemAsync(ProductDto product);
 
-        Task<SortPageResult<ProductDTO>> GetSortFilterPageAsync(ItemTypeSelector types, string search, string sortOrder, int currPage, int countPerPage);
+        Task<SortPageResult<ProductDto>> GetSortFilterPageAsync(ItemTypeSelector types, string search, string sortOrder, int currPage, int countPerPage);
 
-        Task<ProductDTO> GetProductById(int id);
+        Task<ProductDto> GetProductById(int id);
 
-        Task<List<DescriptionGroupDTO>> GetProductDescriptions(int productId);
+        Task<List<DescriptionGroupDto>> GetProductDescriptions(int productId);
     }
 }

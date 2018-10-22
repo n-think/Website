@@ -56,13 +56,13 @@ namespace Website.Web.Controllers
 
             if (sortOrder.IsNullOrEmpty())
             {
-                sortOrder = nameof(UserDTO.Email);
+                sortOrder = nameof(UserDto.Email);
             }
 
             var currPage = page ?? 1;
             var countPerPage = pageCount ?? 30; // get from client js?
 
-            SortPageResult<UserDTO> result = await _userManager.GetSortFilterPageAsync(roles, search, sortOrder, currPage, countPerPage);
+            SortPageResult<UserDto> result = await _userManager.GetSortFilterPageAsync(roles, search, sortOrder, currPage, countPerPage);
 
             ViewBag.itemCount = result.TotalN;
 
@@ -75,7 +75,7 @@ namespace Website.Web.Controllers
                 CountPerPage = countPerPage,
                 Roles = (int)roles,
                 ItemCount = result.TotalN,
-                users = result.FilteredData
+                Users = result.FilteredData
             };
             return View(model);
         }
@@ -186,13 +186,13 @@ namespace Website.Web.Controllers
         {
             if (sortOrder.IsNullOrEmpty())
             {
-                sortOrder = nameof(ProductDTO.Name);
+                sortOrder = nameof(ProductDto.Name);
             }
 
             var currPage = page ?? 1;
             var countPerPage = pageCount ?? 30; // get from client js?
 
-            SortPageResult<ProductDTO> result = await _shopManager.GetSortFilterPageAsync(types, search, sortOrder, currPage, countPerPage);
+            SortPageResult<ProductDto> result = await _shopManager.GetSortFilterPageAsync(types, search, sortOrder, currPage, countPerPage);
             //TODO categories filter List<CategoryDTO> allCategories = await _shopManager.GetAllCategories();
             ViewBag.itemCount = result.TotalN;
 

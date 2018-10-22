@@ -53,7 +53,7 @@ namespace Website.Web
                 opt.AddProfile<WebsiteProfile>();
             });
 
-            services.AddIdentity<UserDTO, RoleDTO>(options =>
+            services.AddIdentity<UserDto, RoleDto>(options =>
             {
                 options.User.RequireUniqueEmail = true;
                 options.Password.RequiredLength = 6;
@@ -71,7 +71,7 @@ namespace Website.Web
                 .AddErrorDescriber<RusIdentityErrorDescriberRes>();
             AddCustomInterfaces(services);
 
-            services.AddScoped<IUserClaimsPrincipalFactory<UserDTO>, MyUserClaimsPrincipalFactory>();
+            services.AddScoped<IUserClaimsPrincipalFactory<UserDto>, MyUserClaimsPrincipalFactory>();
 
             services.Configure<SecurityStampValidatorOptions>(options =>
             {
@@ -107,9 +107,9 @@ namespace Website.Web
 
         private void AddCustomInterfaces(IServiceCollection services)
         {
-            services.AddTransient<IRoleStore<RoleDTO>, CustomRoleStore>();
-            services.AddTransient<IUserStore<UserDTO>, CustomUserStore>();
-            services.AddTransient<IShopStore<ProductDTO, ProductImageDTO, OrderDTO>, ShopStore>();
+            services.AddTransient<IRoleStore<RoleDto>, CustomRoleStore>();
+            services.AddTransient<IUserStore<UserDto>, CustomUserStore>();
+            services.AddTransient<IShopStore<ProductDto, ProductImageDto, OrderDto>, ShopStore>();
 
             services.AddScoped<IUserManager, UserManager>();
             services.AddScoped<IShopManager, ShopManager>();

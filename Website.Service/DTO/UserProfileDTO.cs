@@ -6,7 +6,7 @@ using Website.Data.ModelsInterfaces;
 
 namespace Website.Service.DTO
 {
-    public class UserProfileDTO
+    public class UserProfileDto
     {
         [Display(Name = "Логин")]
         public string Login { get; set; }

@@ -349,19 +349,37 @@ body {
 /**CSS FOR THE RING**/
 
 #image-remove-button {
-    position: absolute;
+    /*position: absolute;
     top: -10px;
-    right: -10px;
+    right: -10px;*/
     z-index: 1;
+    padding: 5px;
 }
 
-    #image-remove-button:hover {
-        -webkit-transform: scale(1.2);
-        -moz-transform: scale(1.2);
-        -o-transform: scale(1.2);
-        transform: scale(1.2);
-        transition: all 0.2s;
-        -webkit-transition: all 0.2s;
+    #image-remove-button:active {
+        -webkit-transform: scale(0.9);
+        -moz-transform: scale(0.9);
+        -o-transform: scale(0.9);
+        transform: scale(0.9);
+        transition: all 0s;
+        -webkit-transition: all 0s;
+    }
+
+#image-primary-button {
+    /*position: absolute;
+    top: 60px;
+    right: -10px;*/
+    z-index: 1;
+    padding: 5px;
+}
+
+    #image-primary-button:active {
+        -webkit-transform: scale(0.9);
+        -moz-transform: scale(0.9);
+        -o-transform: scale(0.9);
+        transform: scale(0.9);
+        transition: all 0s;
+        -webkit-transition: all 0s;
     }
 
 .glyphicon-ring {
@@ -382,9 +400,15 @@ body {
     }
 /**WITH AN ADDED BACKGROUND COLOR**/
 
-.glyphicon-white {
+.glyphicon-red {
     background: white;
     color: red;
+    border: 2px solid black;
+}
+
+.glyphicon-green {
+    background: white;
+    color: green;
     border: 2px solid black;
 }
 
@@ -393,6 +417,11 @@ body {
     color: orange;
 }
 
-.glyphicon-red {
-    background: red;
+img.img-primary {
+    outline: 5px double green;
 }
+
+img.img-delete {
+    outline: 5px double red;
+}
+

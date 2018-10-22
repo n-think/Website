@@ -35,12 +35,12 @@ namespace Website.Web.Models.AdminViewModels
 
         //categories
         [ScaffoldColumn(false)]
-        public List<CategoryDTO> Categories { get; set; }
+        public List<CategoryDto> Categories { get; set; }
         //images
         [ScaffoldColumn(false)]
-        public List<ProductImageDTO> Images { get; set; }
+        public List<ProductImageDto> Images { get; set; }
         //descriptions
         [ScaffoldColumn(false)]
-        public List<DescriptionGroupDTO> Descriptions { get; set; }
+        public List<DescriptionGroupDto> Descriptions { get; set; }
     }
 }

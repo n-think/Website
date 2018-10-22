@@ -43,20 +43,18 @@
             }
         </div>
     </div>
-    <div class="col-md-6">
-        <div class="admin-product-images">
-
+    <div class="col-md-5">
+        <div>
             <div class="admin-img-box">
-                <img id="item-image-view" src="@Model.Images.FirstOrDefault(x=>x.Primary)?.Path" width="300" height="300" />
+                <img id="admin-image-view" src="@Model.Images?.FirstOrDefault(x => x.Primary)?.Path"/>
+                <span></span>
             </div>
-            <div class="admin-img-thumbs">
-                @foreach (var item in Model.Images)
+            <div id="image-container" class="admin-img-thumbs">
+                @foreach (var item in Model.Images ?? Enumerable.Empty<ProductImageDto>())
                 {
-                    <img class="admin-img-thumb" src="@item.ThumbPath" onclick="image_select(this)" width="100" height="100" />
+                    <img class="admin-img-thumb" data-path="@item.Path" src="@item.ThumbPath" />
                 }
             </div>
-
         </div>
     </div>
-
 </div>

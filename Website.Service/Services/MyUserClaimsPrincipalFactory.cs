@@ -10,19 +10,19 @@ using Website.Service.Interfaces;
 
 namespace Website.Service.Services
 {
-    public class MyUserClaimsPrincipalFactory : UserClaimsPrincipalFactory<UserDTO, RoleDTO>
+    public class MyUserClaimsPrincipalFactory : UserClaimsPrincipalFactory<UserDto, RoleDto>
     {
         private readonly IUserManager _userManager;
         public MyUserClaimsPrincipalFactory(
             IUserManager userManager,
-            RoleManager<RoleDTO> roleManager,
+            RoleManager<RoleDto> roleManager,
             IOptions<IdentityOptions> optionsAccessor)
-            : base(userManager as UserManager<UserDTO>, roleManager, optionsAccessor)
+            : base(userManager as UserManager<UserDto>, roleManager, optionsAccessor)
         {
             _userManager = userManager;
         }
 
-        protected override async Task<ClaimsIdentity> GenerateClaimsAsync(UserDTO user)
+        protected override async Task<ClaimsIdentity> GenerateClaimsAsync(UserDto user)
         {
             var identity = await base.GenerateClaimsAsync(user);
             //

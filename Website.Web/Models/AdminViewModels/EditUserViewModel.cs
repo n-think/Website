@@ -36,6 +36,7 @@ namespace Website.Web.Models.AdminViewModels
         public bool EmailConfirmed { get; set; }
 
         [Display(Name = "Телефон")]
+        [Phone(ErrorMessage = "Некорректный номер телефона.")]
         public string PhoneNumber { get; set; }
 
         [Display(Name = "Телефон подтвержден")]
@@ -48,8 +49,9 @@ namespace Website.Web.Models.AdminViewModels
         public bool LockoutEnabled { get; set; }
 
         [Display(Name = "Дата конца блокировки")]
-        [DisplayFormat(ApplyFormatInEditMode = true, DataFormatString = "{0:G}")]
-        //[RegularExpression("\\d{4}[-]\\d{2}[-]\\d{2}[T]\\d{2}:\\d{2}:\\d{2}[.]\\d{3}[+,-]\\d{2}:\\d{2}", ErrorMessage = "Формат даты ДД.ММ.ГГГГ ЧЧ:ММ:СС")]
+        [DisplayFormat(ApplyFormatInEditMode = false, DataFormatString = "{0:G}")]
+        [DataType(DataType.DateTime)]
+        //[RegularExpression("\\d{2}[.]\\d{2}[.]\\d{4}[ ]\\d{2}:\\d{2}:\\d{2}", ErrorMessage = "Формат даты ДД.ММ.ГГГГ ЧЧ:ММ:СС")]
         public DateTimeOffset? LockoutEnd { get; set; }
 
         [Display(Name = "Двухфакторный вход")]

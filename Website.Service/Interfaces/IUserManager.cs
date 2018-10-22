@@ -13,7 +13,7 @@ namespace Website.Service.Interfaces
 {
     public interface IUserManager : IIdentityUserManager
     {
-        Task<OperationResult> CreateOrUpdateProfileAsync(UserProfileDTO userProfileDto);
+        Task<OperationResult> CreateOrUpdateProfileAsync(UserProfileDto userProfileDto);
 
         /// <summary>
         /// Skips <paramref name="skipCount"/> and takes next <paramref name="takeCount"/> users in <see cref="RoleSelector"/> roles.
@@ -22,10 +22,10 @@ namespace Website.Service.Interfaces
         /// <param name="skipCount">Users to skip</param>
         /// <param name="takeCount">Users to take</param>
         /// <returns></returns>
-        Task<IEnumerable<UserDTO>> GetUsersAsync(RoleSelector rolePick, int skipCount, int takeCount);
-        Task<SortPageResult<UserDTO>> GetSortFilterPageAsync(RoleSelector roleSelector, string searchString, string sortOrder, int page, int count);
+        Task<IEnumerable<UserDto>> GetUsersAsync(RoleSelector rolePick, int skipCount, int takeCount);
+        Task<SortPageResult<UserDto>> GetSortFilterPageAsync(RoleSelector roleSelector, string searchString, string sortOrder, int page, int count);
         Task LogUserActivity(string userLogin);
-        Task<IdentityResult> UpdateUserPasswordClaims(UserDTO user, string newPassword, IEnumerable<Claim> claims);
-        Task<UserProfileDTO> FindProfileByUserIdAsync(string userId);
+        Task<IdentityResult> UpdateUserPasswordClaims(UserDto user, string newPassword, IEnumerable<Claim> claims);
+        Task<UserProfileDto> FindProfileByUserIdAsync(string userId);
     }
 }
