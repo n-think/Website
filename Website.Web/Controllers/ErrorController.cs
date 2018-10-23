@@ -2,74 +2,93 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Logging;
+using Website.Web.Models;
 
 namespace Website.Web.Controllers
 {
     public class ErrorController : Controller
     {
-        //private ILogger _logger;
-
-        ////если напрямую вызвали страницы ошибки переадресуем на 404, upd. не работает с 403
-        //public override void OnActionExecuting(ActionExecutingContext context)
-        //{
-        //    if (Response.StatusCode == 200)
-        //    {
-        //        Response.StatusCode = 404;
-        //        context.Result = View("Error404");
-        //    }
-        //}
-
         //public ErrorController(ILogger logger)
         //{
         //    _logger = logger;
         //}
+        //
+        //private ILogger _logger;
 
-        //если страница ошибки не определена то сюда
-        [HttpGet]
-        [Route("/Error/{statusCode:int}")]
-        public IActionResult ErrorDefault(int statusCode)
+        //public override void OnActionExecuting(ActionExecutingContext context) // не работает с 403 редиректом
+        //{
+        //    if (Response.StatusCode == 200) 
+        //    {
+        //        Response.StatusCode = 404;
+        //        context.Result = Error404();
+        //    }
+        //}
+        
+        [Route("/Error")]
+        public IActionResult ErrorDefault()
         {
-            //return Content($"errorrrrrr {statusCode}");
-            return View(statusCode);
+            return View("Error", new ErrorViewModel() { Message = "Произошла непредвиденная ошибка." });
         }
-
-        //если определена то ее
-
-        [HttpGet]
+        
         [Route("/Error/500")]
         public IActionResult Error500()
         {
-            //log?
-            return View();
+            return View("Error", new ErrorViewModel()
+            {
+                ErrorId = 500,
+                Message = "Ошибка при выполнении запроса."
+            });
         }
 
-        [HttpGet]
         [Route("/Error/404")]
         public IActionResult Error404()
         {
-            return View();
+            return View("Error", new ErrorViewModel()
+            {
+                Header = "404 - Страница не найдена",
+                ErrorId = 404,
+                Message = "Запрашиваемая страница не найдена."
+            });
         }
 
-        [HttpGet]
         [Route("/Error/403")]
         public IActionResult Error403()
         {
             Response.StatusCode = 403;
-            return View();
+            return View("Error", new ErrorViewModel()
+            {
+                Header = "403 - Доступ запрещен",
+                ErrorId = 403,
+                Message = "У вас нет необходимых прав для выполнения этой операции."
+            });
         }
 
-        [HttpGet]
         [Route("/Error/401")]
         public IActionResult Error401()
         {
-            return View();
+            return View("Error", new ErrorViewModel()
+            {
+                ErrorId = 401,
+                Message = "Необходимо авторизоваться."
+            });
+        }
+
+        [Route("/Error/400")]
+        public IActionResult Error400()
+        {
+            return View("Error", new ErrorViewModel()
+            {
+                ErrorId = 400,
+                Message = "Получены некорректные данные."
+            });
         }
 
         [HttpGet]
-        public IActionResult Lockout()
+        public IActionResult ErrorLockout()
         {
             return View();
         }

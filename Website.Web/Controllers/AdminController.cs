@@ -157,6 +157,10 @@ namespace Website.Web.Controllers
                     {
                         await _signInManager.RefreshSignInAsync(dtoUser);
                     }
+                    else
+                    {
+                        await _userManager.UpdateSecurityStampAsync(dtoUser);
+                    }
                     TempData["Message"] = "Изменения успешно сохранены";
                     return RedirectToAction("ViewUser", new { id = user.Id });
                 }
@@ -238,9 +242,6 @@ namespace Website.Web.Controllers
 
             var viewModel = _mapper.Map<EditItemViewModel>(prod);
             viewModel.Descriptions = await _shopManager.GetProductDescriptions(id);
-            //modelUser.CurrentClaims = await _userManager.GetClaimsAsync(user);
-            //modelUser.Role = (await _userManager.GetRolesAsync(user)).FirstOrDefault() ?? "без роли";
-
             return View(viewModel);
         }
 
@@ -251,7 +252,7 @@ namespace Website.Web.Controllers
         {
             if (item == null || item.Id == 0 || item.Timestamp == null)
             {
-                return RedirectToAction("Items");
+                return BadRequest("Введены некорректные данные.");
             }
 
             if (ModelState.IsValid)
@@ -297,7 +298,7 @@ namespace Website.Web.Controllers
                 //    }
                 //}
             }
-            return View(item);
+            return PartialView(item);
         }
 
         [HttpGet]

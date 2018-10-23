@@ -1,5 +1,5 @@
 ﻿@{
-    ViewData["Title"] = "Item";
+    ViewData["Title"] = "Редактирование товара";
 }
 
 @model EditItemViewModel
@@ -8,10 +8,8 @@
 <div asp-validation-summary="All" class="text-danger"></div>
 <form asp-action="EditItem" id="edit-form">
     <input asp-for="Timestamp" type="hidden" class="form-control" />
-    <div class="col-md-12">
-        <h3>@Model.Name</h3>
-    </div>
     <div class="col-md-6">
+        <h3>@Model.Name</h3>
         <table class="table">
             <thead>
                 <tr>
@@ -36,13 +34,13 @@
         </table>
         <div>
             <h3>Категории</h3>
-            @foreach (var cat in Model?.Categories ?? Enumerable.Empty<CategoryDto>())
+            @foreach (var cat in Model.Categories ?? Enumerable.Empty<CategoryDto>())
             {
                 <span>@cat.Name</span>@Html.Raw(" : ")<span>@cat.Description</span><br />
             }
         </div>
         <div class="admin-item-descriptions">
-            @foreach (var descriptionGroup in Model?.Descriptions ?? Enumerable.Empty<DescriptionGroupDto>())
+            @foreach (var descriptionGroup in Model.Descriptions ?? Enumerable.Empty<DescriptionGroupDto>())
             {
                 <h3>@descriptionGroup.Name</h3>
                 foreach (var item in descriptionGroup.Items)
@@ -89,7 +87,7 @@
 </form>
 <div class="col-md-12">
     <button id="edit-form-submit" onclick="validateAndSubmitJson()" class="btn btn-default">Сохранить</button>
-    <a class="btn btn-default" asp-action="EditItem" asp-route-id="@Model.Id">Отмена</a>
+    <a class="btn btn-default" asp-action="ViewItem" asp-route-id="@Model.Id">Отмена</a>
 </div>
 
 

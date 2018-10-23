@@ -1,5 +1,9 @@
 ﻿// **** item edit scripts ****
 
+$(document).on("click", "img.admin-img-thumb", setImage);
+$(document).on("click", "#image-primary-button", setPrimaryImage);
+$(document).on("click", "#image-remove-button", setDeleteImage);
+
 function validateAndSubmitJson() {
     var result = $("#edit-form").validate().valid();
     //console.log(result);
@@ -29,13 +33,22 @@ function validateAndSubmitJson() {
         },
         data: json,
         success: function (response) {
-            //$("html").html(response);
-            document.open();
-            document.write(response);
-            document.close();
+            $("div#admin-content").html(response);
+            //$.validator.unobtrusive.parse("form#edit-form");
+            //document.open();
+            //document.write(response);
+            //document.close();
         },
         error: function (jqXHR, textStatus, errorThrown) {
-            console.log('Error on ajax:', jqXHR, textStatus, errorThrown);
+            //console.log('Error on ajax:', jqXHR, textStatus, errorThrown);
+            var errorList = $("div.validation-summary-valid>ul>li")[0];
+            errorList.removeAttribute("style");
+            if (jqXHR.status === 400) {
+                errorList.innerText = jqXHR.responseText;
+            } else {
+                errorList.innerText = "Возникла ошибка при отправке запроса серверу.";
+            }
+            
         },
         async: true
     });
@@ -73,10 +86,6 @@ function getImgId() { // random guid like id
     }
     return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
 }
-
-$("img.admin-img-thumb").click(setImage);
-$("#image-primary-button").click(setPrimaryImage);
-$("#image-remove-button").click(setDeleteImage);
 
 function setPrimaryImage() {
     var thumbs = $("img.admin-img-thumb");
@@ -157,7 +166,6 @@ function checkExistingPrimaries() { //check if there are any primary images curr
     return exist;
 }
 
-
 function isInt(value) {
     return !isNaN(value) &&
         parseInt(Number(value)) == value && // тут все ок, если заменить на === не работает
@@ -198,8 +206,8 @@ function setImage(e) {
 }
 
 // admin product image upload button
-$(document).ready(function () {
-    $("#file-upload-button").on('change', function () {
+$(document).ready(() => {
+    $("#file-upload-button").on("change", function () {
         //Get count of selected files
         var countFiles = $(this)[0].files.length;
         var imgPath = $(this)[0].value;

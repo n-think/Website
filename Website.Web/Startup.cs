@@ -75,7 +75,7 @@ namespace Website.Web
 
             services.Configure<SecurityStampValidatorOptions>(options =>
             {
-                //options.ValidationInterval = TimeSpan.FromSeconds(10);
+                //options.ValidationInterval = TimeSpan.FromSeconds(2);
                 options.ValidationInterval = TimeSpan.FromMinutes(10);
             });
 
@@ -172,7 +172,7 @@ namespace Website.Web
             CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
             CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
 
-            app.UseStatusCodePagesWithReExecute("/error/{0}");
+            app.UseStatusCodePagesWithReExecute("/error/{0}");// ломает коды
 
             var errorMode = configuration.GetValue<bool>("DevelopmentErrorHandlingMode"); //читаем конфиг
             if (errorMode || env.IsDevelopment())

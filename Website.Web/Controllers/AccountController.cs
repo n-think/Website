@@ -77,7 +77,7 @@ namespace Website.Web.Controllers
                 if (result.IsLockedOut)
                 {
                     _logger.LogWarning("Аккаунт пользователя заблокирован из за большого количества неудачных попыток авторизации.");
-                    return RedirectToAction("Lockout", "Error");
+                    return RedirectToAction("ErrorLockout", "Error");
                 }
                 else
                 {
@@ -136,7 +136,7 @@ namespace Website.Web.Controllers
             else if (result.IsLockedOut)
             {
                 _logger.LogWarning("User with ID {UserId} account locked out.", user.Id);
-                return RedirectToAction("Lockout", "Error");
+                return RedirectToAction("ErrorLockout", "Error");
             }
             else
             {
@@ -190,7 +190,7 @@ namespace Website.Web.Controllers
             if (result.IsLockedOut)
             {
                 _logger.LogWarning("User with ID {UserId} account locked out.", user.Id);
-                return RedirectToAction("Lockout", "Error");
+                return RedirectToAction("ErrorLockout", "Error");
             }
             else
             {
@@ -292,7 +292,7 @@ namespace Website.Web.Controllers
             }
             if (result.IsLockedOut)
             {
-                return RedirectToAction("Lockout", "Error");
+                return RedirectToAction("ErrorLockout", "Error");
             }
             else
             {
@@ -434,14 +434,6 @@ namespace Website.Web.Controllers
         [AllowAnonymous]
         public IActionResult ResetPasswordConfirmation()
         {
-            return View();
-        }
-
-
-        [HttpGet]
-        public IActionResult AccessDenied()
-        {
-            Response.StatusCode = 403;
             return View();
         }
 

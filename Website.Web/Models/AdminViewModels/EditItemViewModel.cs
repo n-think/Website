@@ -42,13 +42,11 @@ namespace Website.Web.Models.AdminViewModels
         public List<CategoryDto> Categories { get; set; }
         //images
         [ScaffoldColumn(false)]
-        public ProductImageDto[] Images { get; set; }
+        public List<ProductImageDto> Images { get; set; }
         //descriptions
         [ScaffoldColumn(false)]
         public List<DescriptionGroupDto> Descriptions { get; set; }
 
-        [ScaffoldColumn(false)]
-        public string JsonData { get; set; }
         [ScaffoldColumn(false)]
         public List<DescriptionGroupDto> AllDescriptionGroups { get; set; }
         [ScaffoldColumn(false)]
