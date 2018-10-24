@@ -14,6 +14,11 @@
 </div>
 
 @section Scripts {
+    <environment include="Development">
+        <script src="~/js/adminScripts.js" asp-append-version="true"></script>
+    </environment>
+    <environment exclude="Development">
+        <script src="~/js/adminScripts.min.js" asp-append-version="true"></script>
+    </environment>
     @RenderSection("Scripts", required: false)
-    <script src="~/js/adminScripts.js" asp-append-version="true"></script>
 }

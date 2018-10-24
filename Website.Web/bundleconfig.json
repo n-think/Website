@@ -22,9 +22,9 @@
     "sourceMap": false
   },
   {
-    "outputFileName": "wwwroot/js/jqueryLocalize.min.js",
+    "outputFileName": "wwwroot/js/adminScripts.min.js",
     "inputFiles": [
-      "wwwroot/js/jqueryLocalize.js"
+      "wwwroot/js/adminScripts.js"
     ],
     // Optionally specify minification options
     "minify": {
@@ -33,5 +33,36 @@
     },
     // Optionally generate .map file
     "sourceMap": false
+  },
+  {
+    "outputFileName": "wwwroot/js/jqueryValFix.min.js",
+    "inputFiles": [
+      "wwwroot/js/jqueryValFix.js"
+    ],
+    // Optionally specify minification options
+    "minify": {
+      "enabled": true,
+      "renameLocals": true
+    },
+    // Optionally generate .map file
+    "sourceMap": false
+  },
+  //jquery-validation localization
+  {
+    "outputFileName": "wwwroot/lib/jquery-validation/messages_ru.js",
+    "inputFiles": [
+      "node_modules/jquery-validation/dist/localization/messages_ru.js"
+    ],
+    "minify": { "enabled": false }
+  },
+  {
+    "outputFileName": "wwwroot/lib/jquery-validation/messages_ru.min.js",
+    "inputFiles": [
+      "node_modules/jquery-validation/dist/localization/messages_ru.js"
+    ],
+    "minify": {
+      "enabled": true,
+      "renameLocals": true
+    }
   }
 ]

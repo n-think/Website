@@ -94,7 +94,7 @@ namespace Website.Service.Stores
             {
                 await SaveChanges(cancellationToken);
             }
-            catch (DbUpdateConcurrencyException e)
+            catch (DbUpdateConcurrencyException)
             {
                 return OperationResult.Failure(ErrorDescriber.ConcurrencyFailure());
             }

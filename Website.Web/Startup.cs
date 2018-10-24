@@ -182,7 +182,6 @@ namespace Website.Web
 
             else
             {
-                //TODO тут мб логировать
                 app.UseExceptionHandler("/error/500");
                 app.UseHsts();
             }

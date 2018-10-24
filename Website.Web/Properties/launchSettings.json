@@ -8,7 +8,7 @@
     }
   },
   "profiles": {
-    "IIS Express": {
+    "IIS dev browser": {
       "commandName": "IISExpress",
       "launchBrowser": true,
       "launchUrl": "https://localhost:44330/",
@@ -16,7 +16,31 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "website": {
+    "IIS dev no-browser": {
+      "commandName": "IISExpress",
+      "launchBrowser": false,
+      "launchUrl": "https://localhost:44330/",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "IIS stage browser": {
+      "commandName": "IISExpress",
+      "launchBrowser": true,
+      "launchUrl": "https://localhost:44330/",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Staging"
+      }
+    },
+    "IIS stage no-browser": {
+      "commandName": "IISExpress",
+      "launchBrowser": false,
+      "launchUrl": "https://localhost:44330/",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Staging"
+      }
+    },
+    "Kestrel dev": {
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {

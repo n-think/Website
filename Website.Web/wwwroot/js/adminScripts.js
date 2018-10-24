@@ -168,12 +168,6 @@ function checkExistingPrimaries() { //check if there are any primary images curr
     return exist;
 }
 
-function isInt(value) {
-    return !isNaN(value) &&
-        parseInt(Number(value)) == value && // тут все ок, если заменить на === не работает
-        !isNaN(parseInt(value, 10));
-}
-
 function isImage(i) {
     return i instanceof HTMLImageElement;
 }
