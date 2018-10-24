@@ -34,7 +34,7 @@ function validateAndSubmitJson() {
         data: json,
         success: function (response) {
             $("div#admin-content").html(response);
-            //$.validator.unobtrusive.parse("form#edit-form");
+            $.validator.unobtrusive.parse("form#edit-form");
             //document.open();
             //document.write(response);
             //document.close();
@@ -48,7 +48,7 @@ function validateAndSubmitJson() {
             } else {
                 errorList.innerText = "Возникла ошибка при отправке запроса серверу.";
             }
-            
+
         },
         async: true
     });
@@ -121,7 +121,8 @@ function setDeleteImage() {
             bigImage.classList.add("img-primary");
         }
     } else { // on deleting: add class
-        if (thumbImage.classList.contains("img-add")) { // remove html if image was just added
+        var removedAdded = thumbImage.classList.contains("img-add");
+        if (removedAdded) { // remove html if image was just added
             thumbImage.remove();
             $("#file-upload-button")[0].form.reset(); //reset upload form
             var thumbsLeft = $("img.admin-img-thumb");
@@ -136,16 +137,17 @@ function setDeleteImage() {
         }
         if (thumbImage.classList.contains("img-primary")) { // if we delete primary image set another image as such
             thumbImage.classList.remove("img-primary");
-            var removedAdded = thumbImage.classList.contains("img-add");
-            if (!removedAdded) { // dont remove big pic primary if we deleted added thumb
-                bigImage.classList.remove("img-primary");
-            }
+            bigImage.classList.remove("img-primary");
             var i = 0;
+            thumbs = $("img.admin-img-thumb"); // get updated image list
             thumbImage = thumbs[i++];
             while (thumbImage.classList.contains("img-delete") && thumbs.length > i) {
                 thumbImage = thumbs[i++];
             }
             if (thumbImage.classList.contains("img-delete")) { // if all images are deleted return
+                if (removedAdded) {
+                    setImage(thumbs[0]);
+                }
                 return;
             }
             thumbImage.classList.add("img-primary");

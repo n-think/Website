@@ -55,7 +55,7 @@
         <div>
             <div class="admin-img-box">
                 @{var image = Model.Images?.FirstOrDefault(x => x.Primary);}
-                <img id="admin-image-view" class="@(image == null ? "img-primary" : "")"
+                <img id="admin-image-view" class="@(image == null ? "" : "img-primary")"
                      data-id="@image?.Id" src="@(image?.Path ?? image?.UriBase64Data)" />
                 <span></span>
             </div>

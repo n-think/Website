@@ -21,10 +21,14 @@ namespace Website.Web.Models.AdminViewModels
         [Display(Name = "Артикул")]
         public int Code { get; set; }
         [Display(Name = "Цена")]
-        [RegularExpression("\\d+[,.]\\d+", ErrorMessage = "Поле должно содержать цифры, разделенные запятой или точкой.")]// custom binder converts , -> .
+        [Range(0, int.MaxValue, ErrorMessage = "Цена не может быть меньше нуля.")]
+        [DataType(DataType.Currency)]
+        [RegularExpression("\\d+([,.])?\\d+", ErrorMessage = "Поле должно содержать цифры, разделенные запятой или точкой.")] // custom binder converts , -> .
         public decimal Price { get; set; }
         [Display(Name = "Склад")]
+        [Range(0, int.MaxValue, ErrorMessage = "Кол-во на складе не может быть меньше нуля.")]
         public int Stock { get; set; }
+        [Range(0, int.MaxValue, ErrorMessage = "Резерв не может быть меньше нуля.")]
         [Display(Name = "Резерв")]
         public int Reserved { get; set; }
         [Display(Name = "В магазине")]

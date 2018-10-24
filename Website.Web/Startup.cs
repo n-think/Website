@@ -168,11 +168,11 @@ namespace Website.Web
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, IConfiguration configuration)
         {
-            var cultureInfo = new CultureInfo("ru-RU");// { NumberFormat = { CurrencySymbol = "₽" } };
+            var cultureInfo = new CultureInfo("ru-RU") { NumberFormat = { CurrencySymbol = "₽" } };
             CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
             CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
 
-            app.UseStatusCodePagesWithReExecute("/error/{0}");// ломает коды
+            app.UseStatusCodePagesWithReExecute("/error/{0}");
 
             var errorMode = configuration.GetValue<bool>("DevelopmentErrorHandlingMode"); //читаем конфиг
             if (errorMode || env.IsDevelopment())
