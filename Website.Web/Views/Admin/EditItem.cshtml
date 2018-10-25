@@ -6,29 +6,29 @@
 
 <h2>Редактирование товара</h2>
 <div asp-validation-summary="All" class="text-danger"></div>
-<form asp-action="EditItem" id="edit-form">
+<form class="row" asp-action="EditItem" id="edit-form">
     <input asp-for="Timestamp" type="hidden" class="form-control" />
-    <div class="col-md-6">
+    <div class="col-md-5">
         <h3>@Model.Name</h3>
-        <table class="table">
+        <table class="table table-striped">
             <thead>
                 <tr>
-                    <th class="col-sm-3">Параметр</th>
-                    <th class="col-sm-7">Значение</th>
+                    <th class="w-25" scope="col">Параметр</th>
+                    <th scope="col">Значение</th>
                 </tr>
             </thead>
             <tbody class="tab-content">
                 <tr>
-                    <td><label asp-for="Id"></label></td>
+                    <th scope="row"><label asp-for="Id"></label></th>
                     <td>@Model.Id<input asp-for="Id" type="hidden" /></td>
                 </tr>
-                @Html.EditorForModel("TableDataRowEdit")
+                @Html.EditorForModel("TableDataRowEdit", new { htmlAttributes = new { @class = "form-control admin-edit w-auto" } })
                 <tr>
-                    <td><label asp-for="Enabled"></label></td>
+                    <th scope="row"><label asp-for="Enabled"></label></th>
                     <td>
-                        <input class="check-box" id="Enabled" name="Enabled" type="checkbox" data-val="true" value="true" @(Model.Enabled ? " checked=\"checked\"" : "") />
+                        <input class="form-control admin-edit w-auto" id="Enabled" name="Enabled" type="checkbox" data-val="true" value="true" @(Model.Enabled ? " checked=\"checked\"" : "") />
                     </td>
-                    <td class="hidden"><input id="EnabledHidden" name="Enabled" type="checkbox" value="false" /></td>
+                    <td hidden><input id="EnabledHidden" name="Enabled" type="checkbox" value="false" /></td>
                 </tr>
             </tbody>
         </table>
@@ -51,7 +51,7 @@
         </div>
         <br />
     </div>
-    <div class="col-md-5">
+    <div class="col-md-6">
         <div>
             <div class="admin-img-box">
                 @{var image = Model.Images?.FirstOrDefault(x => x.Primary);}
@@ -67,29 +67,31 @@
                 }
             </div>
         </div>
-        <input id="file-upload-button" lang="" type="file" multiple />
+        <div class="custom-file my-2">
+            <input class="custom-file-input" id="file-upload-button" lang="" type="file" multiple />
+            <label class="custom-file-label" for="file-upload-button">Выбeрите файлы</label>
+        </div>
     </div>
     <div class="col-md-1">
-        <div id="image-remove-button">
-            <div class="glyphicon-ring glyphicon-red">
-                <span class="glyphicon glyphicon-remove glyphicon-bordered"></span>
+        <div class="p-1"  id="image-remove-button">
+            <div class="fa-ring fa-red">
+                <span class="fa fa-remove fa-bordered"></span>
             </div>
-            <div>Удалить/<br />отменить</div>
+            <div class="text-truncate">Удалить/<br />отменить</div>
         </div>
         <br />
-        <div id="image-primary-button">
-            <div class="glyphicon-ring glyphicon-green">
-                <span class="glyphicon glyphicon-ok glyphicon-bordered"></span>
+        <div class="p-1" id="image-primary-button">
+            <div class="fa-ring fa-green">
+                <span class="fa fa-check fa-bordered"></span>
             </div>
-            <div>Сделать<br />основной</div>
+            <div class="text-truncate">Сделать<br />основной</div>
         </div>
     </div>
 </form>
-<div class="col-md-12">
-    <button id="edit-form-submit" onclick="validateAndSubmitJson()" class="btn btn-default">Сохранить</button>
-    <a class="btn btn-default" asp-action="ViewItem" asp-route-id="@Model.Id">Отмена</a>
+<div>
+    <button class="btn btn-success w-auto mr-3 my-2" id="edit-form-submit" onclick="validateAndSubmitJson()">Сохранить</button>
+    <a class="btn btn-outline-danger my-2" asp-action="ViewItem" asp-route-id="@Model.Id">Отмена</a>
 </div>
-
 
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")

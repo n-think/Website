@@ -1,37 +1,34 @@
-﻿
-@{
+﻿@{
     ViewData["Title"] = "User";
 }
-
 @model UserViewModel
 
 <h2>Просмотр пользователя</h2>
 <div class="text-success">@TempData["Message"]</div>
-<a asp-area="" asp-route-id="@Model.Id" asp-action="EditUser">Редактировать</a>
+<a class="btn btn-outline-primary my-2" asp-area="" asp-route-id="@Model.Id" asp-action="EditUser">Редактировать</a>
 
-
-<table class="table">
+<table class="table table-striped">
     <thead>
-    <tr>
-        <th class="col-sm-3">Параметр</th>
-        <th class="col-sm-7">Значение</th>
-    </tr>
+        <tr>
+            <th class="w-25" scope="col">Параметр</th>
+            <th scope="col">Значение</th>
+        </tr>
     </thead>
-    <tbody class="tab-content">
-    <td><label>Права доступа</label></td>
-    <td>
-        <div>
-            <label>@(Model.Role== "admin" ? "Администратор" : "Пользователь")</label>
-        </div>
-        @if (Model.Role == "admin")
-        {
-            <div class="admin-options">
-                <user-claims name="newClaims" display="Пользователи:" actions="view edit delete" claims="@Model.CurrentClaims" view-only="true"/>
-                <user-claims name="newClaims" display="Товары:" actions="view edit create delete" claims="@Model.CurrentClaims" view-only="true"/>
-                <user-claims name="newClaims" display="Заказы:" actions="view edit delete" claims="@Model.CurrentClaims" view-only="true"/>
-            </div>
-        }
-    </td>
-    @Html.DisplayForModel("TableDataRowDisplay")
+    <tbody>
+        <tr>
+            <th scope="row"><label>Права доступа</label></th>
+            <td>
+                <label class="m-0">@(Model.Role == "admin" ? "Администратор" : "Пользователь")</label>
+                @if (Model.Role == "admin")
+                {
+                    <div class="admin-options">
+                        <user-claims name="newClaims" display="Пользователи:" actions="view edit delete" claims="@Model.CurrentClaims" view-only="true" />
+                        <user-claims name="newClaims" display="Товары:" actions="view edit create delete" claims="@Model.CurrentClaims" view-only="true" />
+                        <user-claims name="newClaims" display="Заказы:" actions="view edit delete" claims="@Model.CurrentClaims" view-only="true" />
+                    </div>
+                }
+            </td>
+        </tr>
+        @Html.DisplayForModel("TableDataRowDisplay", new { htmlAttributes = new { @class = "admin-view" } })
     </tbody>
 </table>

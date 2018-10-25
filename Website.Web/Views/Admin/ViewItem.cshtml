@@ -8,21 +8,19 @@
 
 <h2>Просмотр товара</h2>
 <div class="text-success">@TempData["Message"]</div>
-<a asp-action="EditItem" asp-route-id="@Model.Id">Редактировать</a>
-<div class="admin-product-view">
-    <div class="col-md-12">
-        <h3>@Model.Name</h3>
-    </div>
-    <div class="col-md-6">
-        <table class="table">
+<a class="btn btn-outline-primary my-2" asp-action="EditItem" asp-route-id="@Model.Id">Редактировать</a>
+<h3>@Model.Name</h3>
+<div class="row">
+    <div class="col-md-4">
+        <table class="table table-striped">
             <thead>
-            <tr>
-                <th class="col-sm-3">Параметр</th>
-                <th class="col-sm-7">Значение</th>
-            </tr>
+                <tr>
+                    <th scope="col">Параметр</th>
+                    <th scope="col">Значение</th>
+                </tr>
             </thead>
-            <tbody class="tab-content">
-            @Html.DisplayForModel("TableDataRowDisplay")
+            <tbody>
+                @Html.DisplayForModel("TableDataRowDisplay", new { htmlAttributes = new { @class = "admin-view" } })
             </tbody>
         </table>
         <div>
@@ -46,7 +44,7 @@
     <div class="col-md-5">
         <div>
             <div class="admin-img-box">
-                <img id="admin-image-view" src="@Model.Images?.FirstOrDefault(x => x.Primary)?.Path"/>
+                <img id="admin-image-view" src="@Model.Images?.FirstOrDefault(x => x.Primary)?.Path" />
                 <span></span>
             </div>
             <div id="image-container" class="admin-img-thumbs">

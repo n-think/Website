@@ -63,8 +63,18 @@
             if (!propertyMetadata.HideSurroundingHtml)
             {
                 var row = new TagBuilder("tr");
-                var labelCell = new TagBuilder("td");
+                var labelCell = new TagBuilder("th");
+                labelCell.Attributes.Add("scope", "row");
                 var valueCell = new TagBuilder("td");
+
+                var additionalViewData = Html.ViewData["htmlAttributes"];
+                if (additionalViewData != null)
+                {
+                    foreach (var kvp in HtmlHelper.ObjectToDictionary(additionalViewData))
+                    {
+                        valueCell.Attributes.Add(kvp.Key, kvp.Value.ToString());
+                    }
+                }
 
                 var label = propertyMetadata.GetDisplayName();
                 if (!string.IsNullOrEmpty(label))

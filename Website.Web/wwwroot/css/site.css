@@ -1,32 +1,16 @@
 ﻿/*removing rounded borders*/
-* {
+/** {
     border-radius: 0 !important;
+}*/
+
+.navbar-toggler:focus {
+    box-shadow: none;
+    outline: none;
 }
 
-body {
-    padding-top: 0px;
-    padding-bottom: 20px;
-}
-
-/* Wrapping element */
-/* Set some basic padding to keep content from hitting the edges */
-.body-content {
-    padding-left: 15px;
-    padding-right: 15px;
-}
-
-
-/* QR code generator */
-#qrCode {
-    margin: 15px;
-}
-
-/* Hide/rearrange for smaller screens */
-@media screen and (max-width: 767px) {
-    /* Hide captions */
-    .carousel-caption {
-        display: none;
-    }
+#nav-search {
+    line-height: 1;
+    height: calc(2rem + 2px);
 }
 
 /*asterisk on required fields*/
@@ -39,127 +23,28 @@ body {
 
 /* Remove the jumbotron's default bottom margin */
 .jumbotron {
-    margin-bottom: 0;
-    height: 160px;
-    padding-top: 0px;
-    padding-bottom: 0px;
+    height: 9rem;
 }
 
+    /*цвет текста шапки , синий 007bff*/
     .jumbotron > div {
         color: #252839;
     }
 
-#logoutButton {
-    margin-right: -15px;
-    margin-top: 0;
-    margin-bottom: 0;
-    height: 50px;
-    text-decoration: none;
-}
 
-#loginButton {
-    margin-right: -15px;
-}
-
-.navbar-fixed-top #logoutButton, .navbar-fixed-top #loginButton {
-    margin-right: 0;
-}
-
-
-
-/* Remove the navbar's default rounded borders */
 #navbar {
-    border-radius: 0;
-    margin-bottom: 0;
-    background-color: #252839;
+    background-color: #252839 !important;
 }
-
-    /* sticky navbar scrolling horizontal jump fix */
-    #navbar > .container-fluid {
-        padding-right: 0;
-        padding-left: 0;
-    }
 
     #navbar a:hover, #logoutForm button:hover {
         background-color: #b5b5b7;
         color: black;
     }
-
-    #navbar a.active {
-        background-color: #4CAF50;
-        color: white;
-    }
-
-    #navbar a:hover, #logoutForm button:hover {
-        background-color: #b5b5b7;
-        color: black;
-    }
-
-.navbar-right {
-    margin-right: 0;
-}
-
-.nav-pills > li > a {
-    text-decoration: none;
-    color: #252839;
-}
-
-.nav-pills > li.active > a {
-    background-color: #b5b5b7;
-    color: #252839;
-}
-
-    .nav-pills > li.active > a:hover {
-        background-color: #252839;
-    }
-
-.nav-pills > li > a:hover {
-    background-color: #252839;
-    color: white;
-}
 
 /* The sticky class is added to the navbar with JS when it reaches its scroll position */
 /* Add some top padding to the page content to prevent sudden quick movement (as the navigation bar gets a new position at the top of the page (position:fixed and top:0) */
-.navbar-fixed-top + .main-body {
-    padding-top: 55px;
-}
-
-.sidebar {
-    border-right: 1px solid #ccc;
-    padding: 15px;
-}
-
-.middle-content {
-    padding: 15px;
-}
-
-.row-eq-height {
-    display: -webkit-box;
-    display: -webkit-flex;
-    display: -ms-flexbox;
-    display: flex;
-}
-
-.row-wrapper {
-    margin-left: 0;
-    margin-right: 0;
-}
-
-.main-body {
-    padding-right: 0;
-    padding-left: 0;
-    margin-right: 0;
-    margin-left: 0;
-    width: 100%;
-}
-
-.footer hr {
-    margin-top: 0px;
-    border-top: 1px solid #ccc
-}
-
-.account {
-    margin-bottom: 15px;
+.fixed-top + div.main-body {
+    padding-top: 2.8rem;
 }
 
 /* Responsive table ------start------ */
@@ -249,68 +134,39 @@ body {
 
 /* Responsive table ------end------ */
 
-.container > .navbar-header, .container-fluid > .navbar-header, .container > .navbar-collapse, .container-fluid > .navbar-collapse {
-    margin-right: 0;
-    margin-left: 0;
-}
-
-@media (min-width: 768px) {
-    .navbar > .container .navbar-brand, .navbar > .container-fluid .navbar-brand {
-        margin-left: 0px;
-    }
-}
-
-/*table > tbody > tr:hover {
-    background-color: #cccccc
-}*/
-
 /*Style pagination lists*/
 /* generates at runtime by pagelink tag-helper*/
-.Users-pagination > li a {
-    width: 43px;
-    text-align: center;
+.users-pagination {
+    padding: 1rem;
+    margin: 0;
 }
 
-    .Users-pagination > li a.dots {
-        /*unselectable*/
-        -webkit-touch-callout: none;
-        -webkit-user-select: none;
-        -khtml-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        user-select: none;
-    }
-
-        .Users-pagination > li a.dots:hover {
-            background-color: white;
-        }
-
-.unselectable {
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
+/* big checkboxes in admin view/edit pages*/
+input.form-control.admin-edit[type="checkbox"] {
+    width: 2.4em !important;
 }
 
-.admin-options label {
-    font-weight: normal;
+.admin-view > input[type="checkbox"] {
+    width: 1.1em !important;
+    height: 1.1em !important;
 }
+
+/* admin edit user*/
 
 .admin-options .claims-label {
     font-weight: bold;
-    margin-top: 5px;
-    margin-bottom: 5px;
+    margin-top: 0.3em;
+    margin-bottom: 0.3em;
 }
 
+/* admin edit item*/
+
 .admin-img-box {
-    margin: 5px;
-    height: 340px;
+    margin: 0.3em;
+    height: 25rem;
     width: 100%;
     display: inline-block;
     position: relative;
-    /*border: 1px solid black;*/
 }
 
 #admin-image-view {
@@ -328,9 +184,9 @@ body {
 
 .admin-img-thumb {
     cursor: pointer;
-    max-width: 140px;
-    max-height: 120px;
-    margin: 5px;
+    max-width: 9rem;
+    max-height: 8rem;
+    margin: 0.2em;
 }
 
     .admin-img-thumb:hover {
@@ -342,86 +198,66 @@ body {
         -webkit-transition: all 0.2s;
     }
 
-#file-upload-button {
-    margin: 5px;
-}
 
 /**CSS FOR THE RING**/
 
-#image-remove-button {
-    /*position: absolute;
-    top: -10px;
-    right: -10px;*/
-    z-index: 1;
-    padding: 5px;
+div#image-remove-button:active {
+    -webkit-transform: scale(0.9);
+    -moz-transform: scale(0.9);
+    -o-transform: scale(0.9);
+    transform: scale(0.9);
+    transition: all 0s;
+    -webkit-transition: all 0s;
 }
 
-    #image-remove-button:active {
-        -webkit-transform: scale(0.9);
-        -moz-transform: scale(0.9);
-        -o-transform: scale(0.9);
-        transform: scale(0.9);
-        transition: all 0s;
-        -webkit-transition: all 0s;
-    }
-
-#image-primary-button {
-    /*position: absolute;
-    top: 60px;
-    right: -10px;*/
-    z-index: 1;
-    padding: 5px;
+div#image-primary-button:active {
+    -webkit-transform: scale(0.9);
+    -moz-transform: scale(0.9);
+    -o-transform: scale(0.9);
+    transform: scale(0.9);
+    transition: all 0s;
+    -webkit-transition: all 0s;
 }
 
-    #image-primary-button:active {
-        -webkit-transform: scale(0.9);
-        -moz-transform: scale(0.9);
-        -o-transform: scale(0.9);
-        transform: scale(0.9);
-        transition: all 0s;
-        -webkit-transition: all 0s;
-    }
-
-.glyphicon-ring {
-    width: 40px;
-    height: 40px;
+.fa-ring {
+    width: 3rem;
+    height: 3rem;
     border-radius: 50% !important;
-    border: 4px solid white;
+    border: 1em solid white;
     color: white;
     display: inline-table;
     text-align: center;
 }
     /**CSS FOR ICON WITH NO BACKGROUND COLOR**/
 
-    .glyphicon-ring .glyphicon-bordered {
-        font-size: 20px;
+    .fa-ring .fa-bordered {
+        font-size: 2em;
         vertical-align: middle;
         display: table-cell;
     }
 /**WITH AN ADDED BACKGROUND COLOR**/
 
-.glyphicon-red {
+.fa-red {
     background: white;
     color: red;
-    border: 2px solid black;
+    border: 0.1em solid black;
 }
 
-.glyphicon-green {
+.fa-green {
     background: white;
     color: green;
-    border: 2px solid black;
+    border: 0.1em solid black;
 }
 
-.glyphicon-teal {
+.fa-teal {
     background: teal;
     color: orange;
 }
 
 img.img-primary {
-    outline: 5px double green;
+    outline: 0.4em double green;
 }
 
 img.img-delete {
-    outline: 5px double red;
+    outline: 0.4em double red;
 }
-

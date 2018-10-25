@@ -1,10 +1,9 @@
 ﻿@using Website.Web.Views.Manage
 
-<ul class="nav nav-pills nav-stacked">
-    <li class="@AdminNavPages.IndexNavClass(ViewContext)"><a asp-action="Index">Index</a></li>
-    <li class="@AdminNavPages.UsersNavClass(ViewContext)"><a asp-action="Users">Пользователи</a></li>
-    <li class="@AdminNavPages.ItemsNavClass(ViewContext)"><a asp-action="Items">Товары</a></li>
-    <li class="@AdminNavPages.CategoriesNavClass(ViewContext)"><a asp-action="Categories">Категории товаров</a></li>
-    <li class="@AdminNavPages.OrdersNavClass(ViewContext)"><a asp-action="Orders">Заказы</a></li>
-</ul>
-
+<div class="list-group">
+    <a class="list-group-item list-group-item-action @AdminNavPages.IndexNavClass(ViewContext)" asp-action="Index">Index</a>
+    <a class="list-group-item list-group-item-action @AdminNavPages.UsersNavClass(ViewContext)" asp-action="Users">Пользователи</a>
+    <a class="list-group-item list-group-item-action @AdminNavPages.ItemsNavClass(ViewContext)" asp-action="Items">Товары</a>
+    <a class="list-group-item list-group-item-action @AdminNavPages.CategoriesNavClass(ViewContext)" asp-action="Categories">Категории товаров</a>
+    <a class="list-group-item list-group-item-action @AdminNavPages.OrdersNavClass(ViewContext)" asp-action="Orders">Заказы</a>
+</div>

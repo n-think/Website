@@ -59,8 +59,8 @@ namespace Website.Web.Controllers
                 sortOrder = nameof(UserDto.Email);
             }
 
-            var currPage = page ?? 1;
-            var countPerPage = pageCount ?? 30; // get from client js?
+            var currPage = page == null || page < 0 ? 1 : page.Value;
+            var countPerPage = pageCount ?? 10; // get from client js?
 
             SortPageResult<UserDto> result = await _userManager.GetSortFilterPageAsync(roles, search, sortOrder, currPage, countPerPage);
 

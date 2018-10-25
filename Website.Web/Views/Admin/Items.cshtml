@@ -8,53 +8,52 @@
 
 <form asp-action="Items" method="get">
     <div class="form-inline form-group">
-        @*<label class="control-label">Поиск:&nbsp;</label>*@<input type="text" name="s" value="@Model.CurrentSearch" />
-        @Html.DropDownList("st", Html.GetEnumSelectList<ItemTypeSelector>())
-        <input type="submit" value="Поиск" class="btn btn-default" />
-        | <a asp-action="Items">Сброс</a>
-        | <a asp-action="AddItem">Добавить товар</a>
+        <input class="form-control mr-2 mb-1" placeholder="Поиск товаров" type="text" name="s" value="@Model.CurrentSearch" />
+        @Html.DropDownList("st", Html.GetEnumSelectList<ItemTypeSelector>(), new { @class = "form-control mr-2 mb-1", onchange = "this.form.submit()" })
+        <a class="btn btn-outline-secondary mr-2 " asp-action="Items">Сброс</a>
+        <a class="btn btn-primary" asp-action="AddItem">Добавить товар</a>
     </div>
 </form>
 
-<table id="user-table" class="table">
+<table id="user-table" class="table responsive-table">
     <thead>
         <tr>
-            <th class="col-sm-1">
+            <th scope="col">
                 <sort-header action="Items" search="@Model.CurrentSearch" selector="@Model.Types" descending="@Model.Descending" current="@Model.CurrentSortOrder"
                              property="Code" content="@Html.DisplayNameFor(x => x.Items.First().Code)" />
             </th>
-            <th class="col-sm-1">
+            <th scope="col">
                 <sort-header action="Items" search="@Model.CurrentSearch" selector="@Model.Types" descending="@Model.Descending" current="@Model.CurrentSortOrder"
                              property="Name" content="@Html.DisplayNameFor(x => x.Items.First().Name)" />
             </th>
-            <th class="col-sm-1">
+            <th scope="col">
                 <sort-header action="Items" search="@Model.CurrentSearch" selector="@Model.Types" descending="@Model.Descending" current="@Model.CurrentSortOrder"
                              property="Enabled" content="@Html.DisplayNameFor(x => x.Items.First().Enabled)" />
             </th>
-            <th class="col-sm-1">
+            <th scope="col">
                 <sort-header action="Items" search="@Model.CurrentSearch" selector="@Model.Types" descending="@Model.Descending" current="@Model.CurrentSortOrder"
                              property="Added" content="@Html.DisplayNameFor(x => x.Items.First().Added)" />
             </th>
-            <th class="col-sm-1">
+            <th scope="col">
                 <sort-header action="Items" search="@Model.CurrentSearch" selector="@Model.Types" descending="@Model.Descending" current="@Model.CurrentSortOrder"
                              property="Changed" content="@Html.DisplayNameFor(x => x.Items.First().Changed)" />
             </th>
-            <th class="col-sm-1">
+            <th scope="col">
                 <sort-header action="Items" search="@Model.CurrentSearch" selector="@Model.Types" descending="@Model.Descending" current="@Model.CurrentSortOrder"
                              property="Stock" content="@Html.DisplayNameFor(x => x.Items.First().Stock)" />
             </th>
-            <th class="col-sm-1">
+            <th scope="col">
                 <sort-header action="Items" search="@Model.CurrentSearch" selector="@Model.Types" descending="@Model.Descending" current="@Model.CurrentSortOrder"
                              property="Reserved" content="@Html.DisplayNameFor(x => x.Items.First().Reserved)" />
             </th>
-            <th class="col-sm-1">
+            <th scope="col">
                 <sort-header action="Items" search="@Model.CurrentSearch" selector="@Model.Types" descending="@Model.Descending" current="@Model.CurrentSortOrder"
                              property="Price" content="@Html.DisplayNameFor(x => x.Items.First().Price)" />
             </th>
-            <th class="col-sm-1"></th>
+            <th scope="col"></th>
         </tr>
     </thead>
-    <tbody class="tab-content">
+    <tbody>
         @foreach (var item in Model.Items)
         {
             <tr>
@@ -66,7 +65,10 @@
                 <td>@Html.DisplayFor(m => item.Stock)</td>
                 <td>@Html.DisplayFor(m => item.Reserved)</td>
                 <td>@Html.DisplayFor(m => item.Price)</td>
-                <td><a asp-action="ViewItem" asp-route-id="@item.Id">Подробнее</a> | <a asp-action="EditItem" asp-route-id="@item.Id"><span class="glyphicon glyphicon-pencil"></span></a></td>
+                <td>
+                    <a class="btn btn-outline-primary btn-sm" asp-action="ViewItem" asp-route-id="@item.Id">Подробнее</a>
+                    <a class="btn btn-outline-primary btn-sm" asp-action="EditItem" asp-route-id="@item.Id"><span class="fa fa-pencil"></span></a>
+                </td>
             </tr>
         }
     </tbody>

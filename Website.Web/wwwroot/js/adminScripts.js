@@ -250,9 +250,9 @@ $(document).ready(() => {
 $(document).ready(function () {
     $("#role-selector").change(function () {
         if ($(this).val() === "admin") {
-            $(".admin-options").removeClass("hidden");
+            $(".admin-options").removeClass("d-none");
         } else {
-            $(".admin-options").addClass("hidden");
+            $(".admin-options").addClass("d-none");
         }
     });
 });

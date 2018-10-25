@@ -45,23 +45,23 @@ namespace Website.Web.TagHelpers
             }
 
             var tag = new TagBuilder("i");
-            tag.AddCssClass("glyphicon");
+            tag.AddCssClass("fa");
             if (Current == Property)
             {
                 if (Descending)// если сортировка по убыванию
                 {
-                    tag.AddCssClass("glyphicon-arrow-up");
+                    tag.AddCssClass("fa-arrow-up");
                 }
                 else // если сортировка по возрастанию
                 {
-                    tag.AddCssClass("glyphicon-arrow-down");
+                    tag.AddCssClass("fa-arrow-down");
                     linkProp += "_desc";
                 }
 
             }
             else
             {
-                tag.AddCssClass("glyphicon-sort");
+                tag.AddCssClass("fa-sort");
             }
 
             output.Content.SetContent(Content);

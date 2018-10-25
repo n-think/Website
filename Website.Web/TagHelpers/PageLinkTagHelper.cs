@@ -39,30 +39,44 @@ namespace Website.Web.TagHelpers
 
             // набор ссылок будет представлять список ul
             TagBuilder tag = new TagBuilder("ul");
-            tag.AddCssClass("pagination");
-            tag.AddCssClass($"{Action}-pagination");
+            tag.AddCssClass($"{Action.ToLower()}-pagination pagination justify-content-center");
 
-            var maxCont = 10; // максимальное количество страниц пока нумерация не рвется
-            if (totalPages > maxCont)
+            var maxCount = 5; // максимальное количество страниц пока нумерация не рвется
+            if (totalPages > 2 + maxCount * 2)
             {
-                for (var i = 1; i <= maxCont / 2; i++)
-                {
-                    var item = CreateTag(i, urlHelper);
-                    tag.InnerHtml.AppendHtml(item);
-                }
-
                 var dotted = new TagBuilder("li");
+                dotted.AddCssClass("page-item disabled");
                 var link = new TagBuilder("a");
-                link.InnerHtml.Append(" .... ");
-                link.AddCssClass("dots");
+                link.InnerHtml.Append("...");
+                link.AddCssClass("page-link");
                 dotted.InnerHtml.AppendHtml(link);
-                tag.InnerHtml.AppendHtml(dotted);
 
-                for (var i = totalPages + 1 - maxCont / 2; i <= totalPages; i++)
+                tag.InnerHtml.AppendHtml(CreateTag(1, urlHelper)); // всегда есть первый
+
+                if (CurrentPage - maxCount - 1 > 0)
+                    tag.InnerHtml.AppendHtml(dotted);
+
+                for (var i = CurrentPage - maxCount + 1; i < CurrentPage; i++)
+                {
+                    if (i <= 1)
+                        continue;
+                    var item = CreateTag(i, urlHelper);
+                    tag.InnerHtml.AppendHtml(item);
+                }
+
+                if (CurrentPage != 1 && CurrentPage != totalPages) // текущая, если она не первая и не последняя
+                    tag.InnerHtml.AppendHtml(CreateTag(CurrentPage, urlHelper));
+
+                for (var i = CurrentPage + 1; i < maxCount + CurrentPage && i < totalPages; i++)
                 {
                     var item = CreateTag(i, urlHelper);
                     tag.InnerHtml.AppendHtml(item);
                 }
+
+                if (CurrentPage + maxCount < totalPages)
+                    tag.InnerHtml.AppendHtml(dotted);
+
+                tag.InnerHtml.AppendHtml(CreateTag(totalPages, urlHelper)); // всегда есть последний
             }
             else
             {
@@ -79,15 +93,20 @@ namespace Website.Web.TagHelpers
         TagBuilder CreateTag(int pageNumber, IUrlHelper urlHelper)
         {
             TagBuilder item = new TagBuilder("li");
-            TagBuilder link = new TagBuilder("a");
+            item.AddCssClass("page-item");
+            TagBuilder link;
+
             if (pageNumber == this.CurrentPage)
             {
+                link = new TagBuilder("span");
                 item.AddCssClass("active");
             }
             else
             {
+                link = new TagBuilder("a");
                 link.Attributes["href"] = urlHelper.Action(Action, new { s = Search, st = Selector, o = CurrentProp, p = pageNumber, c = ItemsPerPage });
             }
+            link.AddCssClass("page-link");
             link.InnerHtml.Append(pageNumber.ToString());
             item.InnerHtml.AppendHtml(link);
             return item;

@@ -6,7 +6,7 @@ using Website.Data.ModelsInterfaces;
 
 namespace Website.Data.EF.Models
 {
-    public class Category : ICategory<Category>
+    public class Category : ICategory
     {
         public Category()
         {

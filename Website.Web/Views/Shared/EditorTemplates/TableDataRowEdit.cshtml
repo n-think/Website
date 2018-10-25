@@ -63,7 +63,8 @@
             if (!propertyMetadata.HideSurroundingHtml)
             {
                 var row = new TagBuilder("tr");
-                var labelCell = new TagBuilder("td");
+                var labelCell = new TagBuilder("th");
+                labelCell.Attributes.Add("scope", "row");
                 var valueCell = new TagBuilder("td");
 
                 #region label
@@ -77,9 +78,8 @@
 
                 #endregion
 
-
                 #region value+validation
-
+                
                 valueCell.InnerHtml.AppendHtml(templateBuilderResult);
                 valueCell.InnerHtml.AppendHtml(" ");
                 valueCell.InnerHtml.AppendHtml(Html.ValidationMessage(

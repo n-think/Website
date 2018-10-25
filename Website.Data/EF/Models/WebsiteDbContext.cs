@@ -87,6 +87,12 @@ namespace Website.Data.EF.Models
                     .WithOne(e => e.Product)
                     .HasForeignKey(e => e.ProductId)
                     .OnDelete(DeleteBehavior.SetNull);
+
+                entity.HasIndex(e => e.Code)
+                    .IsUnique();
+
+                entity.Property(e => e.Price)
+                    .HasColumnType("decimal(18,2)");
             });
 
             modelBuilder.Entity<User>(entity =>
