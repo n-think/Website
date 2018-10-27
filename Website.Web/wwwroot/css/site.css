@@ -10,16 +10,16 @@
 
 #nav-search {
     line-height: 1;
-    height: calc(2rem + 2px);
+    height: calc(1rem + 2*0.5rem + 0.125rem) ;
 }
 
 /*asterisk on required fields*/
-.required:after {
+/*.required:after {
     content: "*";
     font-weight: bold;
     font-size: 125%;
     color: red;
-}
+}*/
 
 /* Remove the jumbotron's default bottom margin */
 .jumbotron {
@@ -143,7 +143,7 @@
 
 /* big checkboxes in admin view/edit pages*/
 input.form-control.admin-edit[type="checkbox"] {
-    width: 2.4em !important;
+    width: 2.375rem !important;
 }
 
 .admin-view > input[type="checkbox"] {
@@ -260,4 +260,21 @@ img.img-primary {
 
 img.img-delete {
     outline: 0.4em double red;
+}
+
+.square-box{
+    position: relative;
+    width: 100%;		/* desired width */
+}
+    .square-box:before {
+        content: "";
+        display: block;
+        padding-top: 100%; /* initial ratio of 1:1*/
+    }
+.square-box-content{
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
 }

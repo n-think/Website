@@ -1,8 +1,28 @@
-﻿// **** item edit scripts ****
+﻿// read client height and submit max items per page 
 
-$(document).on("click", "img.admin-img-thumb", setImage);
-$(document).on("click", "#image-primary-button", setPrimaryImage);
-$(document).on("click", "#image-remove-button", setDeleteImage);
+$("a.read-height").click(function (event) { //first load from anchors
+    var itemsPerPage = getItemCountFromHeight();
+    event.target.href = event.target.href + "?&c=" + itemsPerPage;
+});
+$("form#admin-search-form").submit(function () { //submit from search
+    var itemsPerPage = getItemCountFromHeight();
+    $(this).append('<input type="hidden" name="c" value="' + itemsPerPage + '"/>');
+});
+$("select.admin-selector").change(function () { //submit form from selector
+    var form = $("form#admin-search-form");
+    form.submit();
+});function getItemCountFromHeight() {
+    var clientHeight = window.innerHeight;
+    var value = Math.round((clientHeight - 400) / 65);
+    return value < 3 ? 3 : value;
+}
+
+// **** item edit scripts ****
+
+$("div#admin-content").on("click", "img.admin-img-thumb", setImage);
+$("div#admin-content").on("click", "#image-primary-button", setPrimaryImage);
+$("div#admin-content").on("click", "#image-remove-button", setDeleteImage);
+$("div#admin-content").on("change", "#file-upload-button", loadImagesFromInput);
 
 function validateAndSubmitJson() {
     var result = $("#edit-form").validate().valid();
@@ -202,59 +222,55 @@ function setImage(e) {
 }
 
 // admin product image upload button
-$(document).ready(() => {
-    $("#file-upload-button").on("change", function () {
-        //Get count of selected files
-        var countFiles = $(this)[0].files.length;
-        var imgPath = $(this)[0].value;
-        var extn = imgPath.substring(imgPath.lastIndexOf('.') + 1).toLowerCase();
-        var image_container = $("#image-container");
-        //image_holder.empty();
-        if (extn === "gif" || extn === "png" || extn === "jpg" || extn === "jpeg") {
-            if (typeof (FileReader) !== undefined) {
-                //loop for each file selected for uploaded.
-                for (var i = 0; i < countFiles; i++) {
-                    var reader = new FileReader();
-                    reader.onload = function (e) {
-                        var imgClass = "admin-img-thumb img-add";
-                        var flag = !checkExistingPrimaries();
-                        if (flag) { //if no primary image present set this image as primary
-                            imgClass = imgClass + " img-primary";
-                        }
-                        $("<img />",
-                            {
-                                "class": imgClass,
-                                "click": setImage,
-                                "data-id": Math.floor((Math.random() * 10000000) + 10000000),//getImgId() //need only int id
-                                "src": e.target.result
-                            }).appendTo(image_container);
-                        if (flag) {
-                            var img = $("img.admin-img-thumb.img-add")[0];
-                            setImage(img); // set big image
-                        }
-                    };
-                    image_container.show();
-                    reader.readAsDataURL($(this)[0].files[i]);
-                }
-            } else {
-                alert("Браузер не поддерживает загрузку картинок.");
+function loadImagesFromInput() {
+    //Get count of selected files
+    var countFiles = $(this)[0].files.length;
+    var imgPath = $(this)[0].value;
+    var extn = imgPath.substring(imgPath.lastIndexOf(".") + 1).toLowerCase();
+    var imageContainer = $("#image-container");
+    //image_holder.empty();
+    if (extn === "gif" || extn === "png" || extn === "jpg" || extn === "jpeg") {
+        if (typeof (FileReader) !== undefined) {
+            //loop for each file selected for uploaded.
+            for (var i = 0; i < countFiles; i++) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    var imgClass = "admin-img-thumb img-add border";
+                    var flag = !checkExistingPrimaries();
+                    if (flag) { //if no primary image present set this image as primary
+                        imgClass = imgClass + " img-primary";
+                    }
+                    $("<img />",
+                        {
+                            "class": imgClass,
+                            "click": setImage,
+                            "data-id": Math.floor((Math.random() * 10000000) + 10000000),//getImgId() //need only int id
+                            "src": e.target.result
+                        }).appendTo(imageContainer);
+                    if (flag) {
+                        var img = $("img.admin-img-thumb.img-add")[0];
+                        setImage(img); // set big image
+                    }
+                };
+                imageContainer.show();
+                reader.readAsDataURL($(this)[0].files[i]);
             }
         } else {
-            alert("Выберите изображения.");
+            alert("Браузер не поддерживает загрузку картинок.");
         }
-    });
-});
+    } else {
+        alert("Выберите изображения.");
+    }
+}
 
 // **** user edit scripts
 
-$(document).ready(function () {
-    $("#role-selector").change(function () {
-        if ($(this).val() === "admin") {
-            $(".admin-options").removeClass("d-none");
-        } else {
-            $(".admin-options").addClass("d-none");
-        }
-    });
+$("#role-selector").change(function () {
+    if ($(this).val() === "admin") {
+        $(".admin-options").removeClass("d-none");
+    } else {
+        $(".admin-options").addClass("d-none");
+    }
 });
 
 $(".admin-options label").click(function () {

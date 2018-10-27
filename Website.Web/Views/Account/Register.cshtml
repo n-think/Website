@@ -2,7 +2,7 @@
 @{
     ViewData["Title"] = "Регистрация";
 }
-
+@addTagHelper *, Website.Web
 
 <h2>@ViewData["Title"]</h2>
 
@@ -11,36 +11,35 @@
         <form asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
             <h4>Создать новый аккаунт.</h4>
             <hr />
-            <div asp-validation-summary="All" class="text-danger"></div>
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <label asp-for="FirstName"></label>
-                <input asp-for="FirstName" class="form-control" />
+                <label asp-for="FirstName"></label> <span class="text-muted small">(Необязательно)</span>
+                <input asp-for="FirstName" class="form-control" validation-for="FirstName" validation-error-class="is-invalid" validation-valid-class="is-valid" />
                 <span asp-validation-for="FirstName" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="LastName"></label>
-                <input asp-for="LastName" class="form-control" />
+                <label asp-for="LastName"></label> <span class="text-muted small">(Необязательно)</span>
+                <input asp-for="LastName" class="form-control" validation-for="LastName" validation-error-class="is-invalid" validation-valid-class="is-valid" />
                 <span asp-validation-for="LastName" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="PatrName"></label>
-                <input asp-for="PatrName" class="form-control" />
+                <label asp-for="PatrName"></label> <span class="text-muted small">(Необязательно)</span>
+                <input asp-for="PatrName" class="form-control" validation-for="PatrName" validation-error-class="is-invalid" validation-valid-class="is-valid"/>
                 <span asp-validation-for="PatrName" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Email" class="required"></label>
-                <input asp-for="Email" class="form-control" />
+                <input asp-for="Email" class="form-control" validation-for="Email" validation-error-class="is-invalid" validation-valid-class="is-valid" required/>
                 <span asp-validation-for="Email" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Password" class="required"></label>
-                <input asp-for="Password" class="form-control" />
+                <input asp-for="Password" class="form-control" validation-for="Password" validation-error-class="is-invalid" required />
                 <span asp-validation-for="Password" class="text-danger"></span>
             </div>
             <div class="form-group">
-
                 <label asp-for="ConfirmPassword" class="required"></label>
-                <input asp-for="ConfirmPassword" class="form-control" />
+                <input asp-for="ConfirmPassword" class="form-control" validation-for="ConfirmPassword" validation-error-class="is-invalid" required/>
                 <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
             </div>
             <button type="submit" class="btn btn-outline-secondary mt-2">Регистрация</button>

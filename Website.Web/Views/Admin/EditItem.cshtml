@@ -4,34 +4,77 @@
 
 @model EditItemViewModel
 
-<h2>Редактирование товара</h2>
+<div>
+    <h2 class="d-inline-block">Редактирование товара</h2>
+    <button class="btn btn-outline-success w-auto mx-2 my-2" id="edit-form-submit" onclick="validateAndSubmitJson()">Сохранить</button>
+    <a class="btn btn-outline-danger my-2" asp-action="ViewItem" asp-route-id="@Model.Id">Отмена</a>
+</div>
 <div asp-validation-summary="All" class="text-danger"></div>
-<form class="row" asp-action="EditItem" id="edit-form">
+<form asp-action="EditItem" id="edit-form">
     <input asp-for="Timestamp" type="hidden" class="form-control" />
-    <div class="col-md-5">
-        <h3>@Model.Name</h3>
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th class="w-25" scope="col">Параметр</th>
-                    <th scope="col">Значение</th>
-                </tr>
-            </thead>
-            <tbody class="tab-content">
-                <tr>
-                    <th scope="row"><label asp-for="Id"></label></th>
-                    <td>@Model.Id<input asp-for="Id" type="hidden" /></td>
-                </tr>
-                @Html.EditorForModel("TableDataRowEdit", new { htmlAttributes = new { @class = "form-control admin-edit w-auto" } })
-                <tr>
-                    <th scope="row"><label asp-for="Enabled"></label></th>
-                    <td>
-                        <input class="form-control admin-edit w-auto" id="Enabled" name="Enabled" type="checkbox" data-val="true" value="true" @(Model.Enabled ? " checked=\"checked\"" : "") />
-                    </td>
-                    <td hidden><input id="EnabledHidden" name="Enabled" type="checkbox" value="false" /></td>
-                </tr>
-            </tbody>
-        </table>
+    <div class="row">
+        <div class="col-lg-7">
+            <div class="d-flex">
+                <div class="d-inline-block w-100">
+                    <div class="admin-img-box m-0 p-1">
+                        @{var image = Model.Images?.FirstOrDefault(x => x.Primary);}
+                        <img id="admin-image-view" class="@(image == null ? "" : "img-primary")"
+                             data-id="@image?.Id" src="@(image?.Path ?? image?.UriBase64Data)" alt="Нет изображения" />
+                        <span></span>
+                    </div>
+                    <div class="admin-img-thumbs my-2" id="image-container" >
+                        @foreach (var item in Model.Images ?? Enumerable.Empty<ProductImageDto>())
+                        {
+                            <img class="admin-img-thumb m-2 border@(item.Primary ? " img-primary" : "")@(item.PendingAdd ? " img-add" : "")@(item.PendingDel ? " img-delete" : "")"
+                                 data-path="@item.Path" data-id="@(item.Id ?? Guid.NewGuid().GetHashCode())" src="@(item.ThumbPath ?? item.UriBase64Data)" />
+                        }
+                    </div>
+                </div>
+                <div class="p-1 w-auto">
+                    <div class="btn btn-outline-danger my-2 p-1 d-block" id="image-remove-button">
+                        <span class="d-block w-100 fa fa-remove fa-bordered fa-3x"></span>
+                        <span class="d-inline-block text-truncate small">Удалить/<br />отменить<br >картинку</span>
+                    </div>
+                    <div class="btn btn-outline-success my-2 p-1 d-block" id="image-primary-button">
+                        <span class="d-block w-100 fa fa-check fa-bordered fa-3x"></span>
+                        <span class="d-inline-block small">Сделать<br/>основной<br/>картинкой</span>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="custom-file my-2">
+                    <input class="custom-file-input" id="file-upload-button" lang="" accept="image/*" type="file" multiple />
+                    <label class="custom-file-label" for="file-upload-button">Загрузить файлы</label>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <h3>@Model.Name</h3>
+            <table class="table table-striped border">
+                <thead>
+                    <tr>
+                        <th scope="col">Параметр</th>
+                        <th scope="col">Значение</th>
+                    </tr>
+                </thead>
+                <tbody class="tab-content">
+                    <tr>
+                        <th scope="row"><label asp-for="Id"></label></th>
+                        <td>@Model.Id<input asp-for="Id" type="hidden" /></td>
+                    </tr>
+                    @Html.EditorForModel("TableDataRowEdit", new { htmlAttributes = new { @class = "form-control admin-edit w-auto" } })
+                    <tr>
+                        <th scope="row"><label asp-for="Enabled"></label></th>
+                        <td>
+                            <input class="form-control admin-edit w-auto" id="Enabled" name="Enabled" type="checkbox" data-val="true" value="true" @(Model.Enabled ? " checked=\" checked\"" : "" ) />
+                        </td>
+                        <td hidden><input id="EnabledHidden" name="Enabled" type="checkbox" value="false" /></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div>
         <div>
             <h3>Категории</h3>
             @foreach (var cat in Model.Categories ?? Enumerable.Empty<CategoryDto>())
@@ -40,58 +83,18 @@
             }
         </div>
         <div class="admin-item-descriptions">
+            <h3>Описания</h3>
             @foreach (var descriptionGroup in Model.Descriptions ?? Enumerable.Empty<DescriptionGroupDto>())
             {
-                <h3>@descriptionGroup.Name</h3>
+                <h6>@descriptionGroup.Name</h6>
                 foreach (var item in descriptionGroup.Items)
                 {
                     <span>@item.Name</span>@Html.Raw(" : ")<span>@item.Value</span><br />
                 }
             }
         </div>
-        <br />
-    </div>
-    <div class="col-md-6">
-        <div>
-            <div class="admin-img-box">
-                @{var image = Model.Images?.FirstOrDefault(x => x.Primary);}
-                <img id="admin-image-view" class="@(image == null ? "" : "img-primary")"
-                     data-id="@image?.Id" src="@(image?.Path ?? image?.UriBase64Data)" />
-                <span></span>
-            </div>
-            <div id="image-container" class="admin-img-thumbs">
-                @foreach (var item in Model.Images ?? Enumerable.Empty<ProductImageDto>())
-                {
-                    <img class="admin-img-thumb@(item.Primary ? " img-primary" : "")@(item.PendingAdd ? " img-add" : "")@(item.PendingDel ? " img-delete" : "")"
-                         data-path="@item.Path" data-id="@(item.Id ?? Guid.NewGuid().GetHashCode())" src="@(item.ThumbPath ?? item.UriBase64Data)" />
-                }
-            </div>
-        </div>
-        <div class="custom-file my-2">
-            <input class="custom-file-input" id="file-upload-button" lang="" type="file" multiple />
-            <label class="custom-file-label" for="file-upload-button">Выбeрите файлы</label>
-        </div>
-    </div>
-    <div class="col-md-1">
-        <div class="p-1"  id="image-remove-button">
-            <div class="fa-ring fa-red">
-                <span class="fa fa-remove fa-bordered"></span>
-            </div>
-            <div class="text-truncate">Удалить/<br />отменить</div>
-        </div>
-        <br />
-        <div class="p-1" id="image-primary-button">
-            <div class="fa-ring fa-green">
-                <span class="fa fa-check fa-bordered"></span>
-            </div>
-            <div class="text-truncate">Сделать<br />основной</div>
-        </div>
     </div>
 </form>
-<div>
-    <button class="btn btn-success w-auto mr-3 my-2" id="edit-form-submit" onclick="validateAndSubmitJson()">Сохранить</button>
-    <a class="btn btn-outline-danger my-2" asp-action="ViewItem" asp-route-id="@Model.Id">Отмена</a>
-</div>
 
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")

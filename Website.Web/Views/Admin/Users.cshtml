@@ -5,10 +5,10 @@
 
 @model UsersViewModel
 
-<form asp-action="Users" method="get">
+<form id="admin-search-form" asp-action="Users" method="get">
     <div class="form-inline form-group">
-        <input class="form-control mr-2 mb-1" placeholder="Поиск аккаунтов" type="text" name="s" value="@Model.CurrentSearch" />
-        @Html.DropDownList("st", Html.GetEnumSelectList<RoleSelector>(), null, new { @class = "form-control mr-2 mb-1", onchange = "this.form.submit()" })
+        <input class="form-control mr-2 mb-1" placeholder="Поиск аккаунтов" type="text" name="s" value="@Model.CurrentSearch"/>
+        @Html.DropDownList("st", Html.GetEnumSelectList<RoleSelector>(), null, new {@class = "form-control mr-2 mb-1 admin-selector"})
         <a class="btn btn-outline-secondary" asp-action="Users">Сброс</a>
     </div>
 </form>

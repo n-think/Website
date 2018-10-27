@@ -60,7 +60,7 @@ namespace Website.Web.Controllers
             }
 
             var currPage = page == null || page < 0 ? 1 : page.Value;
-            var countPerPage = pageCount ?? 10; // get from client js?
+            var countPerPage = pageCount == null || pageCount <= 0 ? 15 : pageCount.Value;
 
             SortPageResult<UserDto> result = await _userManager.GetSortFilterPageAsync(roles, search, sortOrder, currPage, countPerPage);
 
@@ -171,7 +171,7 @@ namespace Website.Web.Controllers
                     ModelState.AddModelError(identityError.Code, identityError.Description);
                     if (identityError.Code == "ConcurrencyFailure")
                     {
-                        user.ConcurrencyStamp = dbConcStamp; // to enable save after conc error
+                        user.ConcurrencyStamp = dbConcStamp; // to enable save after concurrency error
                         ModelState.Remove("ConcurrencyStamp"); // remove from the model state or HTML helpers will use the original value
                     }
                 }
@@ -194,7 +194,7 @@ namespace Website.Web.Controllers
             }
 
             var currPage = page ?? 1;
-            var countPerPage = pageCount ?? 30; // get from client js?
+            var countPerPage = pageCount == null || pageCount <= 0 ? 15 : pageCount.Value;
 
             SortPageResult<ProductDto> result = await _shopManager.GetSortFilterPageAsync(types, search, sortOrder, currPage, countPerPage);
             //TODO categories filter List<CategoryDTO> allCategories = await _shopManager.GetAllCategories();

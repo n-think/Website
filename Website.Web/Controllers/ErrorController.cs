@@ -90,7 +90,10 @@ namespace Website.Web.Controllers
         [HttpGet]
         public IActionResult ErrorLockout()
         {
-            return View();
+            return View("Error", new ErrorViewModel()
+            {
+                Message = $"Аккаунт временно заблокирован в целях безопасности. Попробуйте снова через 5 минут."
+            });
         }
     }
 }

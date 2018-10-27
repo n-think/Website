@@ -6,10 +6,10 @@
 
 @model ItemsViewModel
 
-<form asp-action="Items" method="get">
+<form id="admin-search-form" asp-action="Items" method="get">
     <div class="form-inline form-group">
         <input class="form-control mr-2 mb-1" placeholder="Поиск товаров" type="text" name="s" value="@Model.CurrentSearch" />
-        @Html.DropDownList("st", Html.GetEnumSelectList<ItemTypeSelector>(), new { @class = "form-control mr-2 mb-1", onchange = "this.form.submit()" })
+        @Html.DropDownList("st", Html.GetEnumSelectList<ItemTypeSelector>(), new { @class = "form-control mr-2 mb-1  admin-selector"})
         <a class="btn btn-outline-secondary mr-2 " asp-action="Items">Сброс</a>
         <a class="btn btn-primary" asp-action="AddItem">Добавить товар</a>
     </div>

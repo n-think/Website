@@ -5,46 +5,16 @@
 
 @using System.IO
 @model ItemViewModel
-
-<h2>Просмотр товара</h2>
+<div>
+    <h2 class="d-inline">Просмотр товара</h2>
+    <a class="btn btn-outline-primary my-3" asp-action="EditItem" asp-route-id="@Model.Id">Редактировать</a>
+</div>
 <div class="text-success">@TempData["Message"]</div>
-<a class="btn btn-outline-primary my-2" asp-action="EditItem" asp-route-id="@Model.Id">Редактировать</a>
-<h3>@Model.Name</h3>
 <div class="row">
-    <div class="col-md-4">
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th scope="col">Параметр</th>
-                    <th scope="col">Значение</th>
-                </tr>
-            </thead>
-            <tbody>
-                @Html.DisplayForModel("TableDataRowDisplay", new { htmlAttributes = new { @class = "admin-view" } })
-            </tbody>
-        </table>
-        <div>
-            <h3>Категории</h3>
-            @foreach (var cat in Model.Categories)
-            {
-                <span>@cat.Name</span>@Html.Raw(" : ")<span>@cat.Description</span><br />
-            }
-        </div>
-        <div class="admin-item-descriptions">
-            @foreach (var descriptionGroup in Model.Descriptions)
-            {
-                <h3>@descriptionGroup.Name</h3>
-                foreach (var item in descriptionGroup.Items)
-                {
-                    <span>@item.Name</span>@Html.Raw(" : ")<span>@item.Value</span><br />
-                }
-            }
-        </div>
-    </div>
-    <div class="col-md-5">
+    <div class="col-md-7">
         <div>
             <div class="admin-img-box">
-                <img id="admin-image-view" src="@Model.Images?.FirstOrDefault(x => x.Primary)?.Path" />
+                <img id="admin-image-view" src="@Model.Images?.FirstOrDefault(x => x.Primary)?.Path" alt="Нет изображения" />
                 <span></span>
             </div>
             <div id="image-container" class="admin-img-thumbs">
@@ -55,4 +25,36 @@
             </div>
         </div>
     </div>
+    <div class="col-md-5">
+        <h3>@Model.Name</h3>
+        <table class="table table-striped border">
+            <thead>
+                <tr>
+                    <th scope="col">Параметр</th>
+                    <th scope="col">Значение</th>
+                </tr>
+            </thead>
+            <tbody>
+                @Html.DisplayForModel("TableDataRowDisplay", new { htmlAttributes = new { @class = "admin-view" } })
+            </tbody>
+        </table>
+    </div>
+</div>
+<div>
+    <h3>Категории</h3>
+    @foreach (var cat in Model.Categories)
+    {
+        <span>@cat.Name</span>@Html.Raw(" : ")<span>@cat.Description</span><br />
+    }
+</div>
+<div class="admin-item-descriptions">
+    <h3>Описания</h3>
+    @foreach (var descriptionGroup in Model.Descriptions)
+    {
+        <h6>@descriptionGroup.Name</h6>
+        foreach (var item in descriptionGroup.Items)
+        {
+            <span>@item.Name</span>@Html.Raw(" : ")<span>@item.Value</span><br />
+        }
+    }
 </div>

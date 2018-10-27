@@ -2,10 +2,10 @@
 @{
     ViewData["Title"] = Model.Header ?? $"Ошибка {Model.ErrorId}";
 }
-<div class="text-center">
+<div class="text-center m-3">
     <h2 class="text-danger">Ошибка@(Model.ErrorId.HasValue ? " " + Model.ErrorId.Value.ToString() : "").</h2>
     @*<h2 class="text-danger">Произошла ошибка при выполнении вашего запроса.</h2>*@
-    <h3 class="text-danger">@Model.Message</h3>
+    <p class="text-danger">@Model.Message</p>
 </div>
 
 @if (Model.ShowRequestId)

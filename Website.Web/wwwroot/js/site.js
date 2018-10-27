@@ -1,5 +1,5 @@
-﻿window.onscroll = function () { stickyNavbar(); };
-
+﻿// sticky nav bar
+window.onscroll = function () { stickyNavbar(); };
 var navbar = document.getElementById("navbar");
 var sticky = navbar.offsetTop;
 
