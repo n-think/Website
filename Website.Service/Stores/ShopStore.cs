@@ -360,7 +360,7 @@ namespace Website.Service.Stores
 
             var descItems = descs //convert descriptions to dto items
                 .OrderBy(x => x.Name) //ordering
-                .Select(x => new DescriptionItem()
+                .Select(x => new DescriptionItemDto()
                 {
                     Id = x.Id,
                     GroupId = x.DescriptionGroupId.GetValueOrDefault(),

@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+﻿using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
@@ -10,7 +11,6 @@ namespace Website.Web.Infrastructure.Initializers
 {
     public class AdminAndRoleInitializer
     {
-
         public static async Task InitializeAsync(IUserManager userManager,
             RoleManager roleManager, IConfiguration configuration)
         {
@@ -30,8 +30,11 @@ namespace Website.Web.Infrastructure.Initializers
             }
 
             string login = "admin";
-            string email = "admin@admin.admin"; //email doesnt matter and must adhere to usermanager email format x@x.x
+            string email = "admin";
             string password = configuration.GetSection("AdminAccount").GetValue<string>("Password");
+
+            userManager.PasswordValidators.Clear();
+            userManager.UserValidators.Clear();
 
             var adm = await userManager.FindByNameAsync(login);
             if (adm != null)
@@ -67,15 +70,13 @@ namespace Website.Web.Infrastructure.Initializers
                         new Claim("DeleteUsers", ""),
                         new Claim("ViewItems", ""),
                         new Claim("EditItems", ""),
-                        new Claim("CreateItems", ""),
                         new Claim("DeleteItems", ""),
-                        new Claim("EditUsers", ""),
                         new Claim("ViewOrders", ""),
                         new Claim("EditOrders", ""),
                         new Claim("DeleteOrders", "")
                     };
                 await userManager.AddClaimsAsync(adminUser, claims);
-                var updatedAdm = await userManager.FindByNameAsync("admin"); //get updated admin with updated conc stamp or we get concurrency error on next update
+                var updatedAdm = await userManager.FindByNameAsync("admin"); //get updated admin with updated concurrency stamp or we get concurrency error on next update
                 await userManager.AddToRoleAsync(updatedAdm, "admin_generated");
             }
         }

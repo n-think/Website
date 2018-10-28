@@ -11,7 +11,7 @@ $("form#admin-search-form").submit(function () { //submit from search
 $("select.admin-selector").change(function () { //submit form from selector
     var form = $("form#admin-search-form");
     form.submit();
-});function getItemCountFromHeight() {
+}); function getItemCountFromHeight() {
     var clientHeight = window.innerHeight;
     var value = Math.round((clientHeight - 400) / 65);
     return value < 3 ? 3 : value;
@@ -31,7 +31,7 @@ function validateAndSubmitJson() {
         return;
     var data = $("#edit-form").serializeArray();
     //console.log(data);
-    var dataToJson = data.reduce((res, item) => {
+    var dataToJson = data.reduce(function (res, item) {
         res[item.name] = item.value;
         return res;
     }, {});
@@ -45,11 +45,11 @@ function validateAndSubmitJson() {
     console.log(json);
     console.log("sending json");
     $.ajax({
-        type: 'POST',
-        url: '/Admin/EditItem',
+        type: "POST",
+        url: "/Admin/EditItem",
         headers: {
-            'RequestVerificationToken': dataToJson.__RequestVerificationToken,
-            'Content-Type': 'application/json'
+            "RequestVerificationToken": dataToJson.__RequestVerificationToken,
+            "Content-Type": "application/json"
         },
         data: json,
         success: function (response) {
@@ -84,13 +84,17 @@ function getImagesFromContainer(container) {
         var e = contImages[i];
         images[i] = {
             Id: e.dataset.id,
-            Primary: e.classList.contains("img-primary"),
-            PendingDel: e.classList.contains("img-delete"),
-            PendingAdd: e.classList.contains("img-add")
+            Primary: e.classList.contains("img-primary")
         };
-        if (images[i].PendingAdd) {
+        if (e.classList.contains("img-add")) {
+            images[i].DtoState = "added";
             images[i].UriBase64Data = e.src;
         } else {
+            if (e.classList.contains("img-delete")) {
+                images[i].DtoState = "deleted";
+            } else {
+                images[i].DtoState = "unchanged";
+            }
             images[i].Path = e.dataset.path;
             images[i].ThumbPath = e.src;
         }
@@ -98,7 +102,7 @@ function getImagesFromContainer(container) {
     return images;
 }
 
-function getImgId() { // random guid like id
+function getImgId() { // random guid-like id
     function s4() {
         return Math.floor((1 + Math.random()) * 0x10000)
             .toString(16)
@@ -114,7 +118,7 @@ function setPrimaryImage() {
     }
     var img = $("img#admin-image-view")[0];
     var id = img.dataset.id;
-    $(".img-primary").each((i, e) => {
+    $(".img-primary").each(function (i, e) {
         e.classList.remove("img-primary");
     });
     var thumb = $("[data-id=" + id + "]")[1];
@@ -180,7 +184,7 @@ function setDeleteImage() {
 
 function checkExistingPrimaries() { //check if there are any primary images currently present
     var exist = false;
-    $("img.admin-img-thumb").each((i, e) => {
+    $("img.admin-img-thumb").each(function (i, e) {
         if (e.classList.contains("img-primary")) {
             exist = true;
         }
@@ -225,17 +229,17 @@ function setImage(e) {
 function loadImagesFromInput() {
     //Get count of selected files
     var countFiles = $(this)[0].files.length;
-    var imgPath = $(this)[0].value;
-    var extn = imgPath.substring(imgPath.lastIndexOf(".") + 1).toLowerCase();
     var imageContainer = $("#image-container");
     //image_holder.empty();
-    if (extn === "gif" || extn === "png" || extn === "jpg" || extn === "jpeg") {
-        if (typeof (FileReader) !== undefined) {
-            //loop for each file selected for uploaded.
-            for (var i = 0; i < countFiles; i++) {
+    if (typeof (FileReader) !== undefined) {
+        //loop for each file selected for uploaded.
+        for (var i = 0; i < countFiles; i++) {
+            var imgPath = $(this)[0].files[i].name;
+            var extn = imgPath.substring(imgPath.lastIndexOf(".") + 1).toLowerCase();
+            if (extn === "gif" || extn === "png" || extn === "jpg" || extn === "jpeg") {
                 var reader = new FileReader();
                 reader.onload = function (e) {
-                    var imgClass = "admin-img-thumb img-add border";
+                    var imgClass = "admin-img-thumb img-add m-2 border";
                     var flag = !checkExistingPrimaries();
                     if (flag) { //if no primary image present set this image as primary
                         imgClass = imgClass + " img-primary";
@@ -255,12 +259,14 @@ function loadImagesFromInput() {
                 imageContainer.show();
                 reader.readAsDataURL($(this)[0].files[i]);
             }
-        } else {
-            alert("Браузер не поддерживает загрузку картинок.");
+            //else {
+            //    alert("Выберите изображения.");
+            //}
         }
     } else {
-        alert("Выберите изображения.");
+        alert("Браузер не поддерживает загрузку картинок.");
     }
+
 }
 
 // **** user edit scripts
@@ -288,15 +294,7 @@ $(".admin-options input:checkbox, .admin-options label").click(function () {
     if (action === "delete" && this.checked === true) {
         $("." + "view" + "." + group + ":checkbox").prop("checked", true).prop("disabled", true);
         $("." + "edit" + "." + group + ":checkbox").prop("checked", true).prop("disabled", true);
-        $("." + "create" + "." + group + ":checkbox").prop("checked", true).prop("disabled", true);
     } else if (action === "delete" && this.checked === false) {
-        $("." + "view" + "." + group + ":checkbox").prop("checked", false).prop("disabled", false);
-        $("." + "edit" + "." + group + ":checkbox").prop("checked", false).prop("disabled", false);
-        $("." + "create" + "." + group + ":checkbox").prop("checked", false).prop("disabled", false);
-    } else if (action === "create" && this.checked === true) {
-        $("." + "view" + "." + group + ":checkbox").prop("checked", true).prop("disabled", true);
-        $("." + "edit" + "." + group + ":checkbox").prop("checked", true).prop("disabled", true);
-    } else if (action === "create" && this.checked === false) {
         $("." + "view" + "." + group + ":checkbox").prop("checked", false).prop("disabled", false);
         $("." + "edit" + "." + group + ":checkbox").prop("checked", false).prop("disabled", false);
     } else if (action === "edit" && this.checked === true) {

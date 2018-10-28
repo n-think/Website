@@ -29,7 +29,7 @@
         <div class="container text-center">
             <h1>Сайт</h1>
             <p>
-                <environment include="Development">Development</environment><environment include="Staging">Staging</environment>
+                <a class="text-danger"><environment exclude="Production">@Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")</environment></a>
                 <br />Логин: "admin" Пароль: "@(Configuration.GetSection("AdminAccount").GetValue<string>("Password"))"
             </p>
         </div>

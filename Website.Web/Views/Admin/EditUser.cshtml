@@ -38,7 +38,7 @@
                 </div>
                 <div class="admin-options @(Model.Role != "admin" ? "d-none" : "")">
                     <user-claims name="newClaims" display="Пользователи:" actions="view edit delete" claims="@Model.CurrentClaims" />
-                    <user-claims name="newClaims" display="Товары:" actions="view edit create delete" claims="@Model.CurrentClaims" />
+                    <user-claims name="newClaims" display="Товары:" actions="view edit delete" claims="@Model.CurrentClaims" />
                     <user-claims name="newClaims" display="Заказы:" actions="view edit delete" claims="@Model.CurrentClaims" />
                 </div>
             </td>

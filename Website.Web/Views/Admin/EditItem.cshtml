@@ -22,10 +22,10 @@
                              data-id="@image?.Id" src="@(image?.Path ?? image?.UriBase64Data)" alt="Нет изображения" />
                         <span></span>
                     </div>
-                    <div class="admin-img-thumbs my-2" id="image-container" >
+                    <div class="admin-img-thumbs my-2" id="image-container">
                         @foreach (var item in Model.Images ?? Enumerable.Empty<ProductImageDto>())
                         {
-                            <img class="admin-img-thumb m-2 border@(item.Primary ? " img-primary" : "")@(item.PendingAdd ? " img-add" : "")@(item.PendingDel ? " img-delete" : "")"
+                            <img class="admin-img-thumb m-2 border@(item.Primary ? " img-primary" : "")@(item.DtoState == DtoState.Added ? " img-add" : "")@(item.DtoState == DtoState.Deleted ? " img-delete" : "")"
                                  data-path="@item.Path" data-id="@(item.Id ?? Guid.NewGuid().GetHashCode())" src="@(item.ThumbPath ?? item.UriBase64Data)" />
                         }
                     </div>
@@ -33,11 +33,11 @@
                 <div class="p-1 w-auto">
                     <div class="btn btn-outline-danger my-2 p-1 d-block" id="image-remove-button">
                         <span class="d-block w-100 fa fa-remove fa-bordered fa-3x"></span>
-                        <span class="d-inline-block text-truncate small">Удалить/<br />отменить<br >картинку</span>
+                        <span class="d-inline-block text-truncate small">Удалить/<br />отменить<br>картинку</span>
                     </div>
                     <div class="btn btn-outline-success my-2 p-1 d-block" id="image-primary-button">
                         <span class="d-block w-100 fa fa-check fa-bordered fa-3x"></span>
-                        <span class="d-inline-block small">Сделать<br/>основной<br/>картинкой</span>
+                        <span class="d-inline-block small">Сделать<br />основной<br />картинкой</span>
                     </div>
                 </div>
             </div>
@@ -75,22 +75,37 @@
         </div>
     </div>
     <div>
-        <div>
-            <h3>Категории</h3>
+        <div class="admin-item-categories">
+            <div>
+                <span class="h3">Категории</span>
+                <span class="btn btn-outline-primary btn-sm mb-2"><span class="fa fa-plus"></span></span>
+            </div>
             @foreach (var cat in Model.Categories ?? Enumerable.Empty<CategoryDto>())
             {
-                <span>@cat.Name</span>@Html.Raw(" : ")<span>@cat.Description</span><br />
+                <div class="category">
+                    <span class="category-name">@cat.Name</span>
+                    <span class="category-desc text-muted">(@cat.Description)</span><br/>
+                </div>
             }
         </div>
         <div class="admin-item-descriptions">
-            <h3>Описания</h3>
+            <div>
+                <span class="h3">Описания</span>
+                <span class="btn btn-outline-primary btn-sm mb-2"><span class="fa fa-plus"></span></span>
+            </div>
             @foreach (var descriptionGroup in Model.Descriptions ?? Enumerable.Empty<DescriptionGroupDto>())
             {
-                <h6>@descriptionGroup.Name</h6>
-                foreach (var item in descriptionGroup.Items)
+            <div class="desc-group">
+                <span class="desc-group-name h6">@descriptionGroup.Name</span>
+                <span class="add-desc-item btn btn-outline-primary btn-xsm mb-1" data-desc-group-id="@descriptionGroup.Id"><span class="fa fa-plus"></span></span>
+                <span class="desc-group-desc text-muted">(@descriptionGroup.Description)</span>
+                @foreach (var item in descriptionGroup.Items ?? Enumerable.Empty<DescriptionItemDto>())
                 {
-                    <span>@item.Name</span>@Html.Raw(" : ")<span>@item.Value</span><br />
+                    <div class="desc-item">
+                        <span class="desc-item-name">@item.Name</span>@Html.Raw(" : ")<span class="desc-item-value">@item.Value</span>
+                    </div>
                 }
+            </div>
             }
         </div>
     </div>

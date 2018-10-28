@@ -98,7 +98,7 @@ namespace Website.Web.TagHelpers
                 }
                 checkboxLabel.InnerHtml.Append(actionLabel);
 
-                if (ViewOnly || masterFlag) //viewonly
+                if (ViewOnly || masterFlag)
                 {
                     input.Attributes.Add("disabled", "");
                 }

@@ -80,15 +80,11 @@ namespace Website.Web.Controllers
             return View(model);
         }
 
-        [HttpGet]
+        [HttpGet("Admin/ViewUser/{id:guid}")]
         [Authorize(Policy = "ViewUsers")]
-        public async Task<IActionResult> ViewUser(string id)
+        public async Task<IActionResult> ViewUser(Guid id)
         {
-            if (id.IsNullOrEmpty())
-            {
-                return RedirectToAction("Users");
-            }
-            var user = await _userManager.FindByIdAsync(id);
+            var user = await _userManager.FindByIdAsync(id.ToString());
             if (user == null)
             {
                 return View("Error", new ErrorViewModel { Message = $"Пользователь с id {id} не найден." });
@@ -99,16 +95,12 @@ namespace Website.Web.Controllers
             return View(modelUser);
         }
 
-        [HttpGet]
+        [HttpGet("Admin/EditUser/{id:guid}")]
         [Authorize(Policy = "EditUsers")]
-        public async Task<IActionResult> EditUser(string id)
+        public async Task<IActionResult> EditUser(Guid id)
         {
             //TODO get ViewUser EditUser на 90% одинаковые
-            if (id.IsNullOrEmpty())
-            {
-                return RedirectToAction("Users");
-            }
-            var user = await _userManager.FindByIdAsync(id);
+            var user = await _userManager.FindByIdAsync(id.ToString());
             if (user == null)
             {
                 return View("Error", new ErrorViewModel { Message = $"Пользователь с id {id} не найден." });
@@ -216,7 +208,7 @@ namespace Website.Web.Controllers
             return View(model);
         }
 
-        [HttpGet]
+        [HttpGet("Admin/ViewItem/{id:required:int:min(0)}")]
         [Authorize(Policy = "ViewItems")]
         public async Task<IActionResult> ViewItem(int id)
         {
@@ -230,7 +222,7 @@ namespace Website.Web.Controllers
             return View(viewModel);
         }
 
-        [HttpGet]
+        [HttpGet("Admin/EditItem/{id:required:int:min(0)}")]
         [Authorize(Policy = "EditItems")]
         public async Task<IActionResult> EditItem(int id)
         {
@@ -247,14 +239,13 @@ namespace Website.Web.Controllers
 
         [HttpPost("Admin/EditItem")]
         [ValidateAntiForgeryToken]
-        [Authorize(Policy = "EditUsers")]
+        [Authorize(Policy = "EditItems")]
         public async Task<IActionResult> EditItem([FromBody]EditItemViewModel item)
         {
-            if (item == null || item.Id == 0 || item.Timestamp == null)
+            if (item == null || item.Id < 0 || item.Timestamp == null)
             {
                 return BadRequest("Введены некорректные данные.");
             }
-
             if (ModelState.IsValid)
             {
                 //var dtoUser = await _userManager.FindByIdAsync(user.Id);
@@ -302,7 +293,7 @@ namespace Website.Web.Controllers
         }
 
         [HttpGet]
-        [Authorize(Policy = "CreateItems")]
+        [Authorize(Policy = "EditItems")]
         public async Task<IActionResult> AddItem()
         {
             await Task.CompletedTask;
@@ -316,9 +307,19 @@ namespace Website.Web.Controllers
             return View();
         }
 
+        [HttpGet("Admin/Categories")]
+        [Authorize(Policy = "ViewItems")]
         public IActionResult Categories()
         {
             return View();
         }
+
+        [HttpPost("Admin/EditCategories")]
+        [Authorize(Policy = "EditItems")]
+        public IActionResult EditCategories()
+        {
+            return Ok();
+        }
+       
     }
 }

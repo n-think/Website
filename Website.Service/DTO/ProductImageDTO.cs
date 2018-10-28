@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
+using Website.Service.Enums;
 
 namespace Website.Service.DTO
 {
@@ -11,8 +12,7 @@ namespace Website.Service.DTO
         public string Path { get; set; }
         public string ThumbPath { get; set; }
         public bool Primary { get; set; }
-        public bool PendingDel { get; set; }
-        public bool PendingAdd { get; set; }
         public string UriBase64Data { get; set; }
+        public DtoState DtoState { get; set; }
     }
 }

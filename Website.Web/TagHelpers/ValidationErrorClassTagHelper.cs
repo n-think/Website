@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Razor.TagHelpers;
 
 namespace Website.Web.TagHelpers
 {
-    [HtmlTargetElement("input")]
+    [HtmlTargetElement("input", Attributes = "validation-for,validation-error-class,validation-valid-class")]
     public class ValidationErrorClassTagHelper : TagHelper
     {
         [HtmlAttributeName("validation-for")]

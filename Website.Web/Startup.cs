@@ -139,15 +139,11 @@ namespace Website.Web
                     //item manage policies
                     options.AddPolicy("ViewItems",
                         policy => policy.RequireAssertion(context => context.User.HasClaim(c =>
-                            c.Type == "ViewItems" || c.Type == "EditItems" || c.Type == "DeleteItems" || c.Type == "CreateItems")));
+                            c.Type == "ViewItems" || c.Type == "EditItems" || c.Type == "DeleteItems")));
 
                     options.AddPolicy("EditItems",
                         policy => policy.RequireAssertion(context => context.User.HasClaim(c =>
-                            c.Type == "EditItems" || c.Type == "DeleteItems" || c.Type == "CreateItems")));
-
-                    options.AddPolicy("CreateItems",
-                        policy => policy.RequireAssertion(context => context.User.HasClaim(c =>
-                            c.Type == "DeleteItems" || c.Type == "CreateItems")));
+                            c.Type == "EditItems" || c.Type == "DeleteItems")));
 
                     options.AddPolicy("DeleteItems",
                         policy => policy.RequireClaim("DeleteItems"));

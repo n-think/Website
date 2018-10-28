@@ -20,13 +20,10 @@ namespace Website.Web
     {
         public static async Task Main(string[] args)
         {
-            //CreateWebHostBuilder(args).Build().Run();
-
             #region Инициализация ролями и аккаунтом администратора
 
-            var host = CreateWebHostBuilder(args).Build();
-
-            using (var scope = host.Services.CreateScope())
+            var initializerHost = CreateWebHostBuilder(args).Build();
+            using (var scope = initializerHost.Services.CreateScope())
             {
                 var services = scope.ServiceProvider;
                 try
@@ -34,10 +31,7 @@ namespace Website.Web
                     var userManager = services.GetRequiredService<IUserManager>();
                     var rolesManager = services.GetRequiredService<RoleManager>();
                     var configManager = services.GetRequiredService<IConfiguration>();
-
-                    //seed admin user
                     await AdminAndRoleInitializer.InitializeAsync(userManager, rolesManager, configManager);
-                    
                     //TODO УБРАТЬ
                     // seed test users
                     //await DbUserProfileSeed.InitializeAsync(userManager, rolesManager);
@@ -45,14 +39,15 @@ namespace Website.Web
                 catch (Exception ex)
                 {
                     var logger = services.GetRequiredService<ILogger<Program>>();
-                    logger.LogError(ex, "An error occurred while seeding the database.");
+                    logger.LogError(ex, "An error occurred while creating admin account or roles.");
                 }
             }
-
-            host.Run();
+            initializerHost = null; // все валидаторы паролей и логинов удалены в инициализаторе, поэтому его запускать нельзя
+            GC.Collect();
 
             #endregion 
 
+            CreateWebHostBuilder(args).Build().Run();
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>

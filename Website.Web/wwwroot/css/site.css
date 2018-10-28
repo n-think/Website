@@ -278,3 +278,10 @@ img.img-delete {
     bottom: 0;
     right: 0;
 }
+
+.btn-xsm, .btn-group-xsm > .btn {
+    padding: 0.15rem 0.25rem;
+    font-size: 0.5rem;
+    line-height: 1;
+    border-radius: 0.1rem;
+}
