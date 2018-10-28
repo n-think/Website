@@ -50,8 +50,13 @@ namespace Website.Web
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
-            WebHost.CreateDefaultBuilder(args)
+            WebHost
+                .CreateDefaultBuilder(args)
+#if DEBUG
                 .UseApplicationInsights()
+#endif
+                .UseKestrel()
+                .UseIISIntegration()
                 .UseStartup<Startup>();
 
     }

@@ -8,6 +8,7 @@
     <AssemblyName>Website.Web</AssemblyName>
     <TrimUnusedDependencies>true</TrimUnusedDependencies>
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
+    <ExcludeFoldersFromDeployment>Tests</ExcludeFoldersFromDeployment>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="run.cmd" />
