@@ -20,10 +20,11 @@ namespace Website.Web
     {
         public static async Task Main(string[] args)
         {
+            var host = CreateWebHostBuilder(args).Build();
+
             #region Инициализация ролями и аккаунтом администратора
 
-            var initializerHost = CreateWebHostBuilder(args).Build();
-            using (var scope = initializerHost.Services.CreateScope())
+            using (var scope = host.Services.CreateScope())
             {
                 var services = scope.ServiceProvider;
                 try
@@ -42,12 +43,10 @@ namespace Website.Web
                     logger.LogError(ex, "An error occurred while creating admin account or roles.");
                 }
             }
-            initializerHost = null; // все валидаторы паролей и логинов удалены в инициализаторе, поэтому его запускать нельзя
-            GC.Collect();
 
             #endregion 
 
-            CreateWebHostBuilder(args).Build().Run();
+            host.Run();
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>

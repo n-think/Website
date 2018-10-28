@@ -30,9 +30,14 @@ namespace Website.Web.Infrastructure.Initializers
             }
 
             string login = "admin";
-            string email = "admin";
+            string email = "";
             string password = configuration.GetSection("AdminAccount").GetValue<string>("Password");
 
+            //save and reset validators
+            var origPassValidators = new IPasswordValidator<UserDto>[userManager.PasswordValidators.Count];
+            userManager.PasswordValidators.CopyTo(origPassValidators, 0);
+            var origUserValidators = new IUserValidator<UserDto>[userManager.PasswordValidators.Count];
+            userManager.UserValidators.CopyTo(origUserValidators, 0);
             userManager.PasswordValidators.Clear();
             userManager.UserValidators.Clear();
 
@@ -54,6 +59,15 @@ namespace Website.Web.Infrastructure.Initializers
             else
             {
                 await CreateAdmin(userManager, login, email, password);
+            }
+            //restore validators
+            foreach (var origPassValidator in origPassValidators)
+            {
+                userManager.PasswordValidators.Add(origPassValidator);
+            }
+            foreach (var origUserValidator in origUserValidators)
+            {
+                userManager.UserValidators.Add(origUserValidator);
             }
         }
 
