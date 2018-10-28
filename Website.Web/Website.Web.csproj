@@ -6,8 +6,9 @@
     <UserSecretsId>aspnet-website-B4F508D3-8844-4B0D-8847-36D7D4572569</UserSecretsId>
     <RootNamespace>Website.Web</RootNamespace>
     <AssemblyName>Website.Web</AssemblyName>
+    <TrimUnusedDependencies>true</TrimUnusedDependencies>
+    <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
   </PropertyGroup>
-
   <ItemGroup>
     <None Remove="run.cmd" />
   </ItemGroup>
@@ -22,6 +23,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Packaging.Tools.Trimming" Version="1.1.0-preview1-26619-01" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.1.5" PrivateAssets="All" />
     <PackageReference Include="System.Drawing.Common" Version="4.5.1" />
   </ItemGroup>
