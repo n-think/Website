@@ -21,7 +21,7 @@ namespace Website.Data.EF.Models
         public int Stock { get; set; }
         public int Reserved { get; set; }
         public bool Enabled { get; set; }
-        public DateTimeOffset Added { get; set; }
+        public DateTimeOffset Created { get; set; }
         public DateTimeOffset Changed { get; set; }
         public byte[] Timestamp { get; set; }
 

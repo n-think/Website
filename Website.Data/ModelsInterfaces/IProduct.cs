@@ -12,7 +12,7 @@ namespace Website.Data.ModelsInterfaces
         int Stock { get; set; }
         int Reserved { get; set; }
         bool Enabled { get; set; }
-        DateTimeOffset Added { get; set; }
+        DateTimeOffset Created { get; set; }
         DateTimeOffset Changed { get; set; }
         byte[] Timestamp { get; set; }
     }

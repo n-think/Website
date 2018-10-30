@@ -92,6 +92,8 @@ namespace Website.Service.Stores
                 throw new ArgumentNullException(nameof(product));
 
             var dbProduct = _mapper.Map<Product>(product);
+            dbProduct.Created = DateTimeOffset.Now;
+            dbProduct.Changed = dbProduct.Created;
             ProductsSet.Add(dbProduct);
             try
             {
@@ -177,8 +179,8 @@ namespace Website.Service.Stores
                 throw new ArgumentNullException(nameof(product));
 
             var dbProduct = _mapper.Map<Product>(product);
-
-            //dont need if asnotracking
+            dbProduct.Changed = DateTimeOffset.Now;
+            //dont need if we find product asnotracking
             // 
             //var local = ProductsSet
             //    .Local
@@ -456,11 +458,6 @@ namespace Website.Service.Stores
                     System.IO.File.Delete(imageThumbPath);
                 }
             }
-        }
-
-        private EncoderParameters GetEncoderParameters()
-        {
-            throw new NotImplementedException();
         }
 
         [Obsolete("not implemented")]
