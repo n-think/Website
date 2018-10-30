@@ -144,22 +144,23 @@ namespace Website.Service.Stores
                 throw new ArgumentNullException(nameof(user));
             }
 
-            var dbUser = await UsersSet.FindAsync(user.Id);
+            var localDbUser = UsersSet
+                .Local
+                .FirstOrDefault(e=> e.Id == user.Id);
 
-            if (dbUser != null)
+            if (localDbUser != null)
             {
-                if (dbUser.ConcurrencyStamp != user.ConcurrencyStamp) // optimistic concurrency check //hz nado li tut
+                if (localDbUser.ConcurrencyStamp != user.ConcurrencyStamp) // optimistic concurrency check //hz nado li tut
                 {
                     return IdentityResult.Failed(ErrorDescriber.ConcurrencyFailure());
                 }
 
-                Mapper.Map(user, dbUser);
-                dbUser.ConcurrencyStamp = Guid.NewGuid().ToString();
+                Mapper.Map(user, localDbUser);
+                localDbUser.ConcurrencyStamp = Guid.NewGuid().ToString();
             }
             else
             {
-                dbUser = Mapper.Map<TDbUser>(user);
-                Context.Attach(dbUser);
+                var dbUser = Mapper.Map<TDbUser>(user);
                 dbUser.ConcurrencyStamp = Guid.NewGuid().ToString();
                 Context.Update(dbUser);
             }

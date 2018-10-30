@@ -17,10 +17,15 @@ namespace Website.Service.Mapper
             CreateMap<User, UserDto>(MemberList.Source).ReverseMap();
             CreateMap<Role, RoleDto>().ReverseMap();
             CreateMap<UserProfile, UserProfileDto>().ReverseMap();
+
             CreateMap<Product, ProductDto>(MemberList.Destination)
                 .ForMember(x => x.Images, o => o.Ignore())
+                .ForMember(x => x.Descriptions, o => o.Ignore());
+            CreateMap<ProductDto, Product>(MemberList.Source)
+                .ForMember(x => x.Images, o => o.Ignore())
                 .ForMember(x => x.Descriptions, o => o.Ignore())
-                .ReverseMap();
+                .ForMember(x => x.ProductCategory, o => o.Ignore());
+
             CreateMap<Category, CategoryDto>(MemberList.Destination).ReverseMap();
 
             CreateMap<Task<User>, Task<UserDto>>().ReverseMap();

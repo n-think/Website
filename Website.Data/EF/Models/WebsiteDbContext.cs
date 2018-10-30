@@ -44,9 +44,11 @@ namespace Website.Data.EF.Models
             modelBuilder.Entity<ProductImage>(entity =>
             {
                 entity.Property(e => e.Format).HasMaxLength(10);
-                entity.HasIndex(e => new {e.ProductId, e.Primary})
-                    .HasFilter("[Primary] = 1 AND [ProductId] IS NOT Null")
-                    .IsUnique();
+                //entity.HasIndex(e => new {e.ProductId, e.Primary})
+                //    .HasFilter("[Primary] = 1 AND [ProductId] IS NOT Null")
+                //    .IsUnique();
+                entity.HasIndex(e => e.Name).IsUnique();
+                entity.HasIndex(e => e.ThumbName).IsUnique();
             });
 
             modelBuilder.Entity<DescriptionGroup>(entity =>

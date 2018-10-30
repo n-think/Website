@@ -14,13 +14,13 @@
     <div class="col-md-7">
         <div>
             <div class="admin-img-box">
-                <img id="admin-image-view" src="@Model.Images?.FirstOrDefault(x => x.Primary)?.Path" alt="Нет изображения" />
+                <img id="admin-image-view" src="@Model.Images?.FirstOrDefault(x => x.Primary)?.PathSrc" alt="Нет изображения" />
                 <span></span>
             </div>
             <div id="image-container" class="admin-img-thumbs">
                 @foreach (var item in Model.Images ?? Enumerable.Empty<ProductImageDto>())
                 {
-                    <img class="admin-img-thumb" data-path="@item.Path" src="@item.ThumbPath" />
+                    <img class="admin-img-thumb" data-path="@item.PathSrc" src="@item.ThumbPathSrc" />
                 }
             </div>
         </div>

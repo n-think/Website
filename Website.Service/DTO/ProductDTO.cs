@@ -10,6 +10,8 @@ namespace Website.Service.DTO
         public ProductDto()
         {
             Categories = new List<CategoryDto>();
+            Images = new List<ProductImageDto>();
+            Descriptions = new List<DescriptionGroupDto>();
         }
         public int Id { get; set; }
         [Display(Name = "Название")]

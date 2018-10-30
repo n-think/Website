@@ -11,34 +11,37 @@ using Website.Service.Infrastructure;
 
 namespace Website.Service.Interfaces
 {
-    public interface IShopStore<TDtoProduct, TDtoImage, TDtoOrder> : IDisposable
+    public interface IShopStore<TDtoProduct, TDtoImage, TDtoCategory, TDtoOrder> : IDisposable
         where TDtoProduct : class
         where TDtoImage : class
+        where TDtoCategory : class
         where TDtoOrder : class
     {
-        /// <summary>
-        /// Gets or sets a flag indicating if changes should be persisted after CreateAsync, UpdateAsync and DeleteAsync are called.
-        /// </summary>
-        /// <value>
-        /// True if changes should be automatically persisted, otherwise false.
-        /// </value>
-        bool AutoSaveChanges { get; set; }
-
-        /// <summary>Saves the current store.</summary>
-        /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
-        /// <returns>The <see cref="Task"/> that represents the asynchronous operation.</returns>
-        Task SaveChanges(CancellationToken cancellationToken);
-
+        #region CRUD product
         Task<OperationResult> CreateProductAsync(TDtoProduct product, CancellationToken cancellationToken);
         Task<TDtoProduct> FindProductByIdAsync(int productId, CancellationToken cancellationToken);
+        Task<TDtoProduct> FindProductByNameAsync(string productName, CancellationToken cancellationToken);
         Task<OperationResult> UpdateProductAsync(TDtoProduct product, CancellationToken cancellationToken);
-        Task<OperationResult> DeleteProductAsync(int productId, CancellationToken cancellationToken);
-        Task<OperationResult> CreateCategoryAsync(string categoryName, CancellationToken cancellationToken);
-        Task<bool> FindCategoryByNameAsync(string categoryName, CancellationToken cancellationToken);
-        Task<OperationResult> RemoveCategoryAsync(string categoryName, CancellationToken cancellationToken);
-        Task<SortPageResult<ProductDto>> SortFilterPageResultAsync(ItemTypeSelector types, string searchString, string sortPropName,
-            int currentPage, int countPerPage, CancellationToken cancellationToken);
+        Task<OperationResult> DeleteProductAsync(TDtoProduct product, CancellationToken cancellationToken);
+        #endregion
 
-        Task<List<DescriptionGroupDto>> GetProductDescriptions(int productId, CancellationToken cancellationToken);
+        #region CRUD category
+        Task<OperationResult> CreateCategoryAsync(TDtoCategory category, CancellationToken cancellationToken);
+        Task<TDtoCategory> FindCategoryByNameAsync(string categoryName, CancellationToken cancellationToken);
+        Task<OperationResult> UpdateCategoryAsync(TDtoCategory category, CancellationToken cancellationToken);
+        Task<OperationResult> DeleteCategoryAsync(TDtoCategory category, CancellationToken cancellationToken);
+        #endregion
+
+        #region images
+        Task<OperationResult> SaveImagesAsync(ProductDto product, CancellationToken cancellationToken);
+        Task<OperationResult> LoadImagesAsync(ProductDto product, CancellationToken cancellationToken);
+        #endregion
+
+        #region Descriptions
+        Task<OperationResult> LoadProductDescriptions(TDtoProduct product, CancellationToken cancellationToken);
+        #endregion
+
+        Task<SortPageResult<TDtoProduct>> SortFilterPageResultAsync(ItemTypeSelector types, string searchString, string sortPropName,
+            int currentPage, int countPerPage, CancellationToken cancellationToken);
     }
 }

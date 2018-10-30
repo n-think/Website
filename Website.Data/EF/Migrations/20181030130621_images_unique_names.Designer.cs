@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Website.Data.EF.Models;
 
 namespace Website.Data.EF.Migrations
 {
     [DbContext(typeof(WebsiteDbContext))]
-    partial class WebsiteDbContextModelSnapshot : ModelSnapshot
+    [Migration("20181030130621_images_unique_names")]
+    partial class images_unique_names
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -149,11 +151,13 @@ namespace Website.Data.EF.Migrations
                         .IsUnique()
                         .HasFilter("[Name] IS NOT NULL");
 
-                    b.HasIndex("ProductId");
-
                     b.HasIndex("ThumbName")
                         .IsUnique()
                         .HasFilter("[ThumbName] IS NOT NULL");
+
+                    b.HasIndex("ProductId", "Primary")
+                        .IsUnique()
+                        .HasFilter("[Primary] = 1 AND [ProductId] IS NOT Null");
 
                     b.ToTable("ProductImages");
                 });

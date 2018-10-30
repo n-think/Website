@@ -32,5 +32,23 @@ namespace Website.Service.Infrastructure
                 Description = $"Возникла ошибка обновления базы данных. Изменения не были сохранены."
             };
         }
+
+        public virtual OperationError IncorrectImageFormat()
+        {
+            return new OperationError
+            {
+                Code = nameof(IncorrectImageFormat),
+                Description = $"Изменения изображений не сохранены. Некорректные одно или несколько изображений. Допустимые форматы: jpg, gif, png, tiff, bmp. Размер не более ~3 МБ"
+            };
+        }
+
+        public virtual OperationError DiskIOError()
+        {
+            return new OperationError
+            {
+                Code = nameof(DiskIOError),
+                Description = $"Возникла ошибка при сохранении изображений."
+            };
+        }
     }
 }

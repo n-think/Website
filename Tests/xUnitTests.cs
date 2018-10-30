@@ -21,7 +21,7 @@ namespace xUnitTests
         [Fact]
         public void CreateOrUpdateProfileTest()
         {
-            var testUser = new User() { UserName = "test@email", NormalizedUserName = "TEST@EMAIL" };
+            var testUser = new User() { UserName = "test@email", Email = "test@email", NormalizedUserName = "TEST@EMAIL" };
             var profile = new UserProfileDto() { Login = "test@email", FirstName = "testName" };
             var fakeProfile = new UserProfileDto() { Login = "test@email1", FirstName = "testName" };
             var customUserManager = GetUserManager();

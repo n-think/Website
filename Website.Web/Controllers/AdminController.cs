@@ -212,28 +212,37 @@ namespace Website.Web.Controllers
         [Authorize(Policy = "ViewItems")]
         public async Task<IActionResult> ViewItem(int id)
         {
-            var prod = await _shopManager.GetProductById(id);
+            return await GetViewItemView(id);
+        }
+
+        private async Task<IActionResult> GetViewItemView(int id, bool partial = false)
+        {
+            var prod = await _shopManager.GetProductById(id, true);
             if (prod == null)
             {
+                if (partial)
+                    return PartialView("Error", new ErrorViewModel { Message = $"Товар с id {id} не найден." });
                 return View("Error", new ErrorViewModel { Message = $"Товар с id {id} не найден." });
             }
             var viewModel = _mapper.Map<ItemViewModel>(prod);
-            viewModel.Descriptions = await _shopManager.GetProductDescriptions(id);
-            return View(viewModel);
+            viewModel.Descriptions = prod.Descriptions;
+            if (partial)
+                return PartialView("ViewItem", viewModel);
+            return View("ViewItem", viewModel);
         }
 
         [HttpGet("Admin/EditItem/{id:required:int:min(0)}")]
         [Authorize(Policy = "EditItems")]
         public async Task<IActionResult> EditItem(int id)
         {
-            var prod = await _shopManager.GetProductById(id);
+            var prod = await _shopManager.GetProductById(id, true);
             if (prod == null)
             {
                 return View("Error", new ErrorViewModel { Message = $"Товар с id {id} не найден." });
             }
 
             var viewModel = _mapper.Map<EditItemViewModel>(prod);
-            viewModel.Descriptions = await _shopManager.GetProductDescriptions(id);
+            viewModel.Descriptions = prod.Descriptions;
             return View(viewModel);
         }
 
@@ -248,46 +257,33 @@ namespace Website.Web.Controllers
             }
             if (ModelState.IsValid)
             {
-                //var dtoUser = await _userManager.FindByIdAsync(user.Id);
-                //if (dtoUser == null)
-                //{
-                //    return View("Error", new ErrorViewModel { Message = $"Пользователь с id {user.Id} не найден." });
-                //}
-                //var dbConcStamp = dtoUser.ConcurrencyStamp;
-                //_mapper.Map(user, dtoUser);
+                var dbItem = await _shopManager.GetProductById(item.Id, false);
+                if (dbItem == null)
+                {
+                    return PartialView("Error", new ErrorViewModel { Message = $"Товар с id {item.Id} не найден." }); ; //TODO
+                }
 
-                //var newClaims = new List<Claim>();
-                //if (!user.NewClaims.IsNullOrEmpty() && user?.Role == "admin")
-                //{
-                //    newClaims = user.NewClaims.Select(x => new Claim(x, "")).ToList();
-                //}
-                //if (!user.Role.IsNullOrEmpty())
-                //{
-                //    newClaims.Add(new Claim(ClaimTypes.Role, user.Role));
-                //}
-                ////try update
-                //var result = await _userManager.UpdateUserPasswordClaims(dtoUser, user.Password, newClaims);
+                var itemDto = _mapper.Map<ProductDto>(item);
+                var result = await _shopManager.UpdateProductAsync(itemDto);
 
-                //if (result.Succeeded) // update successful
-                //{
-                //    if (HttpContext.User.Claims.First(x => x.Type == ClaimTypes.NameIdentifier).Value == dtoUser.Id)
-                //    {
-                //        await _signInManager.RefreshSignInAsync(dtoUser);
-                //    }
-                //    TempData["Message"] = "Изменения успешно сохранены";
-                //    return RedirectToAction("ViewUser", new { id = user.Id });
-                //}
+                if (result.Succeeded) // update successful
+                {
+                    TempData["Message"] = "Изменения успешно сохранены";
+                    return await GetViewItemView(item.Id, true);
+                }
 
-                ////add new errors
-                //foreach (var identityError in result.Errors)
-                //{
-                //    ModelState.AddModelError(identityError.Code, identityError.Description);
-                //    if (identityError.Code == "ConcurrencyFailure")
-                //    {
-                //        user.ConcurrencyStamp = dbConcStamp; // to enable save after conc error
-                //        ModelState.Remove("ConcurrencyStamp"); // remove from the model state or HTML helpers will use the original value
-                //    }
-                //}
+                dbItem = await _shopManager.GetProductById(item.Id, false); //get new item with updated concurrency stamp etc
+                
+                //add new errors
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(error.Code, error.Description);
+                    if (error.Code == nameof(OperationErrorDescriber.ConcurrencyFailure) || error.Code == nameof(OperationErrorDescriber.IncorrectImageFormat))
+                    {
+                        item.Timestamp = dbItem.Timestamp; // to enable save after conc error or incomplete updates
+                        ModelState.Remove("Timestamp"); // remove from the model state or HTML helpers will use the original value
+                    }
+                }
             }
             return PartialView(item);
         }
@@ -320,6 +316,6 @@ namespace Website.Web.Controllers
         {
             return Ok();
         }
-       
+
     }
 }

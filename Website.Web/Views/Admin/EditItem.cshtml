@@ -19,14 +19,14 @@
                     <div class="admin-img-box m-0 p-1">
                         @{var image = Model.Images?.FirstOrDefault(x => x.Primary);}
                         <img id="admin-image-view" class="@(image == null ? "" : "img-primary")"
-                             data-id="@image?.Id" src="@(image?.Path ?? image?.UriBase64Data)" alt="Нет изображения" />
+                             data-id="@image?.Id" src="@(image?.PathSrc)" alt="Нет изображения" />
                         <span></span>
                     </div>
                     <div class="admin-img-thumbs my-2" id="image-container">
                         @foreach (var item in Model.Images ?? Enumerable.Empty<ProductImageDto>())
                         {
                             <img class="admin-img-thumb m-2 border@(item.Primary ? " img-primary" : "")@(item.DtoState == DtoState.Added ? " img-add" : "")@(item.DtoState == DtoState.Deleted ? " img-delete" : "")"
-                                 data-path="@item.Path" data-id="@(item.Id ?? Guid.NewGuid().GetHashCode())" src="@(item.ThumbPath ?? item.UriBase64Data)" />
+                                 data-path="@item.PathSrc" data-id="@(item.Id ?? Guid.NewGuid().GetHashCode())" src="@(item.ThumbPathSrc)" />
                         }
                     </div>
                 </div>

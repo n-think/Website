@@ -60,14 +60,20 @@ function validateAndSubmitJson() {
             //document.close();
         },
         error: function (jqXHR, textStatus, errorThrown) {
+            //debug
+            document.open();
+            document.write(jqXHR.responseText);
+            document.close();
+
+            //release
             //console.log('Error on ajax:', jqXHR, textStatus, errorThrown);
-            var errorList = $("div.validation-summary-valid>ul>li")[0];
-            errorList.removeAttribute("style");
-            if (jqXHR.status === 400) {
-                errorList.innerText = jqXHR.responseText;
-            } else {
-                errorList.innerText = "Возникла ошибка при отправке запроса серверу.";
-            }
+            //var errorList = $("div.validation-summary-valid>ul>li")[0];
+            //errorList.removeAttribute("style");
+            //if (jqXHR.status === 400) {
+            //    errorList.innerText = jqXHR.responseText; 
+            //} else {
+            //    errorList.innerText = "Возникла ошибка при отправке запроса серверу.";
+            //}
 
         },
         async: true
@@ -88,7 +94,7 @@ function getImagesFromContainer(container) {
         };
         if (e.classList.contains("img-add")) {
             images[i].DtoState = "added";
-            images[i].UriBase64Data = e.src;
+            images[i].DataUrl = e.src;
         } else {
             if (e.classList.contains("img-delete")) {
                 images[i].DtoState = "deleted";
@@ -96,7 +102,7 @@ function getImagesFromContainer(container) {
                 images[i].DtoState = "unchanged";
             }
             images[i].Path = e.dataset.path;
-            images[i].ThumbPath = e.src;
+            images[i].ThumbPath = e.getAttribute("src");
         }
     }
     return images;

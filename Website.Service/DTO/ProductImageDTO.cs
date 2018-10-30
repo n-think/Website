@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
+using Castle.Core.Internal;
 using Website.Service.Enums;
 
 namespace Website.Service.DTO
@@ -10,9 +11,12 @@ namespace Website.Service.DTO
     {
         public int? Id { get; set; }
         public string Path { get; set; }
+        public string PathSrc { get => Path.IsNullOrEmpty() ? DataUrl : Path; }
         public string ThumbPath { get; set; }
+        public string ThumbPathSrc { get => ThumbPath.IsNullOrEmpty() ? DataUrl : ThumbPath; }
         public bool Primary { get; set; }
-        public string UriBase64Data { get; set; }
+        public string DataUrl { get; set; }
         public DtoState DtoState { get; set; }
+        internal Bitmap Bitmap { get; set; }
     }
 }
