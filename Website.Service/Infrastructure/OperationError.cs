@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Website.Service.Infrastructure
+﻿namespace Website.Service.Infrastructure
 {
     /// <summary>Encapsulates an error from the store subsystem.</summary>
     public class OperationError

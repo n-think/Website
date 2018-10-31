@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
-using System.Drawing.Drawing2D;
 using System.Linq;
 
 namespace Website.Service.Stores

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Website.Data.EF.Models
+﻿namespace Website.Data.EF.Models
 {
     /// <summary>
     /// Represents an authentication token for a user.

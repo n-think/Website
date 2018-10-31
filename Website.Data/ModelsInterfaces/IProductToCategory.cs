@@ -1,6 +1,4 @@
-﻿using Website.Data.EF.Models;
-
-namespace Website.Data.ModelsInterfaces
+﻿namespace Website.Data.ModelsInterfaces
 {
     public interface IProductToCategory
     {

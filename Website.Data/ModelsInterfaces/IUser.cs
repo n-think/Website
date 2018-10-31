@@ -1,5 +1,4 @@
 ﻿using System;
-using Website.Data.EF.Models;
 
 namespace Website.Data.ModelsInterfaces
 {

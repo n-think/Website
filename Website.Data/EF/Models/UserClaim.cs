@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Security.Claims;
-using System.Text;
-using Website.Data.ModelsInterfaces;
+﻿using Website.Data.ModelsInterfaces;
 
 namespace Website.Data.EF.Models
 {

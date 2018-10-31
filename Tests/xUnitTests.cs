@@ -1,14 +1,9 @@
-using System;
-using System.Linq;
 using AutoMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Moq;
 using Website.Data.EF.Models;
 using Website.Service.DTO;
-using Website.Service.Interfaces;
 using Website.Service.Mapper;
 using Website.Service.Services;
 using Xunit;
