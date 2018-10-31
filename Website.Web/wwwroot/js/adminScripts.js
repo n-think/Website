@@ -23,6 +23,14 @@ $("div#admin-content").on("click", "img.admin-img-thumb", setImage);
 $("div#admin-content").on("click", "#image-primary-button", setPrimaryImage);
 $("div#admin-content").on("click", "#image-remove-button", setDeleteImage);
 $("div#admin-content").on("change", "#file-upload-button", loadImagesFromInput);
+$(document).on({
+    ajaxStart: function () {
+        $("button#edit-form-submit").prop("disabled", true);
+        $("span#edit-form-submit-icon").removeClass("fa-check");
+        $("span#edit-form-submit-icon").addClass("fa-spinner fa-spin");
+    }
+    //,ajaxStop: function () {  }
+});
 
 function validateAndSubmitJson() {
     var result = $("#edit-form").validate().valid();
@@ -38,7 +46,7 @@ function validateAndSubmitJson() {
     dataToJson.Price = dataToJson.Price.replace(",", ".");
 
     //form json here
-    dataToJson.Images = getImagesFromContainer($("div#image-container")[0]);
+    dataToJson.Images = getImagesFromContainer($("div#image-container"));
 
     console.log(dataToJson);
     var json = JSON.stringify(dataToJson);
@@ -81,11 +89,11 @@ function validateAndSubmitJson() {
 }
 
 function getImagesFromContainer(container) {
-    if (container === undefined) {
+    if (container.length === 0) {
         return;
     }
     var images = [];
-    var contImages = container.children;
+    var contImages = container.children();
     for (var i = 0; i < contImages.length; i++) {
         var e = contImages[i];
         images[i] = {
@@ -122,8 +130,8 @@ function setPrimaryImage() {
     if (thumbs.length === 0) { //if no images to set return
         return;
     }
-    var img = $("img#admin-image-view")[0];
-    var id = img.dataset.id;
+    var img = $("img#admin-image-view");
+    var id = img.data().id;
     $(".img-primary").each(function (i, e) {
         e.classList.remove("img-primary");
     });

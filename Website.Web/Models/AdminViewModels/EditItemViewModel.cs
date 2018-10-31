@@ -35,7 +35,7 @@ namespace Website.Web.Models.AdminViewModels
         [ScaffoldColumn(false)]
         public bool Enabled { get; set; }
         [ScaffoldColumn(false)]
-        public DateTimeOffset Added { get; set; }
+        public DateTimeOffset Created { get; set; }
         [ScaffoldColumn(false)]
         public DateTimeOffset Changed { get; set; }
         [ScaffoldColumn(false)]

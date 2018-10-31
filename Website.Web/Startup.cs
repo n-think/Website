@@ -109,7 +109,7 @@ namespace Website.Web
         {
             services.AddTransient<IRoleStore<RoleDto>, CustomRoleStore>();
             services.AddTransient<IUserStore<UserDto>, CustomUserStore>();
-            services.AddTransient<IShopStore<ProductDto, ProductImageDto, CategoryDto, OrderDto>, ShopStore>();
+            services.AddTransient<IShopStore<ProductDto, ProductImageDto, CategoryDto, DescriptionGroupDto, OrderDto>, ShopStore>();
 
             services.AddScoped<IUserManager, UserManager>();
             services.AddScoped<IShopManager, ShopManager>();

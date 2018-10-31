@@ -217,7 +217,7 @@ namespace Website.Web.Controllers
 
         private async Task<IActionResult> GetViewItemView(int id, bool partial = false)
         {
-            var prod = await _shopManager.GetProductById(id, true);
+            var prod = await _shopManager.GetProductById(id, true, true, true);
             if (prod == null)
             {
                 if (partial)
@@ -235,7 +235,7 @@ namespace Website.Web.Controllers
         [Authorize(Policy = "EditItems")]
         public async Task<IActionResult> EditItem(int id)
         {
-            var prod = await _shopManager.GetProductById(id, true);
+            var prod = await _shopManager.GetProductById(id, true, true, true);
             if (prod == null)
             {
                 return View("Error", new ErrorViewModel { Message = $"Товар с id {id} не найден." });
@@ -255,36 +255,36 @@ namespace Website.Web.Controllers
             {
                 return BadRequest("Введены некорректные данные.");
             }
-            if (ModelState.IsValid)
-            {
-                var dbItem = await _shopManager.GetProductById(item.Id, false);
-                if (dbItem == null)
-                {
-                    return PartialView("Error", new ErrorViewModel { Message = $"Товар с id {item.Id} не найден." }); ; //TODO
-                }
+            //if (ModelState.IsValid)
+            //{
+            //    var dbItem = await _shopManager.GetProductById(item.Id, false, false, false);
+            //    if (dbItem == null)
+            //    {
+            //        return PartialView("Error", new ErrorViewModel { Message = $"Товар с id {item.Id} не найден." }); ; //TODO
+            //    }
 
-                var itemDto = _mapper.Map<ProductDto>(item);
-                var result = await _shopManager.UpdateProductAsync(itemDto);
+            //    var itemDto = _mapper.Map<ProductDto>(item);
+            //    var result = await _shopManager.UpdateProductAsync(itemDto);
 
-                if (result.Succeeded) // update successful
-                {
-                    TempData["Message"] = "Изменения успешно сохранены";
-                    return await GetViewItemView(item.Id, true);
-                }
+            //    if (result.Succeeded) // update successful
+            //    {
+            //        TempData["Message"] = "Изменения успешно сохранены";
+            //        return await GetViewItemView(item.Id, true);
+            //    }
 
-                dbItem = await _shopManager.GetProductById(item.Id, false); //get new item with updated concurrency stamp etc
-                
-                //add new errors
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError(error.Code, error.Description);
-                    if (error.Code == nameof(OperationErrorDescriber.ConcurrencyFailure) || error.Code == nameof(OperationErrorDescriber.IncorrectImageFormat))
-                    {
-                        item.Timestamp = dbItem.Timestamp; // to enable save after conc error or incomplete updates
-                        ModelState.Remove("Timestamp"); // remove from the model state or HTML helpers will use the original value
-                    }
-                }
-            }
+            //    dbItem = await _shopManager.GetProductById(item.Id, false, false, false); //get new item with updated concurrency stamp
+
+            //    //add new errors
+            //    foreach (var error in result.Errors)
+            //    {
+            //        ModelState.AddModelError(error.Code, error.Description);
+            //        if (error.Code == nameof(OperationErrorDescriber.ConcurrencyFailure) || error.Code == nameof(OperationErrorDescriber.IncorrectImageFormat))
+            //        {
+            //            item.Timestamp = dbItem.Timestamp; // to enable save after conc error or incomplete updates
+            //            ModelState.Remove("Timestamp"); // remove from the model state or HTML helpers will use the original value
+            //        }
+            //    }
+            //}
             return PartialView(item);
         }
 

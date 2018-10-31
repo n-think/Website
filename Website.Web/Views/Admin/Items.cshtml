@@ -32,7 +32,7 @@
             </th>
             <th scope="col">
                 <sort-header action="Items" search="@Model.CurrentSearch" selector="@Model.Types" descending="@Model.Descending" current="@Model.CurrentSortOrder"
-                             property="Added" content="@Html.DisplayNameFor(x => x.Items.First().Added)" />
+                             property="Created" content="@Html.DisplayNameFor(x => x.Items.First().Created)" />
             </th>
             <th scope="col">
                 <sort-header action="Items" search="@Model.CurrentSearch" selector="@Model.Types" descending="@Model.Descending" current="@Model.CurrentSortOrder"
@@ -60,7 +60,7 @@
                 <td>@Html.DisplayFor(m => item.Code)</td>
                 <td>@Html.DisplayFor(m => item.Name)</td>
                 <td>@Html.DisplayFor(m => item.Enabled)</td>
-                <td>@Html.DisplayFor(m => item.Added.DateTime)</td>
+                <td>@Html.DisplayFor(m => item.Created.DateTime)</td>
                 <td>@Html.DisplayFor(m => item.Changed.DateTime)</td>
                 <td>@Html.DisplayFor(m => item.Stock)</td>
                 <td>@Html.DisplayFor(m => item.Reserved)</td>

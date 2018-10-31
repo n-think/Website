@@ -1,10 +1,14 @@
 ﻿@{
     ViewData["Title"] = "User";
 }
+@using Castle.Core.Internal
 @model UserViewModel
 
 <h2>Просмотр пользователя</h2>
-<div class="text-success">@TempData["Message"]</div>
+@if (!(TempData["Message"] as string).IsNullOrEmpty())
+{
+    <div class="alert alert-success">@TempData["Message"]</div>
+}
 <a class="btn btn-outline-primary my-2" asp-area="" asp-route-id="@Model.Id" asp-action="EditUser">Редактировать</a>
 
 <table class="table table-striped">

@@ -29,7 +29,7 @@ namespace Website.Service.DTO
         [Display(Name = "В магазине")]
         public bool Enabled { get; set; }
         [Display(Name = "Добавлен")]
-        public DateTimeOffset Added { get; set; }
+        public DateTimeOffset Created { get; set; }
         [Display(Name = "Редактирован")]
         public DateTimeOffset Changed { get; set; }
         public byte[] Timestamp { get; set; }

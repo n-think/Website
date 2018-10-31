@@ -16,7 +16,7 @@ namespace Website.Service.Interfaces
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         Task<OperationResult> CreateProductAsync(ProductDto product);
-        Task<ProductDto> GetProductById(int id, bool loadDescriptions);
+        Task<ProductDto> GetProductById(int id, bool loadImages, bool loadDescriptions, bool loadCategories);
         Task<OperationResult> UpdateProductAsync(ProductDto product);
         Task<OperationResult> DeleteProductAsync(ProductDto product);
 

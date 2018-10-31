@@ -4,10 +4,10 @@
 
 @model EditItemViewModel
 
-<div>
-    <h2 class="d-inline-block">Редактирование товара</h2>
-    <button class="btn btn-outline-success w-auto mx-2 my-2" id="edit-form-submit" onclick="validateAndSubmitJson()">Сохранить</button>
-    <a class="btn btn-outline-danger my-2" asp-action="ViewItem" asp-route-id="@Model.Id">Отмена</a>
+<div class="input-group mb-2">
+    <span class="h2 mb-0">Редактирование товара</span>
+    <button class="btn btn-outline-success mx-2" id="edit-form-submit" onclick="validateAndSubmitJson()">Сохранить<span id="edit-form-submit-icon" class="fa fa-check ml-2"></span></button>
+    <a class="btn btn-outline-danger" asp-action="ViewItem" asp-route-id="@Model.Id">Отмена</a>
 </div>
 <div asp-validation-summary="All" class="text-danger"></div>
 <form asp-action="EditItem" id="edit-form">
@@ -54,7 +54,7 @@
                 <thead>
                     <tr>
                         <th scope="col">Параметр</th>
-                        <th scope="col">Значение</th>
+                        <th class="w-75" scope="col">Значение</th>
                     </tr>
                 </thead>
                 <tbody class="tab-content">

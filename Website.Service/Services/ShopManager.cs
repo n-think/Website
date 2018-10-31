@@ -22,7 +22,7 @@ namespace Website.Service.Services
 {
     public class ShopManager : IDisposable, IShopManager
     {
-        public ShopManager(IShopStore<ProductDto, ProductImageDto, CategoryDto, OrderDto> store, ILogger<ShopManager> logger, IHttpContextAccessor context, OperationErrorDescriber errorDescriber = null)
+        public ShopManager(IShopStore<ProductDto, ProductImageDto, CategoryDto, DescriptionGroupDto, OrderDto> store, ILogger<ShopManager> logger, IHttpContextAccessor context, OperationErrorDescriber errorDescriber = null)
         {
             _store = store ?? throw new ArgumentNullException(nameof(store));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -30,7 +30,7 @@ namespace Website.Service.Services
             CancellationToken = context?.HttpContext?.RequestAborted ?? CancellationToken.None;
         }
 
-        private readonly IShopStore<ProductDto, ProductImageDto, CategoryDto, OrderDto> _store;
+        private readonly IShopStore<ProductDto, ProductImageDto, CategoryDto, DescriptionGroupDto, OrderDto> _store;
         private readonly OperationErrorDescriber _errorDescriber;
         private readonly ILogger<ShopManager> _logger;
 
@@ -73,14 +73,10 @@ namespace Website.Service.Services
             throw new NotImplementedException();
         }
 
-        public async Task<ProductDto> GetProductById(int id, bool loadDescriptions)
+        public async Task<ProductDto> GetProductById(int id, bool loadImages, bool loadDescriptions, bool loadCategories)
         {
             ThrowIfDisposed();
-            var product = await _store.FindProductByIdAsync(id, CancellationToken);
-            if (loadDescriptions)
-            {
-                await _store.LoadProductDescriptions(product, CancellationToken);
-            }
+            var product = await _store.FindProductByIdAsync(id, loadImages, loadDescriptions, loadCategories, CancellationToken);
             return product;
         }
 

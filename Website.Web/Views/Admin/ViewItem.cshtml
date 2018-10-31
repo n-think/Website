@@ -4,12 +4,17 @@
 }
 
 @using System.IO
+@using Castle.Core.Internal
 @model ItemViewModel
-<div>
-    <h2 class="d-inline">Просмотр товара</h2>
-    <a class="btn btn-outline-primary my-3" asp-action="EditItem" asp-route-id="@Model.Id">Редактировать</a>
+<div class="input-group mb-2">
+    <span class="h2 mb-0">Просмотр товара</span>
+    <a class="btn btn-outline-primary mx-2" asp-action="EditItem" asp-route-id="@Model.Id">Редактировать</a>
 </div>
-<div class="text-success">@TempData["Message"]</div>
+@if (!(TempData["Message"] as string).IsNullOrEmpty())
+{
+    <div class="alert alert-success">@TempData["Message"]</div>
+}
+
 <div class="row">
     <div class="col-md-7">
         <div>

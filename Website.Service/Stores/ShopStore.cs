@@ -33,7 +33,7 @@ namespace Website.Service.Stores
     /// <summary>
     /// Represents a new instance of a persistence store for the specified types.
     /// </summary>
-    public class ShopStore : IShopStore<ProductDto, ProductImageDto, CategoryDto, OrderDto>
+    public class ShopStore : IShopStore<ProductDto, ProductImageDto, CategoryDto, DescriptionGroupDto, OrderDto>
     {
         /// <summary>
         /// Constructs a new instance of CustomProductStoreBase".
@@ -110,17 +110,50 @@ namespace Website.Service.Stores
             return OperationResult.Success();
         }
 
-        public async Task<ProductDto> FindProductByIdAsync(int productId, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<ProductDto> FindProductByIdAsync(int productId, bool loadImages,
+            bool loadDescriptions, bool loadCategories, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
 
-            var product = await ProductsSet
-                .Where(x => x.Id == productId)
-                .Include(x => x.Images)
-                .Include(x => x.Descriptions)
-                .Include(x => x.ProductCategory)
-                .ThenInclude(x => x.Category)
+            var query = ProductsSet
+                .Where(x => x.Id == productId);
+
+            return await GetProductFromQuery(query, loadImages, loadDescriptions, loadCategories, cancellationToken);
+        }
+
+        public async Task<ProductDto> FindProductByNameAsync(string productName, bool loadImages,
+            bool loadDescriptions, bool loadCategories, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+
+            var query = ProductsSet
+                .Where(x => String.Equals(x.Name, productName, StringComparison.InvariantCultureIgnoreCase));
+
+            return await GetProductFromQuery(query, loadImages, loadDescriptions, loadCategories, cancellationToken);
+        }
+
+        private async Task<ProductDto> GetProductFromQuery(IQueryable<Product> query, bool loadImages,
+            bool loadDescriptions, bool loadCategories, CancellationToken cancellationToken)
+        {
+            if (query == null)
+                return null;
+
+            if (loadImages)
+            {
+                query = query
+                    .Include(x => x.Images);
+            }
+
+            if (loadCategories)
+            {
+                query = query
+                    .Include(x => x.ProductCategory)
+                    .ThenInclude(x => x.Category);
+            }
+
+            var product = await query
                 .AsNoTracking()
                 .FirstOrDefaultAsync(cancellationToken);
 
@@ -130,38 +163,13 @@ namespace Website.Service.Stores
             }
             var dto = _mapper.Map<ProductDto>(product);
 
-            //images
-            dto.Images = ConvertDbImageToDto(product.Images);
-
-            foreach (var productToCategory in product.ProductCategory)
+            if (loadDescriptions)
             {
-                var cat = _mapper.Map<CategoryDto>(productToCategory.Category);
-                dto.Categories.Add(cat);
+                dto.Descriptions = await GetProductDescriptions(product.Id, cancellationToken);
             }
-            return dto;
-        }
 
-        public async Task<ProductDto> FindProductByNameAsync(string productName, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            ThrowIfDisposed();
-
-            var product = await ProductsSet
-                .Where(x => String.Equals(x.Name, productName, StringComparison.InvariantCultureIgnoreCase))
-                .Include(x => x.Images)
-                .Include(x => x.Descriptions)
-                .Include(x => x.ProductCategory)
-                .ThenInclude(x => x.Category)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (product == null)
-            {
-                return null;
-            }
-            var dto = _mapper.Map<ProductDto>(product);
-
-            //images
-            dto.Images = ConvertDbImageToDto(product.Images);
+            if (loadImages)
+                dto.Images = ConvertDbImageToDto(product.Images);
 
             foreach (var productToCategory in product.ProductCategory)
             {
@@ -460,33 +468,27 @@ namespace Website.Service.Stores
             }
         }
 
-        [Obsolete("not implemented")]
-        public async Task<OperationResult> LoadImagesAsync(ProductDto product, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            await Task.CompletedTask;
-            throw new NotImplementedException();
-            //cancellationToken.ThrowIfCancellationRequested();
-            //ThrowIfDisposed();
-            //if (product == null)
-            //    throw new ArgumentNullException(nameof(product));
-
-            //var dbImages = await ImagesSet.Where(x => x.ProductId == product.Id).ToListAsync(cancellationToken);
-            //return dbImages.Any() ? null : ConvertDbImageToDto(dbImages);
-        }
-
         #endregion 
 
         #region Descriptions
 
-        public async Task<OperationResult> LoadProductDescriptions(ProductDto product, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<OperationResult> SaveDescriptionsAsync(ProductDto product, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        private async Task<List<DescriptionGroupDto>> GetProductDescriptions(int productId, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
 
             var descs = await DescriptionsSet //get descriptions
-                .Where(x => x.ProductId == product.Id)
+                .Where(x => x.ProductId == productId)
                 .Include(x => x.DescriptionGroupNavigation)
                 .ToListAsync(cancellationToken);
+
+            if (descs.IsNullOrEmpty())
+                return null;
 
             var descGroups = descs //get flattened description groups from description nav property
                 .Select(desc => desc.DescriptionGroupNavigation)
@@ -524,8 +526,7 @@ namespace Website.Service.Stores
                     }
                 }
             }
-            product.Descriptions = descGroups;
-            return OperationResult.Success();
+            return descGroups;
         }
 
         #endregion

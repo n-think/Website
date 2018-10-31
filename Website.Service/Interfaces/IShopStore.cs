@@ -11,16 +11,19 @@ using Website.Service.Infrastructure;
 
 namespace Website.Service.Interfaces
 {
-    public interface IShopStore<TDtoProduct, TDtoImage, TDtoCategory, TDtoOrder> : IDisposable
+    public interface IShopStore<TDtoProduct, TDtoImage, TDtoCategory, TDtoDescriptionGroup, TDtoOrder> : IDisposable
         where TDtoProduct : class
         where TDtoImage : class
         where TDtoCategory : class
+        where TDtoDescriptionGroup : class
         where TDtoOrder : class
     {
         #region CRUD product
         Task<OperationResult> CreateProductAsync(TDtoProduct product, CancellationToken cancellationToken);
-        Task<TDtoProduct> FindProductByIdAsync(int productId, CancellationToken cancellationToken);
-        Task<TDtoProduct> FindProductByNameAsync(string productName, CancellationToken cancellationToken);
+        Task<TDtoProduct> FindProductByIdAsync(int productId, bool loadImages, bool loadDescriptions,
+            bool loadCategories, CancellationToken cancellationToken);
+        Task<TDtoProduct> FindProductByNameAsync(string productName, bool loadImages, bool loadDescriptions,
+            bool loadCategories, CancellationToken cancellationToken);
         Task<OperationResult> UpdateProductAsync(TDtoProduct product, CancellationToken cancellationToken);
         Task<OperationResult> DeleteProductAsync(TDtoProduct product, CancellationToken cancellationToken);
         #endregion
@@ -34,11 +37,10 @@ namespace Website.Service.Interfaces
 
         #region images
         Task<OperationResult> SaveImagesAsync(ProductDto product, CancellationToken cancellationToken);
-        Task<OperationResult> LoadImagesAsync(ProductDto product, CancellationToken cancellationToken);
         #endregion
 
         #region Descriptions
-        Task<OperationResult> LoadProductDescriptions(TDtoProduct product, CancellationToken cancellationToken);
+        Task<OperationResult> SaveDescriptionsAsync(ProductDto product, CancellationToken cancellationToken);
         #endregion
 
         Task<SortPageResult<TDtoProduct>> SortFilterPageResultAsync(ItemTypeSelector types, string searchString, string sortPropName,
