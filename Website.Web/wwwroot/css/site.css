@@ -47,6 +47,17 @@
     padding-top: 2.8rem;
 }
 
+@media (max-width: 767px) {
+    #nav-search {
+        display: none;
+    }
+}
+@media (min-width: 768px) {
+    #mini-nav-search {
+        display: none;
+    }
+}
+
 /* Responsive table ------start------ */
 
 @media only screen and (max-width: 768px), (min-device-width: 768px) and (max-device-width: 1024px) {
@@ -162,7 +173,6 @@ input.form-control.admin-edit[type="checkbox"] {
 /* admin edit item*/
 
 .admin-img-box {
-    margin: 0.3em;
     height: 25rem;
     width: 100%;
     display: inline-block;
@@ -260,23 +270,6 @@ img.img-primary {
 
 img.img-delete {
     outline: 0.4em double red;
-}
-
-.square-box{
-    position: relative;
-    width: 100%;		/* desired width */
-}
-    .square-box:before {
-        content: "";
-        display: block;
-        padding-top: 100%; /* initial ratio of 1:1*/
-    }
-.square-box-content{
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    right: 0;
 }
 
 .btn-xsm, .btn-group-xsm > .btn {

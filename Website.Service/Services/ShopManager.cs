@@ -186,6 +186,11 @@ namespace Website.Service.Services
             return result;
         }
 
+        public async Task<IEnumerable<CategoryDto>> GetAllCategories()
+        {
+            return await _store.GetAllCategories(CancellationToken);
+        }
+
         /// <summary>Throws if this class has been disposed.</summary>
         private void ThrowIfDisposed()
         {

@@ -20,35 +20,35 @@
         <tr>
             <th scope="col">
                 <sort-header action="Items" search="@Model.CurrentSearch" selector="@Model.Types" descending="@Model.Descending" current="@Model.CurrentSortOrder"
-                             property="Code" content="@Html.DisplayNameFor(x => x.Items.First().Code)" />
+                             property="@nameof(ProductDto.Code)" content="@Html.DisplayNameFor(x => x.Items.First().Code)" />
             </th>
             <th scope="col">
                 <sort-header action="Items" search="@Model.CurrentSearch" selector="@Model.Types" descending="@Model.Descending" current="@Model.CurrentSortOrder"
-                             property="Name" content="@Html.DisplayNameFor(x => x.Items.First().Name)" />
+                             property="@nameof(ProductDto.Name)" content="@Html.DisplayNameFor(x => x.Items.First().Name)" />
             </th>
             <th scope="col">
                 <sort-header action="Items" search="@Model.CurrentSearch" selector="@Model.Types" descending="@Model.Descending" current="@Model.CurrentSortOrder"
-                             property="Enabled" content="@Html.DisplayNameFor(x => x.Items.First().Enabled)" />
+                             property="@nameof(ProductDto.Available)" content="@Html.DisplayNameFor(x => x.Items.First().Available)" />
             </th>
             <th scope="col">
                 <sort-header action="Items" search="@Model.CurrentSearch" selector="@Model.Types" descending="@Model.Descending" current="@Model.CurrentSortOrder"
-                             property="Created" content="@Html.DisplayNameFor(x => x.Items.First().Created)" />
+                             property="@nameof(ProductDto.Created)" content="@Html.DisplayNameFor(x => x.Items.First().Created)" />
             </th>
             <th scope="col">
                 <sort-header action="Items" search="@Model.CurrentSearch" selector="@Model.Types" descending="@Model.Descending" current="@Model.CurrentSortOrder"
-                             property="Changed" content="@Html.DisplayNameFor(x => x.Items.First().Changed)" />
+                             property="@nameof(ProductDto.Changed)" content="@Html.DisplayNameFor(x => x.Items.First().Changed)" />
             </th>
             <th scope="col">
                 <sort-header action="Items" search="@Model.CurrentSearch" selector="@Model.Types" descending="@Model.Descending" current="@Model.CurrentSortOrder"
-                             property="Stock" content="@Html.DisplayNameFor(x => x.Items.First().Stock)" />
+                             property="@nameof(ProductDto.Stock)" content="@Html.DisplayNameFor(x => x.Items.First().Stock)" />
             </th>
             <th scope="col">
                 <sort-header action="Items" search="@Model.CurrentSearch" selector="@Model.Types" descending="@Model.Descending" current="@Model.CurrentSortOrder"
-                             property="Reserved" content="@Html.DisplayNameFor(x => x.Items.First().Reserved)" />
+                             property="@nameof(ProductDto.Reserved)" content="@Html.DisplayNameFor(x => x.Items.First().Reserved)" />
             </th>
             <th scope="col">
                 <sort-header action="Items" search="@Model.CurrentSearch" selector="@Model.Types" descending="@Model.Descending" current="@Model.CurrentSortOrder"
-                             property="Price" content="@Html.DisplayNameFor(x => x.Items.First().Price)" />
+                             property="@nameof(ProductDto.Price)" content="@Html.DisplayNameFor(x => x.Items.First().Price)" />
             </th>
             <th scope="col"></th>
         </tr>
@@ -59,7 +59,7 @@
             <tr>
                 <td>@Html.DisplayFor(m => item.Code)</td>
                 <td>@Html.DisplayFor(m => item.Name)</td>
-                <td>@Html.DisplayFor(m => item.Enabled)</td>
+                <td>@Html.DisplayFor(m => item.Available)</td>
                 <td>@Html.DisplayFor(m => item.Created.DateTime)</td>
                 <td>@Html.DisplayFor(m => item.Changed.DateTime)</td>
                 <td>@Html.DisplayFor(m => item.Stock)</td>

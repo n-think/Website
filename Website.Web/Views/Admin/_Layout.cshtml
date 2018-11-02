@@ -1,6 +1,16 @@
 ﻿@{
     Layout = "/Views/Shared/_Layout.cshtml";
 }
+@section Css {
+    <environment include="Development">
+        <link rel="stylesheet" href="~/lib/bootstrap-select/bootstrap-select.css" />
+    </environment>
+    <environment exclude="Development">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.3/css/bootstrap-select.min.css"
+              integrity="sha256-q+3CS1i6GuPNz/JQk7dapdWXvii85xf7vecZx2QqsFI="
+              crossorigin="anonymous" />
+    </environment>
+}
 
 <div class="row m-0">
     <div class="col-md-2 border-right p-3">
@@ -13,10 +23,16 @@
 
 @section Scripts {
     <environment include="Development">
-        <script src="~/js/adminScripts.js" asp-append-version="true"></script>
+        <script src="~/js/admin.js" asp-append-version="true"></script>
+        <script src="~/lib/bootstrap-select/bootstrap-select.js"></script>
+        <script src="~/lib/bootstrap-select/defaults-ru_RU.js" asp-append-version="true"></script>
     </environment>
     <environment exclude="Development">
-        <script src="~/js/adminScripts.min.js" asp-append-version="true"></script>
+        <script src="~/js/admin.min.js" asp-append-version="true"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.3/js/bootstrap-select.min.js"
+                integrity="sha256-APwNt/Yju1ZD+yBddFqLhJsk21FXdiNGUuISL4EkUs4="
+                crossorigin="anonymous"></script>
+        <script src="~/lib/bootstrap-select/defaults-ru_RU.min.js" asp-append-version="true"></script>
     </environment>
     @RenderSection("Scripts", required: false)
 }

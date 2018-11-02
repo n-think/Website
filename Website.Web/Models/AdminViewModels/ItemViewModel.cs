@@ -20,8 +20,8 @@ namespace Website.Web.Models.AdminViewModels
         public int Stock { get; set; }
         [Display(Name = "Резерв")]
         public int Reserved { get; set; }
-        [Display(Name = "В магазине")]
-        public bool Enabled { get; set; }
+        [Display(Name = "Доступен")]
+        public bool Available { get; set; }
         [Display(Name = "Добавлен")]
         public DateTimeOffset Created { get; set; }
         [Display(Name = "Редактирован")]

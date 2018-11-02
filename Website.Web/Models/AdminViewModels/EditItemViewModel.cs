@@ -26,9 +26,9 @@ namespace Website.Web.Models.AdminViewModels
         [Range(0, int.MaxValue, ErrorMessage = "Резерв не может быть меньше нуля.")]
         [Display(Name = "Резерв")]
         public int Reserved { get; set; }
-        [Display(Name = "В магазине")]
+        [Display(Name = "Доступен")]
         [ScaffoldColumn(false)]
-        public bool Enabled { get; set; }
+        public bool Available { get; set; }
         [ScaffoldColumn(false)]
         public DateTimeOffset Created { get; set; }
         [ScaffoldColumn(false)]
@@ -45,10 +45,5 @@ namespace Website.Web.Models.AdminViewModels
         //descriptions
         [ScaffoldColumn(false)]
         public List<DescriptionGroupDto> Descriptions { get; set; }
-
-        [ScaffoldColumn(false)]
-        public List<DescriptionGroupDto> AllDescriptionGroups { get; set; }
-        [ScaffoldColumn(false)]
-        public List<CategoryDto> AllCategories { get; set; }
     }
 }

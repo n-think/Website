@@ -4,41 +4,41 @@
 
 @model EditItemViewModel
 
-<div class="input-group mb-2">
-    <span class="h2 mb-0">Редактирование товара</span>
+<div class="mb-2">
+    <span class="h2">Редактирование товара</span>
     <button class="btn btn-outline-success mx-2" id="edit-form-submit" onclick="validateAndSubmitJson()">Сохранить<span id="edit-form-submit-icon" class="fa fa-check ml-2"></span></button>
     <a class="btn btn-outline-danger" asp-action="ViewItem" asp-route-id="@Model.Id">Отмена</a>
 </div>
 <div asp-validation-summary="All" class="text-danger"></div>
 <form asp-action="EditItem" id="edit-form">
-    <input asp-for="Timestamp" type="hidden" class="form-control" />
+    <input asp-for="Timestamp" type="hidden" />
     <div class="row">
         <div class="col-lg-7">
-            <div class="d-flex">
-                <div class="d-inline-block w-100">
-                    <div class="admin-img-box m-0 p-1">
+            <div class="d-inline-block w-100">
+                <div class="row">
+                    <div class="admin-img-box m-0 p-1 col-sm">
                         @{var image = Model.Images?.FirstOrDefault(x => x.Primary);}
                         <img id="admin-image-view" class="@(image == null ? "" : "img-primary")"
                              data-id="@image?.Id" src="@(image?.PathSrc)" alt="Нет изображения" />
                         <span></span>
                     </div>
-                    <div class="admin-img-thumbs my-2" id="image-container">
-                        @foreach (var item in Model.Images ?? Enumerable.Empty<ProductImageDto>())
-                        {
-                            <img class="admin-img-thumb m-2 border@(item.Primary ? " img-primary" : "")@(item.DtoState == DtoState.Added ? " img-add" : "")@(item.DtoState == DtoState.Deleted ? " img-delete" : "")"
-                                 data-path="@item.PathSrc" data-id="@(item.Id ?? Guid.NewGuid().GetHashCode())" src="@(item.ThumbPathSrc)" />
-                        }
+                    <div class="p-1 col-sm-auto">
+                        <div class="btn btn-outline-danger my-2 p-1 d-block" id="image-remove-button">
+                            <span class="d-block w-100 fa fa-remove fa-bordered fa-3x"></span>
+                            <span class="d-inline-block text-truncate small">Удалить/<br />отменить<br>картинку</span>
+                        </div>
+                        <div class="btn btn-outline-success my-2 p-1 d-block" id="image-primary-button">
+                            <span class="d-block w-100 fa fa-check fa-bordered fa-3x"></span>
+                            <span class="d-inline-block small">Сделать<br />основной<br />картинкой</span>
+                        </div>
                     </div>
                 </div>
-                <div class="p-1 w-auto">
-                    <div class="btn btn-outline-danger my-2 p-1 d-block" id="image-remove-button">
-                        <span class="d-block w-100 fa fa-remove fa-bordered fa-3x"></span>
-                        <span class="d-inline-block text-truncate small">Удалить/<br />отменить<br>картинку</span>
-                    </div>
-                    <div class="btn btn-outline-success my-2 p-1 d-block" id="image-primary-button">
-                        <span class="d-block w-100 fa fa-check fa-bordered fa-3x"></span>
-                        <span class="d-inline-block small">Сделать<br />основной<br />картинкой</span>
-                    </div>
+                <div class="admin-img-thumbs my-2" id="image-container">
+                    @foreach (var item in Model.Images ?? Enumerable.Empty<ProductImageDto>())
+                    {
+                        <img class="admin-img-thumb m-2 border@(item.Primary ? " img-primary" : "")@(item.DtoState == DtoState.Added ? " img-add" : "")@(item.DtoState == DtoState.Deleted ? " img-delete" : "")"
+                             data-path="@item.PathSrc" data-id="@(item.Id ?? Guid.NewGuid().GetHashCode())" src="@(item.ThumbPathSrc)" />
+                    }
                 </div>
             </div>
             <div>
@@ -64,11 +64,11 @@
                     </tr>
                     @Html.EditorForModel("TableDataRowEdit", new { htmlAttributes = new { @class = "form-control admin-edit w-auto" } })
                     <tr>
-                        <th scope="row"><label asp-for="Enabled"></label></th>
+                        <th scope="row"><label asp-for="Available"></label></th>
                         <td>
-                            <input class="form-control admin-edit w-auto" id="Enabled" name="Enabled" type="checkbox" data-val="true" value="true" @(Model.Enabled ? " checked=\" checked\"" : "" ) />
+                            <input class="form-control admin-edit w-auto" id="Available" name="Available" type="checkbox" data-val="true" value="true" @(Model.Available ? " checked=\" checked\"" : "" ) />
                         </td>
-                        <td hidden><input id="EnabledHidden" name="Enabled" type="checkbox" value="false" /></td>
+                        <td hidden><input id="AvailableHidden" name="Available" type="checkbox" value="false" /></td>
                     </tr>
                 </tbody>
             </table>
@@ -78,15 +78,18 @@
         <div class="admin-item-categories">
             <div>
                 <span class="h3">Категории</span>
-                <span class="btn btn-outline-primary btn-sm mb-2"><span class="fa fa-plus"></span></span>
             </div>
             @foreach (var cat in Model.Categories ?? Enumerable.Empty<CategoryDto>())
             {
-                <div class="category">
-                    <span class="category-name">@cat.Name</span>
-                    <span class="category-desc text-muted">(@cat.Description)</span><br/>
-                </div>
+            <div class="category" data-id="@cat.Id">
+                <span class="category-name">@cat.Name</span>
+                <span class="category-desc text-muted">(@cat.Description)</span>
+                <span class="remove-cat fa fa-close text-danger fa-2x"></span>
+            </div>
             }
+            <select id="category-select" class="selectpicker" hidden data-live-search="true" data-live-search-normalize="true" data-live-search-style="contains"
+                    data-style="btn-outline-primary category-btn" data-width="auto" title="Добавить категорию" data-live-search-placeholder="Поиск"></select>
+            <span class="add-cat fa fa-check text-success fa-2x align-content-center"></span>
         </div>
         <div class="admin-item-descriptions">
             <div>
@@ -95,17 +98,17 @@
             </div>
             @foreach (var descriptionGroup in Model.Descriptions ?? Enumerable.Empty<DescriptionGroupDto>())
             {
-            <div class="desc-group">
-                <span class="desc-group-name h6">@descriptionGroup.Name</span>
-                <span class="add-desc-item btn btn-outline-primary btn-xsm mb-1" data-desc-group-id="@descriptionGroup.Id"><span class="fa fa-plus"></span></span>
-                <span class="desc-group-desc text-muted">(@descriptionGroup.Description)</span>
-                @foreach (var item in descriptionGroup.Items ?? Enumerable.Empty<DescriptionItemDto>())
-                {
-                    <div class="desc-item">
-                        <span class="desc-item-name">@item.Name</span>@Html.Raw(" : ")<span class="desc-item-value">@item.Value</span>
-                    </div>
-                }
-            </div>
+                <div class="desc-group">
+                    <span class="desc-group-name h6">@descriptionGroup.Name</span>
+                    <span class="add-desc-item btn btn-outline-primary btn-xsm mb-1" data-desc-group-id="@descriptionGroup.Id"><span class="fa fa-plus"></span></span>
+                    <span class="desc-group-desc text-muted">(@descriptionGroup.Description)</span>
+                    @foreach (var item in descriptionGroup.Items ?? Enumerable.Empty<DescriptionItemDto>())
+                    {
+                        <div class="desc-item">
+                            <span class="desc-item-name">@item.Name</span>@Html.Raw(" : ")<span class="desc-item-value">@item.Value</span>
+                        </div>
+                    }
+                </div>
             }
         </div>
     </div>

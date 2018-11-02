@@ -6,7 +6,7 @@ $("a.read-height").click(function (event) { //first load from anchors
 });
 $("form#admin-search-form").submit(function () { //submit from search
     var itemsPerPage = getItemCountFromHeight();
-    $(this).append('<input type="hidden" name="c" value="' + itemsPerPage + '"/>');
+    $(this).append("<input type=\"hidden\" name=\"c\" value=\"" + itemsPerPage + "\"/>");
 });
 $("select.admin-selector").change(function () { //submit form from selector
     var form = $("form#admin-search-form");
@@ -23,46 +23,47 @@ $("div#admin-content").on("click", "img.admin-img-thumb", setImage);
 $("div#admin-content").on("click", "#image-primary-button", setPrimaryImage);
 $("div#admin-content").on("click", "#image-remove-button", setDeleteImage);
 $("div#admin-content").on("change", "#file-upload-button", loadImagesFromInput);
-$(document).on({
-    ajaxStart: function () {
-        $("button#edit-form-submit").prop("disabled", true);
-        $("span#edit-form-submit-icon").removeClass("fa-check");
-        $("span#edit-form-submit-icon").addClass("fa-spinner fa-spin");
-    }
-    //,ajaxStop: function () {  }
-});
+$("div#admin-content").on("click", ".category-btn", loadCategoriesDropdown);
 
 function validateAndSubmitJson() {
     var result = $("#edit-form").validate().valid();
-    //console.log(result);
     if (!result)
         return;
     var data = $("#edit-form").serializeArray();
-    //console.log(data);
+    console.log(data);
     var dataToJson = data.reduce(function (res, item) {
         res[item.name] = item.value;
         return res;
     }, {});
+    var csrftoken = dataToJson.__RequestVerificationToken;
+    delete dataToJson.__RequestVerificationToken;
     dataToJson.Price = dataToJson.Price.replace(",", ".");
 
-    //form json here
-    dataToJson.Images = getImagesFromContainer($("div#image-container"));
+    dataToJson.Images = getImagesData();
+    dataToJson.Categories = getCategoriesData();
 
     console.log(dataToJson);
     var json = JSON.stringify(dataToJson);
     console.log(json);
     console.log("sending json");
+
     $.ajax({
         type: "POST",
         url: "/Admin/EditItem",
         headers: {
-            "RequestVerificationToken": dataToJson.__RequestVerificationToken,
+            "RequestVerificationToken": csrftoken,
             "Content-Type": "application/json"
         },
         data: json,
+        beforeSend: function (jqXHR) {
+            $("button#edit-form-submit").prop("disabled", true);
+            $("span#edit-form-submit-icon").removeClass("fa-check");
+            $("span#edit-form-submit-icon").addClass("fa-spinner fa-spin");
+        }, 
         success: function (response) {
             $("div#admin-content").html(response);
             $.validator.unobtrusive.parse("form#edit-form");
+            $("#category-select").selectpicker("refresh");
             //document.open();
             //document.write(response);
             //document.close();
@@ -74,7 +75,7 @@ function validateAndSubmitJson() {
             document.close();
 
             //release
-            //console.log('Error on ajax:', jqXHR, textStatus, errorThrown);
+            //console.log("Error on ajax:", jqXHR, textStatus, errorThrown);
             //var errorList = $("div.validation-summary-valid>ul>li")[0];
             //errorList.removeAttribute("style");
             //if (jqXHR.status === 400) {
@@ -82,15 +83,14 @@ function validateAndSubmitJson() {
             //} else {
             //    errorList.innerText = "Возникла ошибка при отправке запроса серверу.";
             //}
-
-        },
-        async: true
+        }
     });
 }
 
-function getImagesFromContainer(container) {
+function getImagesData() {
+    var container = $("div#image-container");
     if (container.length === 0) {
-        return;
+        return null;
     }
     var images = [];
     var contImages = container.children();
@@ -116,13 +116,69 @@ function getImagesFromContainer(container) {
     return images;
 }
 
+function getCategoriesData() {
+    //var container = $("div#image-container");
+    //if (container.length === 0) {
+    //    return null;
+    //}
+    //var images = [];
+    //var contImages = container.children();
+    //for (var i = 0; i < contImages.length; i++) {
+    //    var e = contImages[i];
+    //    images[i] = {
+    //        Id: e.dataset.id,
+    //        Primary: e.classList.contains("img-primary")
+    //    };
+    //    if (e.classList.contains("img-add")) {
+    //        images[i].DtoState = "added";
+    //        images[i].DataUrl = e.src;
+    //    } else {
+    //        if (e.classList.contains("img-delete")) {
+    //            images[i].DtoState = "deleted";
+    //        } else {
+    //            images[i].DtoState = "unchanged";
+    //        }
+    //        images[i].Path = e.dataset.path;
+    //        images[i].ThumbPath = e.getAttribute("src");
+    //    }
+    //}
+    return null;
+}
+
+function loadCategoriesDropdown() {
+    $.ajax({
+        type: "GET",
+        url: "/AdminApi/Categories",
+        beforeSend: function (jqXHR) {
+            $(".bootstrap-select>.dropdown-menu>.inner")
+                .prepend("<div id=\"loading\" class=\"text-center mt-1\">Загрузка<span class=\"fa fa-spinner fa-spin ml-2\"></span></div>");
+        }, 
+        success: function (response) {
+            response.forEach(function (item) {
+                $("#category-select").
+                    append($('<option>',
+                        {
+                            "value": item.id,
+                            "data-subtext": item.description
+                        })
+                        .text(item.name));
+            });
+            $("#loading").remove();
+            $("#category-select").selectpicker("refresh");
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            $("#loading").html("Ошибка загрузки");
+        }
+    });
+}
+
 function getImgId() { // random guid-like id
     function s4() {
         return Math.floor((1 + Math.random()) * 0x10000)
             .toString(16)
             .substring(1);
     }
-    return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+    return s4() + s4() + "-" + s4() + "-" + s4() + "-" + s4() + "-" + s4() + s4() + s4();
 }
 
 function setPrimaryImage() {

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Website.Service.DTO;
@@ -14,7 +15,7 @@ namespace Website.Service.Interfaces
         where TDtoDescriptionGroup : class
         where TDtoOrder : class
     {
-        #region CRUD product
+        #region product
         Task<OperationResult> CreateProductAsync(TDtoProduct product, CancellationToken cancellationToken);
         Task<TDtoProduct> FindProductByIdAsync(int productId, bool loadImages, bool loadDescriptions,
             bool loadCategories, CancellationToken cancellationToken);
@@ -24,11 +25,12 @@ namespace Website.Service.Interfaces
         Task<OperationResult> DeleteProductAsync(TDtoProduct product, CancellationToken cancellationToken);
         #endregion
 
-        #region CRUD category
+        #region categories
         Task<OperationResult> CreateCategoryAsync(TDtoCategory category, CancellationToken cancellationToken);
         Task<TDtoCategory> FindCategoryByNameAsync(string categoryName, CancellationToken cancellationToken);
         Task<OperationResult> UpdateCategoryAsync(TDtoCategory category, CancellationToken cancellationToken);
         Task<OperationResult> DeleteCategoryAsync(TDtoCategory category, CancellationToken cancellationToken);
+        Task<IEnumerable<CategoryDto>> GetAllCategories(CancellationToken cancellationToken);
         #endregion
 
         #region images

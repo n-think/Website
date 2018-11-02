@@ -20,7 +20,7 @@ namespace Website.Data.EF.Models
         public decimal Price { get; set; }
         public int Stock { get; set; }
         public int Reserved { get; set; }
-        public bool Enabled { get; set; }
+        public bool Available { get; set; }
         public DateTimeOffset Created { get; set; }
         public DateTimeOffset Changed { get; set; }
         public byte[] Timestamp { get; set; }

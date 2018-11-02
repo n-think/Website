@@ -12,8 +12,6 @@ namespace Website.Web.Infrastructure.Mapper
             CreateMap<UserDto, EditUserViewModel>().ReverseMap();
 
             CreateMap<ProductDto, EditItemViewModel>()
-                .ForMember(x => x.AllCategories, opt => opt.Ignore())
-                .ForMember(x => x.AllDescriptionGroups, opt => opt.Ignore())
                 .ReverseMap();
         }
     }

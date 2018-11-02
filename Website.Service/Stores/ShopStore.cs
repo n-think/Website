@@ -19,6 +19,7 @@ using Website.Service.DTO;
 using Website.Service.Enums;
 using Website.Service.Infrastructure;
 using Website.Service.Interfaces;
+using Website.Service.Mapper;
 
 namespace Website.Service.Stores
 {
@@ -74,7 +75,7 @@ namespace Website.Service.Stores
             return AutoSaveChanges ? Context.SaveChangesAsync(cancellationToken) : Task.CompletedTask;
         }
 
-        #region CRUD product
+        #region product
 
         public async Task<OperationResult> CreateProductAsync(ProductDto product, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -233,7 +234,7 @@ namespace Website.Service.Stores
 
         #endregion
 
-        #region CRUD category
+        #region categories
 
         public async Task<OperationResult> CreateCategoryAsync(CategoryDto category, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -317,6 +318,28 @@ namespace Website.Service.Stores
                     return OperationResult.Failure(ErrorDescriber.DbUpdateFailure());
                 }
             }
+            return OperationResult.Success();
+        }
+
+        public async Task<IEnumerable<CategoryDto>> GetAllCategories(CancellationToken cancellationToken = default(CancellationToken))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+
+            return await CategoriesSet.ProjectTo<CategoryDto>(_mapper.ConfigurationProvider).ToListAsync(cancellationToken);
+        }
+
+        private async Task<OperationResult> AddProductToCategory(ProductDto product, string categoryName, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+            if (product == null)
+                throw new ArgumentNullException(nameof(product));
+            if (categoryName.IsNullOrEmpty())
+                throw new ArgumentNullException(nameof(categoryName));
+
+            throw new NotImplementedException();
+
             return OperationResult.Success();
         }
 
@@ -460,6 +483,24 @@ namespace Website.Service.Stores
             }
         }
 
+        private List<ProductImageDto> ConvertDbImageToDto(ICollection<ProductImage> productImages)
+        {
+            if (productImages == null)
+                throw new ArgumentNullException(nameof(productImages));
+
+            var images = productImages
+                .Select(x => new ProductImageDto()
+                {
+                    Id = x.Id,
+                    Path = $"/{x.Path}/{x.Name}.{x.Format}",
+                    ThumbPath = $"/{x.Path}/{x.ThumbName}.{x.Format}",
+                    Primary = x.Primary
+                })
+                .OrderBy(x => !x.Primary)
+                .ToList();
+            return images;
+        }
+
         #endregion 
 
         #region Descriptions
@@ -523,23 +564,6 @@ namespace Website.Service.Stores
 
         #endregion
 
-        private List<ProductImageDto> ConvertDbImageToDto(ICollection<ProductImage> productImages)
-        {
-            if (productImages == null)
-                throw new ArgumentNullException(nameof(productImages));
-
-            var images = productImages
-                .Select(x => new ProductImageDto()
-                {
-                    Id = x.Id,
-                    Path = $"/{x.Path}/{x.Name}.{x.Format}",
-                    ThumbPath = $"/{x.Path}/{x.ThumbName}.{x.Format}",
-                    Primary = x.Primary
-                })
-                .OrderBy(x => !x.Primary)
-                .ToList();
-            return images;
-        }
 
         public async Task<SortPageResult<ProductDto>> SortFilterPageResultAsync(ItemTypeSelector types, string searchString, string sortPropName, int currPage,
             int countPerPage, CancellationToken cancellationToken = default(CancellationToken))
@@ -575,10 +599,10 @@ namespace Website.Service.Stores
             switch (types)
             {
                 case ItemTypeSelector.Enabled:
-                    productQuery = productQuery.Where(x => x.Enabled);
+                    productQuery = productQuery.Where(x => x.Available);
                     break;
                 case ItemTypeSelector.Disabled:
-                    productQuery = productQuery.Where(x => !x.Enabled);
+                    productQuery = productQuery.Where(x => !x.Available);
                     break;
                 default:
                     break;
@@ -613,21 +637,6 @@ namespace Website.Service.Stores
                 prodQuery = prodQuery.OrderByDescending(property);
             else
                 prodQuery = prodQuery.OrderBy(property);
-        }
-
-
-        private async Task<OperationResult> AddProductToCategory(ProductDto product, string categoryName, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            ThrowIfDisposed();
-            if (product == null)
-                throw new ArgumentNullException(nameof(product));
-            if (categoryName.IsNullOrEmpty())
-                throw new ArgumentNullException(nameof(categoryName));
-
-            throw new NotImplementedException();
-
-            return OperationResult.Success();
         }
 
         private void ThrowIfDisposed()

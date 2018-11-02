@@ -11,7 +11,7 @@ namespace Website.Data.ModelsInterfaces
         decimal Price { get; set; }
         int Stock { get; set; }
         int Reserved { get; set; }
-        bool Enabled { get; set; }
+        bool Available { get; set; }
         DateTimeOffset Created { get; set; }
         DateTimeOffset Changed { get; set; }
         byte[] Timestamp { get; set; }

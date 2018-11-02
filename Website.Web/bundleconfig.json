@@ -22,9 +22,9 @@
     "sourceMap": false
   },
   {
-    "outputFileName": "wwwroot/js/adminScripts.min.js",
+    "outputFileName": "wwwroot/js/admin.min.js",
     "inputFiles": [
-      "wwwroot/js/adminScripts.js"
+      "wwwroot/js/admin.js"
     ],
     // Optionally specify minification options
     "minify": {

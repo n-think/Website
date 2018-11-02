@@ -18,30 +18,30 @@
             <tr>
                 <th scope="col">
                     <sort-header action="Users" search="@Model.CurrentSearch" selector="@Model.Roles" descending="@Model.Descending" current="@Model.CurrentSortOrder"
-                                 property="Email" content="@Html.DisplayNameFor(x => x.Users.First().Email)" />
+                                 property="@nameof(UserDto.Email)" content="@Html.DisplayNameFor(x => x.Users.First().Email)" />
                 </th>
                 <th scope="col">@Html.DisplayNameFor(x => x.Users.First().PhoneNumber)</th>
                 <th scope="col">
                     <sort-header action="Users" search="@Model.CurrentSearch" selector="@Model.Roles" descending="@Model.Descending" current="@Model.CurrentSortOrder"
-                                 property="LastName" content="@Html.DisplayNameFor(x => x.Users.First().UserProfile.LastName)" />
+                                 property="@nameof(UserProfileDto.LastName)" content="@Html.DisplayNameFor(x => x.Users.First().UserProfile.LastName)" />
                 </th>
                 <th scope="col">
                     <sort-header action="Users" search="@Model.CurrentSearch" selector="@Model.Roles" descending="@Model.Descending" current="@Model.CurrentSortOrder"
-                                 property="FirstName" content="@Html.DisplayNameFor(x => x.Users.First().UserProfile.FirstName)" />
+                                 property="@nameof(UserProfileDto.FirstName)" content="@Html.DisplayNameFor(x => x.Users.First().UserProfile.FirstName)" />
                 </th>
                 <th scope="col">
                     <sort-header action="Users" search="@Model.CurrentSearch" selector="@Model.Roles" descending="@Model.Descending" current="@Model.CurrentSortOrder"
-                                 property="PatrName" content="@Html.DisplayNameFor(x => x.Users.First().UserProfile.PatrName)" />
+                                 property="@nameof(UserProfileDto.PatrName)" content="@Html.DisplayNameFor(x => x.Users.First().UserProfile.PatrName)" />
                 </th>
                 <th scope="col">@Html.DisplayNameFor(x => x.Users.First().UserProfile.City)</th>
                 <th scope="col">Количество заказов</th>
                 <th scope="col">
                     <sort-header action="Users" search="@Model.CurrentSearch" selector="@Model.Roles" descending="@Model.Descending" current="@Model.CurrentSortOrder"
-                                 property="RegistrationDate" content="@Html.DisplayNameFor(x => x.Users.First().UserProfile.RegistrationDate)" />
+                                 property="@nameof(UserProfileDto.RegistrationDate)" content="@Html.DisplayNameFor(x => x.Users.First().UserProfile.RegistrationDate)" />
                 </th>
                 <th scope="col">
                     <sort-header action="Users" search="@Model.CurrentSearch" selector="@Model.Roles" descending="@Model.Descending" current="@Model.CurrentSortOrder"
-                                 property="LastActivityDate" content="@Html.DisplayNameFor(x => x.Users.First().LastActivityDate)" />
+                                 property="@nameof(UserDto.LastActivityDate)" content="@Html.DisplayNameFor(x => x.Users.First().LastActivityDate)" />
                 </th>
                 <th scope="col"></th>
             </tr>

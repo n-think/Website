@@ -18,6 +18,7 @@ using Website.Web.Models.AdminViewModels;
 
 namespace Website.Web.Controllers
 {
+    [RequireHttps]
     [Authorize(Policy = "Administrators")]
     public class AdminController : Controller
     {
