@@ -1,11 +1,11 @@
 ﻿
 @{
-    ViewData["Title"] = "Панель администратора - Просмотр товара";
+    ViewData["Title"] = "Просмотр товара";
 }
 @using Castle.Core.Internal
 @model ItemViewModel
-<div class="input-group mb-2">
-    <span class="h2 mb-0">Просмотр товара</span>
+<div class="mb-2">
+    <span class="h2 d-inline-block">Просмотр товара</span>
     <a class="btn btn-outline-primary mx-2" asp-action="EditItem" asp-route-id="@Model.Id">Редактировать</a>
 </div>
 @if (!(TempData["Message"] as string).IsNullOrEmpty())
@@ -30,29 +30,31 @@
     </div>
     <div class="col-md-5">
         <h3>@Model.Name</h3>
-        <table class="table table-striped border">
-            <thead>
+        <div class="table-responsive">
+            <table class="table table-striped border">
+                <thead>
                 <tr>
                     <th scope="col">Параметр</th>
                     <th scope="col">Значение</th>
                 </tr>
-            </thead>
-            <tbody>
+                </thead>
+                <tbody>
                 @Html.DisplayForModel("TableDataRowDisplay", new { htmlAttributes = new { @class = "admin-view" } })
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 <div>
     <h3>Категории</h3>
-    @foreach (var cat in Model.Categories)
+    @foreach (var cat in Model.Categories ?? Enumerable.Empty<CategoryDto>())
     {
         <span>@cat.Name</span>@Html.Raw(" : ")<span>@cat.Description</span><br />
     }
 </div>
 <div class="admin-item-descriptions">
     <h3>Описания</h3>
-    @foreach (var descriptionGroup in Model.Descriptions)
+    @foreach (var descriptionGroup in Model.Descriptions ?? Enumerable.Empty<DescriptionGroupDto>())
     {
         <h6>@descriptionGroup.Name</h6>
         foreach (var item in descriptionGroup.Items)

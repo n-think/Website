@@ -18,7 +18,7 @@ using Website.Web.Models.AdminViewModels;
 
 namespace Website.Web.Controllers
 {
-    [RequireHttps]
+    //[RequireHttps]
     [Authorize(Policy = "Administrators")]
     public class AdminController : Controller
     {
@@ -316,5 +316,9 @@ namespace Website.Web.Controllers
             return Ok();
         }
 
+        public IActionResult DescriptionGroups()
+        {
+            return View();
+        }
     }
 }

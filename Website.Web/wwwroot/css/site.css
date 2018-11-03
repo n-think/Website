@@ -10,7 +10,7 @@
 
 #nav-search {
     line-height: 1;
-    height: calc(1rem + 2*0.5rem + 0.125rem) ;
+    height: calc(1rem + 2*0.5rem + 0.125rem);
 }
 
 /*asterisk on required fields*/
@@ -48,41 +48,42 @@
 }
 
 @media (max-width: 767px) {
-    #nav-search {
-        display: none;
-    }
-}
-@media (min-width: 768px) {
-    #mini-nav-search {
+    #nav-search-li {
         display: none;
     }
 }
 
-/* Responsive table ------start------ */
+@media (min-width: 768px) {
+     #mini-nav-search {
+        display: none;
+    }
+}
+
+/* Responsive table custom ------start------ */
 
 @media only screen and (max-width: 768px), (min-device-width: 768px) and (max-device-width: 1024px) {
 
     /* Force table to not be like tables anymore */
-    .responsive-table table, .responsive-table thead, .responsive-table tbody, .responsive-table th, .responsive-table td, .responsive-table tr {
+    .responsive-table-custom table, .responsive-table-custom thead, .responsive-table-custom tbody, .responsive-table-custom th, .responsive-table-custom td, .responsive-table-custom tr {
         display: block;
     }
 
         /* Hide table headers (but not display: none;, for accessibility) */
-        .responsive-table thead tr {
+        .responsive-table-custom thead tr {
             position: absolute;
             top: -9999px;
             left: -9999px;
         }
 
-    .responsive-table tr {
+    .responsive-table-custom tr {
         margin: 0 0 1rem 0;
     }
 
-        .responsive-table tr:nth-child(odd) {
+        .responsive-table-custom tr:nth-child(odd) {
             background: #ccc;
         }
 
-    .responsive-table td {
+    .responsive-table-custom td {
         /* Behave  like a "row" */
         border: none;
         border-bottom: 1px solid #eee;
@@ -91,7 +92,7 @@
         min-height: 38px;
     }
 
-        .responsive-table td:before {
+        .responsive-table-custom td:before {
             /* Now like a table header */
             position: absolute;
             /* Top/left values mimic padding */
@@ -106,39 +107,39 @@
 		Label the data
     You could also use a data-* attribute and content for this. That way "bloats" the HTML, this way means you need to keep HTML and CSS in sync. Lea Verou has a clever way to handle with text-shadow.
 		*/
-        .responsive-table td:nth-of-type(1):before {
+        .responsive-table-custom td:nth-of-type(1):before {
             content: "Email";
         }
 
-        .responsive-table td:nth-of-type(2):before {
+        .responsive-table-custom td:nth-of-type(2):before {
             content: "Телефон";
         }
 
-        .responsive-table td:nth-of-type(3):before {
+        .responsive-table-custom td:nth-of-type(3):before {
             content: "Фамилия";
         }
 
-        .responsive-table td:nth-of-type(4):before {
+        .responsive-table-custom td:nth-of-type(4):before {
             content: "Имя";
         }
 
-        .responsive-table td:nth-of-type(5):before {
+        .responsive-table-custom td:nth-of-type(5):before {
             content: "Отчество";
         }
 
-        .responsive-table td:nth-of-type(6):before {
+        .responsive-table-custom td:nth-of-type(6):before {
             content: "Город";
         }
 
-        .responsive-table td:nth-of-type(7):before {
+        .responsive-table-custom td:nth-of-type(7):before {
             content: "Количество заказов";
         }
 
-        .responsive-table td:nth-of-type(8):before {
+        .responsive-table-custom td:nth-of-type(8):before {
             content: "Дата регистрации";
         }
 
-        .responsive-table td:nth-of-type(9):before {
+        .responsive-table-custom td:nth-of-type(9):before {
             content: "Последняя активность";
         }
 }
@@ -209,9 +210,7 @@ input.form-control.admin-edit[type="checkbox"] {
     }
 
 
-/**CSS FOR THE RING**/
-
-div#image-remove-button:active {
+.btn-pushy:active {
     -webkit-transform: scale(0.9);
     -moz-transform: scale(0.9);
     -o-transform: scale(0.9);
@@ -220,49 +219,6 @@ div#image-remove-button:active {
     -webkit-transition: all 0s;
 }
 
-div#image-primary-button:active {
-    -webkit-transform: scale(0.9);
-    -moz-transform: scale(0.9);
-    -o-transform: scale(0.9);
-    transform: scale(0.9);
-    transition: all 0s;
-    -webkit-transition: all 0s;
-}
-
-.fa-ring {
-    width: 3rem;
-    height: 3rem;
-    border-radius: 50% !important;
-    border: 1em solid white;
-    color: white;
-    display: inline-table;
-    text-align: center;
-}
-    /**CSS FOR ICON WITH NO BACKGROUND COLOR**/
-
-    .fa-ring .fa-bordered {
-        font-size: 2em;
-        vertical-align: middle;
-        display: table-cell;
-    }
-/**WITH AN ADDED BACKGROUND COLOR**/
-
-.fa-red {
-    background: white;
-    color: red;
-    border: 0.1em solid black;
-}
-
-.fa-green {
-    background: white;
-    color: green;
-    border: 0.1em solid black;
-}
-
-.fa-teal {
-    background: teal;
-    color: orange;
-}
 
 img.img-primary {
     outline: 0.4em double green;

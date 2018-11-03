@@ -1,5 +1,5 @@
 ﻿@{
-    ViewData["Title"] = "Users";
+    ViewData["Title"] = "Пользователи";
     ViewData.AddActivePage(AdminNavPages.Users);
 }
 
@@ -7,13 +7,14 @@
 
 <form id="admin-search-form" asp-action="Users" method="get">
     <div class="form-inline form-group">
-        <input class="form-control mr-2 mb-1" placeholder="Поиск аккаунтов" type="text" name="s" value="@Model.CurrentSearch"/>
-        @Html.DropDownList("st", Html.GetEnumSelectList<RoleSelector>(), null, new {@class = "form-control mr-2 mb-1 admin-selector"})
-        <a class="btn btn-outline-secondary" asp-action="Users">Сброс</a>
+        <input class="form-control mr-2 mb-1" placeholder="Поиск аккаунтов" type="text" name="s" value="@Model.CurrentSearch" />
+        @Html.DropDownList("st", Html.GetEnumSelectList<RoleSelector>(), null, new { @class = "form-control mr-2 mb-1 admin-selector" })
+        <a class="btn btn-outline-secondary mr-2 mb-1" asp-action="Users">Сброс</a>
+        <span>Пользователей найдено: @ViewBag.itemCount.</span>
     </div>
 </form>
 <div class="table-responsive">
-    <table id="user-table" class="table responsive-table">
+    <table id="user-table" class="table">
         <thead>
             <tr>
                 <th scope="col">

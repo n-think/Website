@@ -1,5 +1,5 @@
 ﻿@{
-    ViewData["Title"] = "User";
+    ViewData["Title"] = "Просмотр пользователя";
 }
 @using Castle.Core.Internal
 @model UserViewModel
@@ -11,14 +11,15 @@
 }
 <a class="btn btn-outline-primary my-2" asp-area="" asp-route-id="@Model.Id" asp-action="EditUser">Редактировать</a>
 
-<table class="table table-striped">
-    <thead>
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
         <tr>
             <th class="w-25" scope="col">Параметр</th>
             <th scope="col">Значение</th>
         </tr>
-    </thead>
-    <tbody>
+        </thead>
+        <tbody>
         <tr>
             <th scope="row"><label>Права доступа</label></th>
             <td>
@@ -34,5 +35,6 @@
             </td>
         </tr>
         @Html.DisplayForModel("TableDataRowDisplay", new { htmlAttributes = new { @class = "admin-view" } })
-    </tbody>
-</table>
+        </tbody>
+    </table>
+</div>

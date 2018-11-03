@@ -35,6 +35,10 @@
             </p>
         </div>
     </div>
+    <div id="instant-search-results" class="p-2 mt-2 dropdown-menu border-dark text-truncate">
+        <div>Item1 Item1 Item1 Item1</div>
+        <div>Item2 Item2 Item2 Item2</div>
+    </div>
     <nav id="navbar" class="navbar navbar-dark bg-dark navbar-expand-md p-0">
         <div class="container-fluid px-0">
             <a class="navbar-brand m-0 btn btn-link rounded-0" asp-area="" asp-controller="Home" asp-action="Index"><span class="fa fa-home"></span></a>
@@ -49,7 +53,7 @@
                     <li class="nav-item"><a class="nav-link btn btn-link rounded-0" asp-area="" asp-controller="Test" asp-action="Calc">Калькулятор</a></li>
                     <li class="nav-item"><a class="nav-link btn btn-link rounded-0" asp-area="" asp-controller="Home" asp-action="About">О нас</a></li>
                     <li class="nav-item"><a class="nav-link btn btn-link rounded-0" asp-area="" asp-controller="Home" asp-action="Contact">Контакты</a></li>
-                    <li class="nav-item" style="width: 28rem;">
+                    <li id="nav-search-li" class="nav-item" style="width: 28rem;">
                         <input id="nav-search" class="form-control m-1 p-1 px-2" type="search" placeholder="Поиск" aria-label="Search">
                     </li>
                 </ul>
@@ -57,7 +61,6 @@
             </div>
         </div>
     </nav>
-
     <div class="main-body">
         @RenderBody()
     </div>

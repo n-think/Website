@@ -16,7 +16,6 @@ using Website.Web.Services;
 
 namespace Website.Web.Controllers
 {
-    [RequireHttps]
     [Authorize]
     [Route("[controller]/[action]")]
     public class ManageController : Controller

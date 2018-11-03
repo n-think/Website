@@ -9,7 +9,6 @@ using Website.Service.Interfaces;
 
 namespace Website.Web.Controllers
 {
-    [RequireHttps]
     [ApiController]
     [Route("[controller]/[action]")]
     public class AdminApiController : ControllerBase

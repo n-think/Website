@@ -580,9 +580,9 @@ namespace Website.Service.Stores
             FilterProductsTypeQuery(types, ref prodQuery);
             SearchProductsQuery(searchString, ref prodQuery);
             OrderProductsQuery(sortPropName, ref prodQuery);
-            PaginateProductsQuery(currPage, countPerPage, ref prodQuery);
-
             int totalProductsN = await prodQuery.CountAsync(cancellationToken);
+            PaginateProductsQuery(currPage, countPerPage, ref prodQuery);
+            
             var productsDto = await prodQuery.ProjectTo<ProductDto>(_mapper.ConfigurationProvider).ToListAsync(cancellationToken);
             return new SortPageResult<ProductDto> { FilteredData = productsDto, TotalN = totalProductsN };
         }

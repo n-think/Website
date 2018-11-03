@@ -1,4 +1,6 @@
-﻿namespace Website.Service.DTO
+﻿using Website.Service.Enums;
+
+namespace Website.Service.DTO
 {
     public class CategoryDto
     {
@@ -7,5 +9,6 @@
         public virtual string Description { get; set; }
         public int? ParentId { get; set; }
         public byte[] Timestamp { get; set; }
+        public DtoState DtoState { get; set; }
     }
 }

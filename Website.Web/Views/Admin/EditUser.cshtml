@@ -1,6 +1,6 @@
 ﻿
 @{
-    ViewData["Title"] = "User";
+    ViewData["Title"] = "Редактирование пользователя";
 }
 @model EditUserViewModel
 
@@ -8,41 +8,43 @@
 <div asp-validation-summary="All" class="text-danger"></div>
 <form asp-area="" asp-action="EditUser" method="post">
     <input asp-for="ConcurrencyStamp" type="hidden" class="form-control" />
-    <table class="table table-striped">
-        <thead>
-        <tr>
-            <th class="w-25" scope="col">Параметр</th>
-            <th scope="col">Значение</th>
-        </tr>
-        </thead>
-        <tbody class="tab-content">
-        <tr>
-            <th scope="row"><label asp-for="Id"></label></th>
-            <td>@Model.Id<input asp-for="Id" type="hidden" /></td>
-        </tr>
-        <tr>
-            <th scope="row"><label>Права доступа</label></th>
-            <td>
-                <div>
-                    @{
-                        var selectList = new List <SelectListItem>
-                        {
-                            new SelectListItem("Пользователь", "user", Model.Role == "user"),
-                            new SelectListItem("Администратор", "admin", Model.Role == "admin")
-                        };
-                    }
-                    <select class="form-control w-auto" id="role-selector" name="Role" asp-items="selectList"></select>
-                </div>
-                <div class="admin-options @(Model.Role != "admin" ? "d-none" : "")">
-                    <user-claims name="newClaims" display="Пользователи:" actions="view edit delete" claims="@Model.CurrentClaims" />
-                    <user-claims name="newClaims" display="Товары:" actions="view edit delete" claims="@Model.CurrentClaims" />
-                    <user-claims name="newClaims" display="Заказы:" actions="view edit delete" claims="@Model.CurrentClaims" />
-                </div>
-            </td>
-        </tr>
-        @Html.EditorForModel("TableDataRowEdit", new { htmlAttributes = new { @class = "form-control admin-edit w-auto" } })
-        </tbody>
-    </table>
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th class="w-25" scope="col">Параметр</th>
+                <th scope="col">Значение</th>
+            </tr>
+            </thead>
+            <tbody class="tab-content">
+            <tr>
+                <th scope="row"><label asp-for="Id"></label></th>
+                <td>@Model.Id<input asp-for="Id" type="hidden" /></td>
+            </tr>
+            <tr>
+                <th scope="row"><label>Права доступа</label></th>
+                <td>
+                    <div>
+                        @{
+                            var selectList = new List <SelectListItem>
+                            {
+                                new SelectListItem("Пользователь", "user", Model.Role == "user"),
+                                new SelectListItem("Администратор", "admin", Model.Role == "admin")
+                            };
+                        }
+                        <select class="form-control w-auto" id="role-selector" name="Role" asp-items="selectList"></select>
+                    </div>
+                    <div class="admin-options @(Model.Role != "admin" ? "d-none" : "")">
+                        <user-claims name="newClaims" display="Пользователи:" actions="view edit delete" claims="@Model.CurrentClaims" />
+                        <user-claims name="newClaims" display="Товары:" actions="view edit delete" claims="@Model.CurrentClaims" />
+                        <user-claims name="newClaims" display="Заказы:" actions="view edit delete" claims="@Model.CurrentClaims" />
+                    </div>
+                </td>
+            </tr>
+            @Html.EditorForModel("TableDataRowEdit", new { htmlAttributes = new { @class = "form-control admin-edit w-auto" } })
+            </tbody>
+        </table>
+    </div>
     <button type="submit" class="btn btn-success w-auto mr-3 my-2">Сохранить<span class="fa fa-check ml-2"></span></button>
     <a class="btn btn-outline-danger my-2" asp-action="ViewUser" asp-route-id="@Model.Id">Отмена</a>
 </form>

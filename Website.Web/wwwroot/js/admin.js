@@ -12,9 +12,11 @@ $("select.admin-selector").change(function () { //submit form from selector
     var form = $("form#admin-search-form");
     form.submit();
 }); function getItemCountFromHeight() {
+    if (window.innerWidth < 768)
+        return 5;
     var clientHeight = window.innerHeight;
     var value = Math.round((clientHeight - 400) / 65);
-    return value < 3 ? 3 : value;
+    return value < 5 ? 5 : value;
 }
 
 // **** item edit scripts ****
@@ -24,6 +26,8 @@ $("div#admin-content").on("click", "#image-primary-button", setPrimaryImage);
 $("div#admin-content").on("click", "#image-remove-button", setDeleteImage);
 $("div#admin-content").on("change", "#file-upload-button", loadImagesFromInput);
 $("div#admin-content").on("click", ".category-btn", loadCategoriesDropdown);
+$("div#admin-content").on("click", ".add-cat", addCategory);
+$("div#admin-content").on("click", ".remove-cat", removeCategory);
 
 function validateAndSubmitJson() {
     var result = $("#edit-form").validate().valid();
@@ -59,14 +63,11 @@ function validateAndSubmitJson() {
             $("button#edit-form-submit").prop("disabled", true);
             $("span#edit-form-submit-icon").removeClass("fa-check");
             $("span#edit-form-submit-icon").addClass("fa-spinner fa-spin");
-        }, 
+        },
         success: function (response) {
             $("div#admin-content").html(response);
             $.validator.unobtrusive.parse("form#edit-form");
             $("#category-select").selectpicker("refresh");
-            //document.open();
-            //document.write(response);
-            //document.close();
         },
         error: function (jqXHR, textStatus, errorThrown) {
             //debug
@@ -117,53 +118,54 @@ function getImagesData() {
 }
 
 function getCategoriesData() {
-    //var container = $("div#image-container");
-    //if (container.length === 0) {
-    //    return null;
-    //}
-    //var images = [];
-    //var contImages = container.children();
-    //for (var i = 0; i < contImages.length; i++) {
-    //    var e = contImages[i];
-    //    images[i] = {
-    //        Id: e.dataset.id,
-    //        Primary: e.classList.contains("img-primary")
-    //    };
-    //    if (e.classList.contains("img-add")) {
-    //        images[i].DtoState = "added";
-    //        images[i].DataUrl = e.src;
-    //    } else {
-    //        if (e.classList.contains("img-delete")) {
-    //            images[i].DtoState = "deleted";
-    //        } else {
-    //            images[i].DtoState = "unchanged";
-    //        }
-    //        images[i].Path = e.dataset.path;
-    //        images[i].ThumbPath = e.getAttribute("src");
-    //    }
-    //}
-    return null;
+
+    var cats = $(".category");
+    if (cats.length === 0) {
+        return null;
+    }
+    var catData = [];
+    for (var i = 0; i < cats.length; i++) {
+        var cat = $(cats[i]);
+        catData[i] = {
+            Id: cat.data("id"),
+            Name: cat.children(".category-name").text(),
+            Description: cat.children(".category-desc").text()
+        };
+        catData[i].Description = catData[i].Description.slice(1, catData[i].Description.length - 1);
+        if (cat.hasClass("cat-add")) {
+            catData[i].DtoState = "added";
+        }
+        else if (cat.hasClass("cat-delete")) {
+            catData[i].DtoState = "deleted";
+        } else {
+            catData[i].DtoState = "unchanged";
+        }
+    }
+    return catData;
 }
 
 function loadCategoriesDropdown() {
+    var loadingBar;
     $.ajax({
         type: "GET",
         url: "/AdminApi/Categories",
         beforeSend: function (jqXHR) {
-            $(".bootstrap-select>.dropdown-menu>.inner")
-                .prepend("<div id=\"loading\" class=\"text-center mt-1\">Загрузка<span class=\"fa fa-spinner fa-spin ml-2\"></span></div>");
-        }, 
+            loadingBar = $("<div>", { id: "loading", "class": "text-center mt-1", text: "Загрузка" })
+                .append($("<span>", { "class": "fa fa-spinner fa-spin ml-2" }));
+            $(".bootstrap-select>.category-btn+.dropdown-menu>.inner")
+                .prepend(loadingBar);
+        },
         success: function (response) {
             response.forEach(function (item) {
-                $("#category-select").
-                    append($('<option>',
-                        {
-                            "value": item.id,
-                            "data-subtext": item.description
-                        })
-                        .text(item.name));
+                $("#category-select").append($("<option>",
+                    {
+                        "value": item.id,
+                        "data-subtext": item.description,
+                        "text": item.name
+                    }
+                ));
             });
-            $("#loading").remove();
+            loadingBar.remove();
             $("#category-select").selectpicker("refresh");
         },
         error: function (jqXHR, textStatus, errorThrown) {
@@ -295,6 +297,41 @@ function setImage(e) {
     }
 }
 
+function addCategory() {
+    var select = $("#category-select");
+    var id = select.val();
+    var existing = $(".category[data-id=" + id + "]");
+    if ($("#category-select").val() === "" || existing.length) {
+        if (existing.hasClass("d-none")) {
+            existing.removeClass("d-none");
+            existing.removeClass("cat-delete");
+            existing.insertBefore($(".dropdown.bootstrap-select"));
+            return;
+        }
+        $("#category-select+.dropdown-toggle").fadeIn(100).fadeOut(100).fadeIn(100).fadeOut(100).fadeIn(100);
+        return;
+    }
+    var name = select.find("option:selected").text();
+    var desc = select.find("option:selected").data().subtext;
+    var nameSpan = $("<span>", { "class": "category-name", "text": name });
+    var descSpan = $("<span>", { "class": "category-desc text-muted", "text": "(" + desc + ")" });
+    var buttonSpan = $(".remove-cat").first().clone();
+    var category = $("<div>", { "class": "category cat-add", "data-id": id }).append([nameSpan, descSpan, buttonSpan]);
+    category.children().after(" ");
+    $("#categories").append(category);
+}
+
+function removeCategory() {
+    var catBtn = $(this);
+    var parent = catBtn.parent();
+    if (parent.hasClass("cat-add")) {
+        parent.remove();
+    } else {
+        parent.addClass("d-none");
+        parent.addClass("cat-delete");
+    }
+}
+
 // admin product image upload button
 function loadImagesFromInput() {
     //Get count of selected files
@@ -318,7 +355,7 @@ function loadImagesFromInput() {
                         {
                             "class": imgClass,
                             "click": setImage,
-                            "data-id": Math.floor((Math.random() * 10000000) + 10000000),//getImgId() //need only int id
+                            "data-id": Math.floor((Math.random() * 10000000) + 10000000), //getImgId() //need only unique int id
                             "src": e.target.result
                         }).appendTo(imageContainer);
                     if (flag) {
