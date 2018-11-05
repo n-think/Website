@@ -5,6 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="EF\Migrations\20181103180951_desc_group_items.cs" />
+    <Compile Remove="EF\Migrations\20181103181555_desc_group_items_fix.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="2.1.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="2.1.4" />

@@ -106,18 +106,18 @@
             </div>
             @foreach (var descriptionGroup in Model.Descriptions ?? Enumerable.Empty<DescriptionGroupDto>())
             {
-                <div class="desc-group">
+                <div class="desc-group" data-group-id="@descriptionGroup.Id">
                     <div>
                         <span class="desc-group-name h6">@descriptionGroup.Name</span>
                         <span class="desc-group-desc text-muted">(@descriptionGroup.Description)</span>
                         <span class="remove-desc-group btn-pushy btn btn-outline-danger fa fa-close"></span>
                         <div>
-                            <select id="desc-group-select" class="selectpicker" hidden data-live-search="true" data-live-search-normalize="true" data-live-search-style="contains"
+                            <select id="desc-group-items-select" class="selectpicker" hidden data-live-search="true" data-live-search-normalize="true" data-live-search-style="contains"
                                     data-style="btn-outline-primary desc-group-items-btn" data-width="fit" title="Добавить описание" data-live-search-placeholder="Поиск"></select>
                             <span class="add-desc-group-item btn-pushy btn btn-outline-success fa fa-check"></span>
                         </div>
                     </div>
-                    <div id="desc-group-items" data-group-id="@descriptionGroup.Id">
+                    <div id="desc-group-items" >
                         @foreach (var item in descriptionGroup.Items ?? Enumerable.Empty<DescriptionItemDto>())
                         {
                             <div class="desc-item">

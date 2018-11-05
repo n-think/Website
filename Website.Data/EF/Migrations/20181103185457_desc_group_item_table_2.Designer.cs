@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Website.Data.EF.Models;
 
 namespace Website.Data.EF.Migrations
 {
     [DbContext(typeof(WebsiteDbContext))]
-    partial class WebsiteDbContextModelSnapshot : ModelSnapshot
+    [Migration("20181103185457_desc_group_item_table_2")]
+    partial class desc_group_item_table_2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -49,7 +51,12 @@ namespace Website.Data.EF.Migrations
                         .ValueGeneratedOnAdd()
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
+                    b.Property<int?>("DescriptionGroupId");
+
                     b.Property<int?>("DescriptionGroupItemId");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(50);
 
                     b.Property<int?>("ProductId");
 
@@ -390,11 +397,9 @@ namespace Website.Data.EF.Migrations
 
             modelBuilder.Entity("Website.Data.EF.Models.Description", b =>
                 {
-                    b.HasOne("Website.Data.EF.Models.DescriptionGroupItem", "DescriptionGroupItem")
+                    b.HasOne("Website.Data.EF.Models.DescriptionGroupItem")
                         .WithMany("Descriptions")
-                        .HasForeignKey("DescriptionGroupItemId")
-                        .HasConstraintName("FK_Descriptions_DescriptionGroupItems")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .HasForeignKey("DescriptionGroupItemId");
 
                     b.HasOne("Website.Data.EF.Models.Product", "Product")
                         .WithMany("Descriptions")

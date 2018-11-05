@@ -188,7 +188,7 @@ namespace Website.Web.Controllers
             var countPerPage = pageCount == null || pageCount <= 0 ? 15 : pageCount.Value;
 
             SortPageResult<ProductDto> result = await _shopManager.GetSortFilterPageAsync(types, search, sortOrder, currPage, countPerPage);
-            //TODO categories filter List<CategoryDTO> allCategories = await _shopManager.GetAllCategories();
+            //TODO categories filter List<CategoryDTO> allCategories = await _shopManager.GetAllCategoriesAsync();
             ViewBag.itemCount = result.TotalN;
 
             var model = new ItemsViewModel()

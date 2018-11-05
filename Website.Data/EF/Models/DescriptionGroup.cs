@@ -7,13 +7,13 @@ namespace Website.Data.EF.Models
     {
         public DescriptionGroup()
         {
-            Descriptions = new HashSet<Description>();
+            DescriptionGroupItems = new HashSet<DescriptionGroupItem>();
         }
 
         public int Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
 
-        public virtual ICollection<Description> Descriptions { get; set; }
+        public virtual ICollection<DescriptionGroupItem> DescriptionGroupItems { get; set; }
     }
 }

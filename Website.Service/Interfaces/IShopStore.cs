@@ -39,9 +39,13 @@ namespace Website.Service.Interfaces
 
         #region Descriptions
         Task<OperationResult> SaveDescriptionsAsync(ProductDto product, CancellationToken cancellationToken);
+        Task<IEnumerable<DescriptionGroupDto>> GetDescriptionGroupsAsync(CancellationToken cancellationToken);
+        Task<IEnumerable<DescriptionItemDto>> GetDescriptionItemsAsync(int id, CancellationToken cancellationToken);
         #endregion
 
         Task<SortPageResult<TDtoProduct>> SortFilterPageResultAsync(ItemTypeSelector types, string searchString, string sortPropName,
             int currentPage, int countPerPage, CancellationToken cancellationToken);
+
+
     }
 }

@@ -28,6 +28,12 @@ $("div#admin-content").on("change", "#file-upload-button", loadImagesFromInput);
 $("div#admin-content").on("click", ".category-btn", loadCategoriesDropdown);
 $("div#admin-content").on("click", ".add-cat", addCategory);
 $("div#admin-content").on("click", ".remove-cat", removeCategory);
+$("div#admin-content").on("click", ".desc-group-btn", loadDescGroupDropdown);
+$("div#admin-content").on("click", ".add-desc-group", addDescGroup);
+$("div#admin-content").on("click", ".remove-desc-group", removeDescGroup);
+$("div#admin-content").on("click", ".desc-group-items-btn", loadDescGroupItemsDropdown);
+$("div#admin-content").on("click", ".add-desc-group-item", addDescGroupItem);
+$("div#admin-content").on("click", ".remove-desc-group-item", removeDescGroupItem);
 
 function validateAndSubmitJson() {
     var result = $("#edit-form").validate().valid();
@@ -68,6 +74,7 @@ function validateAndSubmitJson() {
             $("div#admin-content").html(response);
             $.validator.unobtrusive.parse("form#edit-form");
             $("#category-select").selectpicker("refresh");
+            $("#desc-group-select").selectpicker("refresh");
         },
         error: function (jqXHR, textStatus, errorThrown) {
             //debug
@@ -144,13 +151,117 @@ function getCategoriesData() {
     return catData;
 }
 
+function generateImgId() { // random guid-like id
+    function s4() {
+        return Math.floor((1 + Math.random()) * 0x10000)
+            .toString(16)
+            .substring(1);
+    }
+    return s4() + s4() + "-" + s4() + "-" + s4() + "-" + s4() + "-" + s4() + s4() + s4();
+}
+
+function setPrimaryImage() {
+    var thumbs = $("img.admin-img-thumb");
+    if (thumbs.length === 0) { //if no images to set return
+        return;
+    }
+    var img = $("img#admin-image-view");
+    $(".img-primary").each(function (i, e) {
+        e.classList.remove("img-primary");
+    });
+    var thumb = $(".admin-img-thumb[data-id=" + img.data("id") + "]");
+    thumb.addClass("img-primary");
+    thumb.removeClass("img-delete");
+    setImage(thumb);
+}
+
+function setDeleteImage() {
+    var thumbs = $("img.admin-img-thumb");
+    if (thumbs.length === 0) { //if no images to delete return
+        return;
+    }
+    var bigImage = $("img#admin-image-view");
+    var id = bigImage.data("id");
+    var thumbImage = $(".admin-img-thumb[data-id=" + id + "]");
+    if (thumbImage.hasClass("img-delete")) { //on un-deleting: remove class
+        thumbImage.removeClass("img-delete");
+        bigImage.removeClass("img-delete");
+        if ($(".admin-img-thumb.img-primary").length === 0) { //set primary image if there are none present
+            thumbImage.addClass("img-primary");
+            bigImage.removeClass("img-primary");
+        }
+    } else { // on deleting: add class
+        var removedAdded = thumbImage.hasClass("img-add");
+        if (removedAdded) { // remove html if image was just added
+            thumbImage.remove();
+            var thumbsLeft = $("img.admin-img-thumb");
+            if (thumbsLeft.length === 0) { // if no images left, clear big image
+                $("img#admin-image-view").attr("src", "");
+            } else {
+                setImage($(".img-primary"));
+            }
+        } else { // else just remove class
+            thumbImage.addClass("img-delete");
+            bigImage.addClass("img-delete");
+        }
+        if (thumbImage.hasClass("img-primary")) { // if we delete primary image set another image as such
+            thumbImage.removeClass("img-primary");
+            bigImage.removeClass("img-primary");
+            var i = 0;
+            thumbs = $("img.admin-img-thumb"); // get updated image list
+            do {
+                thumbImage = $(thumbs[i++]);
+            } while (thumbImage.hasClass("img-delete") && thumbs.length > i);
+            if (thumbImage.hasClass("img-delete")) { // if all images are deleted return
+                if (removedAdded) {
+                    setImage(thumbs.first());
+                }
+                return;
+            }
+            thumbImage.addClass("img-primary");
+            if (removedAdded) {
+                setImage(thumbImage);
+            }
+        }
+    }
+}
+
+function setImage(e) {
+    var img;
+    if (e.target) {
+        img = $(e.target);
+    } else {
+        img = $(e);
+    }
+    var newSrc = img.attr("src");
+    var target = $("img#admin-image-view").first();
+    //set src
+    if (img.attr("src").substring(0, 10) !== "data:image") {
+        newSrc = img.data("path");
+    }
+    target.attr("src", newSrc);
+    target.data("id", img.data("id"));
+    //set img-primary class
+    if (img.hasClass("img-primary")) {
+        target.addClass("img-primary");
+    } else {
+        target.removeClass("img-primary");
+    }
+    //set img-delete class
+    if (img.hasClass("img-delete")) {
+        target.addClass("img-delete");
+    } else {
+        target.removeClass("img-delete");
+    }
+}
+
 function loadCategoriesDropdown() {
     var loadingBar;
     $.ajax({
         type: "GET",
         url: "/AdminApi/Categories",
         beforeSend: function (jqXHR) {
-            loadingBar = $("<div>", { id: "loading", "class": "text-center mt-1", text: "Загрузка" })
+            loadingBar = $("<div>", { id: "cat-loading", "class": "text-center mt-1", text: "Загрузка" })
                 .append($("<span>", { "class": "fa fa-spinner fa-spin ml-2" }));
             $(".bootstrap-select>.category-btn+.dropdown-menu>.inner")
                 .prepend(loadingBar);
@@ -169,132 +280,9 @@ function loadCategoriesDropdown() {
             $("#category-select").selectpicker("refresh");
         },
         error: function (jqXHR, textStatus, errorThrown) {
-            $("#loading").html("Ошибка загрузки");
+            $("#cat-loading").html("Ошибка загрузки");
         }
     });
-}
-
-function getImgId() { // random guid-like id
-    function s4() {
-        return Math.floor((1 + Math.random()) * 0x10000)
-            .toString(16)
-            .substring(1);
-    }
-    return s4() + s4() + "-" + s4() + "-" + s4() + "-" + s4() + "-" + s4() + s4() + s4();
-}
-
-function setPrimaryImage() {
-    var thumbs = $("img.admin-img-thumb");
-    if (thumbs.length === 0) { //if no images to set return
-        return;
-    }
-    var img = $("img#admin-image-view");
-    var id = img.data().id;
-    $(".img-primary").each(function (i, e) {
-        e.classList.remove("img-primary");
-    });
-    var thumb = $("[data-id=" + id + "]")[1];
-    thumb.classList.add("img-primary");
-    thumb.classList.remove("img-delete");
-    //$("img#admin-image-view")[0].classList.add("img-primary");
-    setImage(thumb);
-}
-
-function setDeleteImage() {
-    var thumbs = $("img.admin-img-thumb");
-    if (thumbs.length === 0) { //if no images to delete return
-        return;
-    }
-    var bigImage = $("img#admin-image-view")[0];
-    var id = bigImage.dataset.id;
-    var thumbImage = $("[data-id=" + id + "]")[1];
-    if (thumbImage.classList.contains("img-delete")) { //on undeleting: remove class
-        thumbImage.classList.remove("img-delete");
-        bigImage.classList.remove("img-delete");
-
-        if (!checkExistingPrimaries()) { //set primary image if there are none present
-            thumbImage.classList.add("img-primary");
-            bigImage.classList.add("img-primary");
-        }
-    } else { // on deleting: add class
-        var removedAdded = thumbImage.classList.contains("img-add");
-        if (removedAdded) { // remove html if image was just added
-            thumbImage.remove();
-            $("#file-upload-button")[0].form.reset(); //reset upload form
-            var thumbsLeft = $("img.admin-img-thumb");
-            if (thumbsLeft.length === 0) { // if no images left, clear big image
-                $("img#admin-image-view")[0].src = "";
-            } else {
-                setImage($(".img-primary")[0]);
-            }
-        } else { // else just remove class
-            thumbImage.classList.add("img-delete");
-            bigImage.classList.add("img-delete");
-        }
-        if (thumbImage.classList.contains("img-primary")) { // if we delete primary image set another image as such
-            thumbImage.classList.remove("img-primary");
-            bigImage.classList.remove("img-primary");
-            var i = 0;
-            thumbs = $("img.admin-img-thumb"); // get updated image list
-            thumbImage = thumbs[i++];
-            while (thumbImage.classList.contains("img-delete") && thumbs.length > i) {
-                thumbImage = thumbs[i++];
-            }
-            if (thumbImage.classList.contains("img-delete")) { // if all images are deleted return
-                if (removedAdded) {
-                    setImage(thumbs[0]);
-                }
-                return;
-            }
-            thumbImage.classList.add("img-primary");
-            if (removedAdded) {
-                setImage(thumbImage);
-            }
-        }
-    }
-}
-
-function checkExistingPrimaries() { //check if there are any primary images currently present
-    var exist = false;
-    $("img.admin-img-thumb").each(function (i, e) {
-        if (e.classList.contains("img-primary")) {
-            exist = true;
-        }
-    });
-    return exist;
-}
-
-function isImage(i) {
-    return i instanceof HTMLImageElement;
-}
-
-function setImage(e) {
-    var img;
-    if (isImage(e)) {
-        img = e;
-    } else {
-        img = e.target;
-    }
-    var newSrc = img.src;
-    var target = $("img#admin-image-view")[0];
-    //set src
-    if (img.src.substring(0, 10) !== "data:image") {
-        newSrc = img.dataset.path;
-    }
-    target.src = newSrc;
-    target.dataset.id = img.dataset.id;
-    //set img-primary class
-    if (img.classList.contains("img-primary")) {
-        target.classList.add("img-primary");
-    } else {
-        target.classList.remove("img-primary");
-    }
-    //set img-delete class
-    if (img.classList.contains("img-delete")) {
-        target.classList.add("img-delete");
-    } else {
-        target.classList.remove("img-delete");
-    }
 }
 
 function addCategory() {
@@ -305,7 +293,7 @@ function addCategory() {
         if (existing.hasClass("d-none")) {
             existing.removeClass("d-none");
             existing.removeClass("cat-delete");
-            existing.insertBefore($(".dropdown.bootstrap-select"));
+            $("#categories").append(existing);
             return;
         }
         $("#category-select+.dropdown-toggle").fadeIn(100).fadeOut(100).fadeIn(100).fadeOut(100).fadeIn(100);
@@ -332,13 +320,143 @@ function removeCategory() {
     }
 }
 
-// admin product image upload button
+function loadDescGroupDropdown() {
+    var loadingBar;
+    $.ajax({
+        type: "GET",
+        url: "/AdminApi/DescriptionGroups",
+        beforeSend: function (jqXHR) {
+            loadingBar = $("<div>", { id: "desc-group-loading", "class": "text-center mt-1", text: "Загрузка" })
+                .append($("<span>", { "class": "fa fa-spinner fa-spin ml-2" }));
+            $(".bootstrap-select>.desc-group-btn+.dropdown-menu>.inner")
+                .prepend(loadingBar);
+        },
+        success: function (response) {
+            response.forEach(function (item) {
+                $("#desc-group-select").append($("<option>",
+                    {
+                        "value": item.id,
+                        "data-subtext": item.description,
+                        "text": item.name
+                    }
+                ));
+            });
+            loadingBar.remove();
+            $("#desc-group-select").selectpicker("refresh");
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            $("#desc-group-loading").html("Ошибка загрузки");
+        }
+    });
+}
+
+function addDescGroup() {
+    //var select = $("#category-select");
+    //var id = select.val();
+    //var existing = $(".category[data-id=" + id + "]");
+    //if ($("#category-select").val() === "" || existing.length) {
+    //    if (existing.hasClass("d-none")) {
+    //        existing.removeClass("d-none");
+    //        existing.removeClass("cat-delete");
+    //        $("#categories").append(existing);
+    //        return;
+    //    }
+    //    $("#category-select+.dropdown-toggle").fadeIn(100).fadeOut(100).fadeIn(100).fadeOut(100).fadeIn(100);
+    //    return;
+    //}
+    //var name = select.find("option:selected").text();
+    //var desc = select.find("option:selected").data().subtext;
+    //var nameSpan = $("<span>", { "class": "category-name", "text": name });
+    //var descSpan = $("<span>", { "class": "category-desc text-muted", "text": "(" + desc + ")" });
+    //var buttonSpan = $(".remove-cat").first().clone();
+    //var category = $("<div>", { "class": "category cat-add", "data-id": id }).append([nameSpan, descSpan, buttonSpan]);
+    //category.children().after(" ");
+    //$("#categories").append(category);
+}
+
+function removeDescGroup() {
+    //var catBtn = $(this);
+    //var parent = catBtn.parent();
+    //if (parent.hasClass("cat-add")) {
+    //    parent.remove();
+    //} else {
+    //    parent.addClass("d-none");
+    //    parent.addClass("cat-delete");
+    //}
+}
+
+function loadDescGroupItemsDropdown() {
+    var loadingBar;
+    var container = $(this).closest(".desc-group");
+    var id = container.data("group-id");
+    $.ajax({
+        type: "GET",
+        url: "/AdminApi/DescriptionItems/" + id,
+        beforeSend: function (jqXHR) {
+            loadingBar = $("<div>", { id: "desc-group-items-loading", "class": "text-center mt-1", text: "Загрузка" })
+                .append($("<span>", { "class": "fa fa-spinner fa-spin ml-2" }));
+            container.find(".bootstrap-select>.desc-group-items-btn+.dropdown-menu>.inner")
+                .prepend(loadingBar);
+        },
+        success: function (response) {
+            response.forEach(function (item) {
+                container.find("#desc-group-items-select").append($("<option>",
+                    {
+                        "value": item.id,
+                        "text": item.name
+                    }
+                ));
+            });
+            loadingBar.remove();
+            container.find("#desc-group-items-select").selectpicker("refresh");
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            container.find("#desc-group-items-loading").html("Ошибка загрузки");
+        }
+    });
+}
+
+function addDescGroupItem() {
+    //var select = $("#category-select");
+    //var id = select.val();
+    //var existing = $(".category[data-id=" + id + "]");
+    //if ($("#category-select").val() === "" || existing.length) {
+    //    if (existing.hasClass("d-none")) {
+    //        existing.removeClass("d-none");
+    //        existing.removeClass("cat-delete");
+    //        $("#categories").append(existing);
+    //        return;
+    //    }
+    //    $("#category-select+.dropdown-toggle").fadeIn(100).fadeOut(100).fadeIn(100).fadeOut(100).fadeIn(100);
+    //    return;
+    //}
+    //var name = select.find("option:selected").text();
+    //var desc = select.find("option:selected").data().subtext;
+    //var nameSpan = $("<span>", { "class": "category-name", "text": name });
+    //var descSpan = $("<span>", { "class": "category-desc text-muted", "text": "(" + desc + ")" });
+    //var buttonSpan = $(".remove-cat").first().clone();
+    //var category = $("<div>", { "class": "category cat-add", "data-id": id }).append([nameSpan, descSpan, buttonSpan]);
+    //category.children().after(" ");
+    //$("#categories").append(category);
+}
+
+function removeDescGroupItem() {
+    //var catBtn = $(this);
+    //var parent = catBtn.parent();
+    //if (parent.hasClass("cat-add")) {
+    //    parent.remove();
+    //} else {
+    //    parent.addClass("d-none");
+    //    parent.addClass("cat-delete");
+    //}
+}
+
 function loadImagesFromInput() {
     //Get count of selected files
     var countFiles = $(this)[0].files.length;
     var imageContainer = $("#image-container");
     //image_holder.empty();
-    if (typeof (FileReader) !== undefined) {
+    if (typeof FileReader !== undefined) {
         //loop for each file selected for uploaded.
         for (var i = 0; i < countFiles; i++) {
             var imgPath = $(this)[0].files[i].name;
@@ -347,7 +465,7 @@ function loadImagesFromInput() {
                 var reader = new FileReader();
                 reader.onload = function (e) {
                     var imgClass = "admin-img-thumb img-add m-2 border";
-                    var flag = !checkExistingPrimaries();
+                    var flag = $(".admin-img-thumb.img-primary").length === 0;
                     if (flag) { //if no primary image present set this image as primary
                         imgClass = imgClass + " img-primary";
                     }
@@ -355,11 +473,11 @@ function loadImagesFromInput() {
                         {
                             "class": imgClass,
                             "click": setImage,
-                            "data-id": Math.floor((Math.random() * 10000000) + 10000000), //getImgId() //need only unique int id
+                            "data-id": Math.floor(Math.random() * 10000000 + 10000000), //getImgId() //need only unique int id
                             "src": e.target.result
                         }).appendTo(imageContainer);
                     if (flag) {
-                        var img = $("img.admin-img-thumb.img-add")[0];
+                        var img = $("img.admin-img-thumb.img-add");
                         setImage(img); // set big image
                     }
                 };
@@ -370,6 +488,7 @@ function loadImagesFromInput() {
             //    alert("Выберите изображения.");
             //}
         }
+        this.form.reset(); //reset this upload form to enable add same file(s)
     } else {
         alert("Браузер не поддерживает загрузку картинок.");
     }

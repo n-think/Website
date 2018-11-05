@@ -24,6 +24,7 @@ namespace Website.Data.EF.Models
         public virtual DbSet<Category> Categories { get; set; }
         public virtual DbSet<UserProfile> UserProfiles { get; set; }
         public virtual DbSet<DescriptionGroup> DescriptionGroups { get; set; }
+        public virtual DbSet<DescriptionGroupItem> DescriptionGroupItems { get; set; }
         public virtual DbSet<Description> Descriptions { get; set; }
         public virtual DbSet<Product> Products { get; set; }
         public virtual DbSet<ProductImage> ProductImages { get; set; }
@@ -59,15 +60,22 @@ namespace Website.Data.EF.Models
                     .HasMaxLength(50);
             });
 
+            modelBuilder.Entity<DescriptionGroupItem>(entity =>
+            {
+                entity.HasOne(e => e.DescriptionGroup)
+                    .WithMany(e => e.DescriptionGroupItems)
+                    .HasForeignKey(e => e.DescriptionGroupId)
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .HasConstraintName("FK_DescriptionGroupItems_DescriptionGroups");
+            });
+
             modelBuilder.Entity<Description>(entity =>
             {
-                entity.Property(e => e.Name).HasMaxLength(50);
-
-                entity.HasOne(d => d.DescriptionGroupNavigation)
+                entity.HasOne(d => d.DescriptionGroupItem)
                     .WithMany(p => p.Descriptions)
-                    .HasForeignKey(d => d.DescriptionGroupId)
+                    .HasForeignKey(d => d.DescriptionGroupItemId)
                     .OnDelete(DeleteBehavior.SetNull)
-                    .HasConstraintName("FK_Descriptions_DescriptionGroups");
+                    .HasConstraintName("FK_Descriptions_DescriptionGroupItems");
 
                 entity.HasOne(d => d.Product)
                     .WithMany(p => p.Descriptions)

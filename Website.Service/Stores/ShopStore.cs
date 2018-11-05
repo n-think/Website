@@ -31,15 +31,12 @@ namespace Website.Service.Stores
         /// <summary>
         /// Constructs a new instance of CustomProductStoreBase".
         /// </summary>
-        /// <param name="dbContext">The <see cref="DbContext"/>.</param>
-        /// <param name="mapper">The <see cref="AutoMapper.Mapper"/>.</param>
-        /// <param name="describer">The <see cref="OperationErrorDescriber"/>.</param>
         public ShopStore(DbContext dbContext, IMapper mapper, IHostingEnvironment environment, ILogger<ShopStore> logger, OperationErrorDescriber describer = null)
         {
             ErrorDescriber = describer ?? new OperationErrorDescriber();
             Context = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-            _hostingEnvironment = environment;
+            _hostingEnvironment = environment ?? throw new ArgumentNullException(nameof(environment));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -366,11 +363,11 @@ namespace Website.Service.Stores
                     ProcessImagesOnDisk(imagesToSaveOnDisk);
                     transaction.Commit();
                 }
-                catch (DbUpdateException e)
+                catch (DbUpdateException)
                 {
                     return OperationResult.Failure(ErrorDescriber.DbUpdateFailure());
                 }
-                catch (IOException e)
+                catch (IOException)
                 {
                     return OperationResult.Failure(ErrorDescriber.DiskIOError());
                 }
@@ -501,13 +498,35 @@ namespace Website.Service.Stores
             return images;
         }
 
-        #endregion 
+        #endregion
 
         #region Descriptions
 
-        public Task<OperationResult> SaveDescriptionsAsync(ProductDto product, CancellationToken cancellationToken)
+        public Task<OperationResult> SaveDescriptionsAsync(ProductDto product, CancellationToken cancellationToken = default(CancellationToken))
         {
             throw new NotImplementedException();
+        }
+
+        public async Task<IEnumerable<DescriptionGroupDto>> GetDescriptionGroupsAsync(CancellationToken cancellationToken = default(CancellationToken))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+
+            return await DescGroupsSet
+                .ProjectTo<DescriptionGroupDto>(_mapper.ConfigurationProvider)
+                .ToListAsync(cancellationToken);
+        }
+
+        public async Task<IEnumerable<DescriptionItemDto>> GetDescriptionItemsAsync(int id, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+
+            return await DescGroupsSet
+                .Where(x => x.Id == id)
+                .SelectMany(x => x.DescriptionGroupItems)
+                .ProjectTo<DescriptionItemDto>(_mapper.ConfigurationProvider)
+                .ToListAsync(cancellationToken);
         }
 
         private async Task<List<DescriptionGroupDto>> GetProductDescriptions(int productId, CancellationToken cancellationToken = default(CancellationToken))
@@ -517,14 +536,15 @@ namespace Website.Service.Stores
 
             var descs = await DescriptionsSet //get descriptions
                 .Where(x => x.ProductId == productId)
-                .Include(x => x.DescriptionGroupNavigation)
+                .Include(x => x.DescriptionGroupItem)
+                .ThenInclude(x => x.DescriptionGroup)
                 .ToListAsync(cancellationToken);
 
             if (descs.IsNullOrEmpty())
                 return null;
 
             var descGroups = descs //get flattened description groups from description nav property
-                .Select(desc => desc.DescriptionGroupNavigation)
+                .Select(x => x.DescriptionGroupItem.DescriptionGroup)
                 .GroupBy(x => x.Id)
                 .Select(g => g.First())
                 .Select(x => new DescriptionGroupDto() //convert description groups to dto
@@ -538,12 +558,12 @@ namespace Website.Service.Stores
                 .ToList();
 
             var descItems = descs //convert descriptions to dto items
-                .OrderBy(x => x.Name) //ordering
+                .OrderBy(x => x.DescriptionGroupItem.Name) //ordering
                 .Select(x => new DescriptionItemDto()
                 {
                     Id = x.Id,
-                    GroupId = x.DescriptionGroupId.GetValueOrDefault(),
-                    Name = x.Name,
+                    DescriptionGroupId = x.DescriptionGroupItem.DescriptionGroupId.GetValueOrDefault(),
+                    Name = x.DescriptionGroupItem.Name,
                     Value = x.Value
                 })
                 .ToList();
@@ -553,7 +573,7 @@ namespace Website.Service.Stores
             {
                 foreach (var descItem in descItems)
                 {
-                    if (descItem.GroupId == descGroup.Id)
+                    if (descItem.DescriptionGroupId == descGroup.Id)
                     {
                         descGroup.Items.Add(descItem);
                     }
@@ -582,7 +602,7 @@ namespace Website.Service.Stores
             OrderProductsQuery(sortPropName, ref prodQuery);
             int totalProductsN = await prodQuery.CountAsync(cancellationToken);
             PaginateProductsQuery(currPage, countPerPage, ref prodQuery);
-            
+
             var productsDto = await prodQuery.ProjectTo<ProductDto>(_mapper.ConfigurationProvider).ToListAsync(cancellationToken);
             return new SortPageResult<ProductDto> { FilteredData = productsDto, TotalN = totalProductsN };
         }

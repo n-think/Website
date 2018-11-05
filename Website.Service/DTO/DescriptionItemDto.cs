@@ -3,7 +3,7 @@
     public class DescriptionItemDto
     {
         public int Id { get; set; }
-        public int GroupId { get; set; }
+        public int DescriptionGroupId { get; set; }
         public string Name { get; set; }
         public string Value { get; set; }
 

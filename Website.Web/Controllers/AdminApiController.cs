@@ -24,27 +24,28 @@ namespace Website.Web.Controllers
         [Authorize(Policy = "ViewItems")]
         public async Task<IActionResult> Categories()
         {
-            var categories = await _shopManager.GetAllCategories();
+            var categories = await _shopManager.GetAllCategoriesAsync();
             return Ok(categories);
         }
 
         [HttpGet]
         [Authorize(Policy = "ViewItems")]
-        public IActionResult Descriptions(int? id)
+        public async Task<IActionResult> DescriptionGroups()
         {
-            if (!id.HasValue || id < 0)
+            var descGroups = await _shopManager.GetDescriptionGroupsAsync();
+            return Ok(descGroups);
+        }
+
+        [HttpGet("{groupId:int}")]
+        [Authorize(Policy = "ViewItems")]
+        public async Task<IActionResult> DescriptionItems(int groupId)
+        {
+            if (groupId < 0)
             {
                 return BadRequest("");
             }
-
-            var descs = new Object[0];
-
-            if (descs.IsNullOrEmpty())
-            {
-                return NotFound("");
-            }
-
-            return Ok();
+            var descItems = await _shopManager.GetDescriptionItemsAsync(groupId);
+            return Ok(descItems);
         }
     }
 }

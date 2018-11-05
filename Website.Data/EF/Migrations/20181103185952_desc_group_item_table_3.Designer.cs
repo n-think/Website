@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Website.Data.EF.Models;
 
 namespace Website.Data.EF.Migrations
 {
     [DbContext(typeof(WebsiteDbContext))]
-    partial class WebsiteDbContextModelSnapshot : ModelSnapshot
+    [Migration("20181103185952_desc_group_item_table_3")]
+    partial class desc_group_item_table_3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
@@ -39,7 +40,7 @@ namespace Website.Web
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"))
                 .UseLazyLoadingProxies());
 
-            services.AddDbContext<WebsiteDbContext>(/*ServiceLifetime.Transient*/);
+            services.AddDbContext<WebsiteDbContext>();
             services.AddAutoMapper(opt =>
             {
                 opt.AddProfile<ServiceProfile>();
@@ -80,6 +81,30 @@ namespace Website.Web
                 option.AccessDeniedPath = new PathString("/error/403");
                 //option.SlidingExpiration = true;
                 //option.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                option.Events.OnRedirectToLogin = (context) =>
+                {
+                    if (context.Request.Path.StartsWithSegments("/AdminApi") && context.Response.StatusCode == 200)
+                    {
+                        context.Response.StatusCode = 401;
+                    }
+                    else
+                    {
+                        context.Response.Redirect(context.RedirectUri);
+                    }
+                    return Task.CompletedTask;
+                };
+                option.Events.OnRedirectToAccessDenied = (context) =>
+                {
+                    if (context.Request.Path.StartsWithSegments("/AdminApi") && context.Response.StatusCode == 200)
+                    {
+                        context.Response.StatusCode = 403;
+                    }
+                    else
+                    {
+                        context.Response.Redirect(context.RedirectUri);
+                    }
+                    return Task.CompletedTask;
+                };
             });
 
             services.AddScoped<DbContext, WebsiteDbContext>();
@@ -163,7 +188,7 @@ namespace Website.Web
 
             app.UseStatusCodePagesWithReExecute("/error/{0}");
 
-            var errorMode = configuration.GetValue<bool>("DevelopmentErrorHandlingMode"); //читаем конфиг
+            var errorMode = configuration.GetValue<bool>("DevelopmentErrorHandlingMode");
             if (errorMode || env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

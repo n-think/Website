@@ -186,9 +186,24 @@ namespace Website.Service.Services
             return result;
         }
 
-        public async Task<IEnumerable<CategoryDto>> GetAllCategories()
+        public async Task<IEnumerable<CategoryDto>> GetAllCategoriesAsync()
         {
+            ThrowIfDisposed();
             return await _store.GetAllCategories(CancellationToken);
+        }
+
+        public async Task<IEnumerable<DescriptionGroupDto>> GetDescriptionGroupsAsync()
+        {
+            ThrowIfDisposed();
+            return await _store.GetDescriptionGroupsAsync(CancellationToken);
+        }
+
+        public async Task<IEnumerable<DescriptionItemDto>> GetDescriptionItemsAsync(int id)
+        {
+            ThrowIfDisposed();
+            if (id < 0)
+                throw new ArgumentException(nameof(id));
+            return await _store.GetDescriptionItemsAsync(id, CancellationToken);
         }
 
         /// <summary>Throws if this class has been disposed.</summary>

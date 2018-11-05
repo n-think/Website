@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Website.Data.EF.Models;
 
 namespace Website.Data.EF.Migrations
 {
     [DbContext(typeof(WebsiteDbContext))]
-    partial class WebsiteDbContextModelSnapshot : ModelSnapshot
+    [Migration("20181103185156_desc_group_item_table")]
+    partial class desc_group_item_table
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -49,15 +51,16 @@ namespace Website.Data.EF.Migrations
                         .ValueGeneratedOnAdd()
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<int?>("DescriptionGroupItemId");
+                    b.Property<int?>("DescriptionGroupId");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(50);
 
                     b.Property<int?>("ProductId");
 
                     b.Property<string>("Value");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("DescriptionGroupItemId");
 
                     b.HasIndex("ProductId");
 
@@ -80,23 +83,6 @@ namespace Website.Data.EF.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("DescriptionGroups");
-                });
-
-            modelBuilder.Entity("Website.Data.EF.Models.DescriptionGroupItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<int?>("DescriptionGroupId");
-
-                    b.Property<string>("Name");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DescriptionGroupId");
-
-                    b.ToTable("DescriptionGroupItems");
                 });
 
             modelBuilder.Entity("Website.Data.EF.Models.Product", b =>
@@ -390,25 +376,10 @@ namespace Website.Data.EF.Migrations
 
             modelBuilder.Entity("Website.Data.EF.Models.Description", b =>
                 {
-                    b.HasOne("Website.Data.EF.Models.DescriptionGroupItem", "DescriptionGroupItem")
-                        .WithMany("Descriptions")
-                        .HasForeignKey("DescriptionGroupItemId")
-                        .HasConstraintName("FK_Descriptions_DescriptionGroupItems")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("Website.Data.EF.Models.Product", "Product")
                         .WithMany("Descriptions")
                         .HasForeignKey("ProductId")
                         .HasConstraintName("FK_Descriptions_Products")
-                        .OnDelete(DeleteBehavior.SetNull);
-                });
-
-            modelBuilder.Entity("Website.Data.EF.Models.DescriptionGroupItem", b =>
-                {
-                    b.HasOne("Website.Data.EF.Models.DescriptionGroup", "DescriptionGroup")
-                        .WithMany("DescriptionGroupItems")
-                        .HasForeignKey("DescriptionGroupId")
-                        .HasConstraintName("FK_DescriptionGroupItems_DescriptionGroups")
                         .OnDelete(DeleteBehavior.SetNull);
                 });
 

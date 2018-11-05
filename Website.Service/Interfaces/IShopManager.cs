@@ -20,6 +20,8 @@ namespace Website.Service.Interfaces
         Task<OperationResult> DeleteProductAsync(ProductDto product);
 
         Task<SortPageResult<ProductDto>> GetSortFilterPageAsync(ItemTypeSelector types, string search, string sortOrder, int currPage, int countPerPage);
-        Task<IEnumerable<CategoryDto>> GetAllCategories();
+        Task<IEnumerable<CategoryDto>> GetAllCategoriesAsync();
+        Task<IEnumerable<DescriptionGroupDto>> GetDescriptionGroupsAsync();
+        Task<IEnumerable<DescriptionItemDto>> GetDescriptionItemsAsync(int value);
     }
 }
