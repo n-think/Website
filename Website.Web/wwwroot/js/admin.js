@@ -11,7 +11,8 @@ $("form#admin-search-form").submit(function () { //submit from search
 $("select.admin-selector").change(function () { //submit form from selector
     var form = $("form#admin-search-form");
     form.submit();
-}); function getItemCountFromHeight() {
+});
+function getItemCountFromHeight() {
     if (window.innerWidth < 768)
         return 5;
     var clientHeight = window.innerHeight;
@@ -19,7 +20,7 @@ $("select.admin-selector").change(function () { //submit form from selector
     return value < 5 ? 5 : value;
 }
 
-// **** item edit scripts ****
+// **** item edit ****
 
 $("div#admin-content").on("click", "img.admin-img-thumb", setImage);
 $("div#admin-content").on("click", "#image-primary-button", setPrimaryImage);
@@ -372,18 +373,18 @@ function addDescGroup() {
 
     var strVar = "";
     strVar += "<div class=\"desc-group my-2 desc-group-add\" data-id=\"" + id + "\">";
-    strVar += "    <div>";
-    strVar += "        <span class=\"desc-group-name h6\">" + name + "</span>";
-    strVar += "        <span class=\"desc-group-desc text-muted\">" + desc + "</span>";
-    strVar += "        <span class=\"remove-desc-group btn-pushy btn btn-outline-danger btn-sm fa fa-close mb-1\"></span>";
-    strVar += "        <div>";
-    strVar += "            <select id=\"desc-group-items-select\" class=\"selectpicker\" hidden data-live-search=\"true\" data-live-search-normalize=\"true\" data-live-search-style=\"contains\"";
-    strVar += "                    data-style=\"btn-outline-primary desc-group-items-btn p-1\" data-width=\"fit\" title=\"Добавить описание\" data-live-search-placeholder=\"Поиск\"></select>";
-    strVar += "            <span class=\"add-desc-group-item btn-pushy btn btn-outline-success fa fa-check\"></span>";
-    strVar += "        </div>";
-    strVar += "    </div>";
-    strVar += "    <div id=\"desc-group-items\">";
-    strVar += "    </div>";
+    strVar += " <div>";
+    strVar += "  <span class=\"desc-group-name h6\">" + name + "</span>";
+    strVar += "  <span class=\"desc-group-desc text-muted\">" + desc + "</span>";
+    strVar += "  <span class=\"remove-desc-group btn-pushy btn btn-outline-danger btn-sm fa fa-close mb-1\"></span>";
+    strVar += "   <div>";
+    strVar += "    <select id=\"desc-group-items-select\" class=\"selectpicker\" hidden data-live-search=\"true\" data-live-search-normalize=\"true\" data-live-search-style=\"contains\"";
+    strVar += "data-style=\"btn-outline-primary desc-group-items-btn p-1\" data-width=\"fit\" title=\"Добавить описание\" data-live-search-placeholder=\"Поиск\"></select>";
+    strVar += "    <span class=\"add-desc-group-item btn-pushy btn btn-outline-success fa fa-check\"></span>";
+    strVar += "   </div>";
+    strVar += " </div>";
+    strVar += " <div id=\"desc-group-items\">";
+    strVar += " </div>";
     strVar += "</div>";
     var descGroup = $.parseHTML(strVar);
     $("#desc-groups").append(descGroup);
@@ -448,16 +449,16 @@ function addDescGroupItem() {
         var value = "*не указано*";
         var strVar = "";
         strVar += "<div class=\"desc-item desc-item-add\" data-id=\"" + id + "\">";
-        strVar += "    <span class=\"desc-item-name\">" + name + "<\/span> : <span class=\"desc-item-value\">" + value + "</span>";
-        strVar += "    <textarea rows=\"3\" class=\"form-control d-none desc-item-input\"></textarea>";
-        strVar += "    <div class=\"desc-item-save d-none\">";
-        strVar += "        <span class=\"btn btn-sm btn-pushy btn-outline-success fa fa-check save-desc-group-item\"></span>";
-        strVar += "        <span class=\"btn btn-sm btn-pushy btn-outline-danger fa fa-undo cancel-desc-group-item\"></span>";
-        strVar += "    </div>";
-        strVar += "    <div class=\"desc-item-edit-delete d-inline-block\">";
-        strVar += "        <span class=\"btn btn-sm btn-pushy btn-outline-primary fa fa-edit edit-desc-group-item\"></span>";
-        strVar += "        <span class=\"btn btn-sm btn-pushy btn-outline-danger fa fa-close remove-desc-group-item\"></span>";
-        strVar += "    </div>";
+        strVar += " <span class=\"desc-item-name\">" + name + "<\/span> : <span class=\"desc-item-value\">" + value + "</span>";
+        strVar += " <textarea rows=\"3\" class=\"form-control d-none desc-item-input\"></textarea>";
+        strVar += " <div class=\"desc-item-save d-none\">";
+        strVar += "  <span class=\"btn btn-sm btn-pushy btn-outline-success fa fa-check save-desc-group-item\"></span>";
+        strVar += "  <span class=\"btn btn-sm btn-pushy btn-outline-danger fa fa-undo cancel-desc-group-item\"></span>";
+        strVar += " </div>";
+        strVar += " <div class=\"desc-item-edit-delete d-inline-block\">";
+        strVar += "  <span class=\"btn btn-sm btn-pushy btn-outline-primary fa fa-edit edit-desc-group-item\"></span>";
+        strVar += "  <span class=\"btn btn-sm btn-pushy btn-outline-danger fa fa-close remove-desc-group-item\"></span>";
+        strVar += " </div>";
         strVar += "</div>";
         var descItem = $.parseHTML(strVar);
         container.find("#desc-group-items").append(descItem);
@@ -543,7 +544,7 @@ function cancelEditDescItem() {
     container.find(".desc-item-edit-delete").removeClass("d-none").addClass("d-inline-block");
 }
 
-// **** user edit scripts
+// **** user edit
 
 $("#role-selector").change(function () {
     if ($(this).val() === "admin") {
