@@ -36,13 +36,10 @@ namespace Website.Web.Models.AdminViewModels
         [ScaffoldColumn(false)]
         public byte[] Timestamp { get; set; }
 
-        //categories
         [ScaffoldColumn(false)]
         public List<CategoryDto> Categories { get; set; }
-        //images
         [ScaffoldColumn(false)]
         public List<ProductImageDto> Images { get; set; }
-        //descriptions
         [ScaffoldColumn(false)]
         public List<DescriptionGroupDto> Descriptions { get; set; }
     }

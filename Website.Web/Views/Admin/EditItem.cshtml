@@ -9,7 +9,6 @@
     <div class="d-inline-block">
         <button class="btn btn-outline-success mx-2" id="edit-form-submit" onclick="validateAndSubmitJson()">Сохранить<span id="edit-form-submit-icon" class="fa fa-check ml-2"></span></button>
         <a class="btn btn-outline-danger" asp-action="ViewItem" asp-route-id="@Model.Id">Отмена</a>
-        <button class="btn btn-outline-success mx-2" id="post-submit-form">Сохранить<span id="edit-form-submit-icon" class="fa fa-check ml-2"></span></button>
     </div>
 </div>
 <div asp-validation-summary="All" class="text-danger"></div>
@@ -47,7 +46,7 @@
             <div>
                 <div class="custom-file my-2">
                     <input class="custom-file-input" id="file-upload-button" lang="" accept="image/*" type="file" multiple />
-                    <label class="custom-file-label" for="file-upload-button">Загрузить файлы</label>
+                    <label class="custom-file-label" for="file-upload-button"><span class="fa fa-picture-o mx-2"></span>Загрузить изображения</label>
                 </div>
             </div>
         </div>
@@ -93,7 +92,7 @@
                     <div class="category @(cat.DtoState==DtoState.Added?"cat-add":"")@(cat.DtoState==DtoState.Deleted?"cat-delete d-none":"")" data-id="@cat.Id">
                         <span class="category-name">@cat.Name</span>
                         <span class="category-desc text-muted">(@cat.Description)</span>
-                        <span class="remove-cat btn-pushy btn btn-outline-danger fa fa-close"></span>
+                        <span class="remove-cat btn-pushy btn btn-outline-danger btn-sm fa fa-close"></span>
                     </div>
                 }
             </div>
@@ -112,10 +111,10 @@
                         <div>
                             <span class="desc-group-name h6">@descriptionGroup.Name</span>
                             <span class="desc-group-desc text-muted">(@descriptionGroup.Description)</span>
-                            <span class="remove-desc-group btn-pushy btn btn-outline-danger fa fa-close"></span>
+                            <span class="remove-desc-group btn-pushy btn btn-outline-danger btn-sm fa fa-close mb-1"></span>
                             <div>
                                 <select id="desc-group-items-select" class="selectpicker" hidden data-live-search="true" data-live-search-normalize="true" data-live-search-style="contains"
-                                        data-style="btn-outline-primary desc-group-items-btn" data-width="fit" title="Добавить описание" data-live-search-placeholder="Поиск"></select>
+                                        data-style="btn-outline-primary desc-group-items-btn p-1" data-width="fit" title="Добавить описание" data-live-search-placeholder="Поиск"></select>
                                 <span class="add-desc-group-item btn-pushy btn btn-outline-success fa fa-check"></span>
                             </div>
                         </div>

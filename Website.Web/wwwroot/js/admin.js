@@ -38,13 +38,6 @@ $("div#admin-content").on("click", ".edit-desc-group-item", editDescItem);
 $("div#admin-content").on("click", ".save-desc-group-item", saveEditDescItem);
 $("div#admin-content").on("click", ".cancel-desc-group-item", cancelEditDescItem);
 
-
-$("#post-submit-form").click(function() {
-    $("#edit-form").submit();
-    $(this).prop("disabled", true);
-    $("span#edit-form-submit-icon").removeClass("fa-check").addClass("fa-spinner fa-spin");
-});
-
 function validateAndSubmitJson() {
     var result = $("#edit-form").validate().valid();
     if (!result)
@@ -61,6 +54,7 @@ function validateAndSubmitJson() {
 
     dataToJson.Images = getImagesData();
     dataToJson.Categories = getCategoriesData();
+    dataToJson.Descriptions = getDescriptionsData();
 
     console.log(dataToJson);
     var json = JSON.stringify(dataToJson);
@@ -160,7 +154,11 @@ function getCategoriesData() {
     return catData;
 }
 
-function generateImgId() { // random guid-like id
+function getDescriptionsData() {
+
+}
+
+function generateImgId() { // random guid-like id //not used
     function s4() {
         return Math.floor((1 + Math.random()) * 0x10000)
             .toString(16)
@@ -377,10 +375,10 @@ function addDescGroup() {
     strVar += "    <div>";
     strVar += "        <span class=\"desc-group-name h6\">" + name + "</span>";
     strVar += "        <span class=\"desc-group-desc text-muted\">" + desc + "</span>";
-    strVar += "        <span class=\"remove-desc-group btn-pushy btn btn-outline-danger fa fa-close\"></span>";
+    strVar += "        <span class=\"remove-desc-group btn-pushy btn btn-outline-danger btn-sm fa fa-close mb-1\"></span>";
     strVar += "        <div>";
     strVar += "            <select id=\"desc-group-items-select\" class=\"selectpicker\" hidden data-live-search=\"true\" data-live-search-normalize=\"true\" data-live-search-style=\"contains\"";
-    strVar += "                    data-style=\"btn-outline-primary desc-group-items-btn\" data-width=\"fit\" title=\"Добавить описание\" data-live-search-placeholder=\"Поиск\"></select>";
+    strVar += "                    data-style=\"btn-outline-primary desc-group-items-btn p-1\" data-width=\"fit\" title=\"Добавить описание\" data-live-search-placeholder=\"Поиск\"></select>";
     strVar += "            <span class=\"add-desc-group-item btn-pushy btn btn-outline-success fa fa-check\"></span>";
     strVar += "        </div>";
     strVar += "    </div>";
@@ -454,7 +452,7 @@ function addDescGroupItem() {
         strVar += "    <textarea rows=\"3\" class=\"form-control d-none desc-item-input\"></textarea>";
         strVar += "    <div class=\"desc-item-save d-none\">";
         strVar += "        <span class=\"btn btn-sm btn-pushy btn-outline-success fa fa-check save-desc-group-item\"></span>";
-        strVar += "        <span class=\"btn btn-sm btn-pushy btn-outline-success fa fa-undo cancel-desc-group-item\"></span>";
+        strVar += "        <span class=\"btn btn-sm btn-pushy btn-outline-danger fa fa-undo cancel-desc-group-item\"></span>";
         strVar += "    </div>";
         strVar += "    <div class=\"desc-item-edit-delete d-inline-block\">";
         strVar += "        <span class=\"btn btn-sm btn-pushy btn-outline-primary fa fa-edit edit-desc-group-item\"></span>";
