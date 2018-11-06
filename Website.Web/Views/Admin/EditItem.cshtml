@@ -9,6 +9,7 @@
     <div class="d-inline-block">
         <button class="btn btn-outline-success mx-2" id="edit-form-submit" onclick="validateAndSubmitJson()">Сохранить<span id="edit-form-submit-icon" class="fa fa-check ml-2"></span></button>
         <a class="btn btn-outline-danger" asp-action="ViewItem" asp-route-id="@Model.Id">Отмена</a>
+        <button class="btn btn-outline-success mx-2" id="post-submit-form">Сохранить<span id="edit-form-submit-icon" class="fa fa-check ml-2"></span></button>
     </div>
 </div>
 <div asp-validation-summary="All" class="text-danger"></div>
@@ -104,29 +105,40 @@
                         data-style="btn-outline-primary desc-group-btn" data-width="fit" title="Добавить группу описаний" data-live-search-placeholder="Поиск"></select>
                 <span class="add-desc-group btn-pushy btn btn-outline-success fa fa-check"></span>
             </div>
-            @foreach (var descriptionGroup in Model.Descriptions ?? Enumerable.Empty<DescriptionGroupDto>())
-            {
-                <div class="desc-group" data-group-id="@descriptionGroup.Id">
-                    <div>
-                        <span class="desc-group-name h6">@descriptionGroup.Name</span>
-                        <span class="desc-group-desc text-muted">(@descriptionGroup.Description)</span>
-                        <span class="remove-desc-group btn-pushy btn btn-outline-danger fa fa-close"></span>
+            <div id="desc-groups">
+                @foreach (var descriptionGroup in Model.Descriptions ?? Enumerable.Empty<DescriptionGroupDto>())
+                {
+                    <div class="desc-group my-2" data-id="@descriptionGroup.Id">
                         <div>
-                            <select id="desc-group-items-select" class="selectpicker" hidden data-live-search="true" data-live-search-normalize="true" data-live-search-style="contains"
-                                    data-style="btn-outline-primary desc-group-items-btn" data-width="fit" title="Добавить описание" data-live-search-placeholder="Поиск"></select>
-                            <span class="add-desc-group-item btn-pushy btn btn-outline-success fa fa-check"></span>
+                            <span class="desc-group-name h6">@descriptionGroup.Name</span>
+                            <span class="desc-group-desc text-muted">(@descriptionGroup.Description)</span>
+                            <span class="remove-desc-group btn-pushy btn btn-outline-danger fa fa-close"></span>
+                            <div>
+                                <select id="desc-group-items-select" class="selectpicker" hidden data-live-search="true" data-live-search-normalize="true" data-live-search-style="contains"
+                                        data-style="btn-outline-primary desc-group-items-btn" data-width="fit" title="Добавить описание" data-live-search-placeholder="Поиск"></select>
+                                <span class="add-desc-group-item btn-pushy btn btn-outline-success fa fa-check"></span>
+                            </div>
+                        </div>
+                        <div id="desc-group-items">
+                            @foreach (var item in descriptionGroup.Items ?? Enumerable.Empty<DescriptionItemDto>())
+                            {
+                                <div class="desc-item" data-id="@item.Id">
+                                    <span class="desc-item-name">@item.Name</span>@Html.Raw(" : ")<span class="desc-item-value">@item.DescriptionValue</span>
+                                    <textarea rows="3" class="form-control d-none desc-item-input"></textarea>
+                                    <div class="desc-item-save d-none">
+                                        <span class="btn btn-sm btn-pushy btn-outline-success fa fa-check save-desc-group-item"></span>
+                                        <span class="btn btn-sm btn-pushy btn-outline-danger fa fa-undo cancel-desc-group-item"></span>
+                                    </div>
+                                    <div class="desc-item-edit-delete d-inline-block">
+                                        <span class="btn btn-sm btn-pushy btn-outline-primary fa fa-edit edit-desc-group-item"></span>
+                                        <span class="btn btn-sm btn-pushy btn-outline-danger fa fa-close remove-desc-group-item"></span>
+                                    </div>
+                                </div>
+                            }
                         </div>
                     </div>
-                    <div id="desc-group-items" >
-                        @foreach (var item in descriptionGroup.Items ?? Enumerable.Empty<DescriptionItemDto>())
-                        {
-                            <div class="desc-item">
-                                <span class="desc-item-name">@item.Name</span>@Html.Raw(" : ")<span class="desc-item-value">@item.Value</span>
-                            </div>
-                        }
-                    </div>
-                </div>
-            }
+                }
+            </div>
         </div>
     </div>
 </form>

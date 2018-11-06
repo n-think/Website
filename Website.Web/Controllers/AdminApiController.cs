@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Castle.Core.Internal;
 using Microsoft.AspNetCore.Authorization;
@@ -44,7 +45,8 @@ namespace Website.Web.Controllers
             {
                 return BadRequest("");
             }
-            var descItems = await _shopManager.GetDescriptionItemsAsync(groupId);
+            var descItems = (await _shopManager.GetDescriptionItemsAsync(groupId))
+                .Select(x=>new {x.Id,x.Name});
             return Ok(descItems);
         }
     }

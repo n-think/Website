@@ -245,10 +245,16 @@ namespace Website.Web.Controllers
             return View(viewModel);
         }
 
-        [HttpPost("Admin/EditItem")]
+
+        //[HttpPost("Admin/EditItem")]
+        //[ValidateAntiForgeryToken]
+        //[Authorize(Policy = "EditItems")]
+        //public async Task<IActionResult> EditItem([FromBody]EditItemViewModel item)
+
+        [HttpPost()]
         [ValidateAntiForgeryToken]
         [Authorize(Policy = "EditItems")]
-        public async Task<IActionResult> EditItem([FromBody]EditItemViewModel item)
+        public async Task<IActionResult> EditItem(EditItemViewModel item)
         {
             if (item == null || item.Id < 0 || item.Timestamp == null)
             {
@@ -284,7 +290,7 @@ namespace Website.Web.Controllers
             //        }
             //    }
             //}
-            return PartialView(item);
+            return View(item);
         }
 
         [HttpGet]

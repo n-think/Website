@@ -37,8 +37,8 @@ namespace Website.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<WebsiteDbContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"))
-                .UseLazyLoadingProxies());
+                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+                //.UseLazyLoadingProxies());
 
             services.AddDbContext<WebsiteDbContext>();
             services.AddAutoMapper(opt =>

@@ -46,20 +46,20 @@
     </div>
 </div>
 <div>
-    <h3>Категории</h3>
+    <span class="h3 d-block">Категории</span>
     @foreach (var cat in Model.Categories ?? Enumerable.Empty<CategoryDto>())
     {
         <span>@cat.Name</span>@Html.Raw(" : ")<span>@cat.Description</span><br />
     }
 </div>
 <div class="admin-item-descriptions">
-    <h3>Описания</h3>
+    <span class="h3">Описания</span>
     @foreach (var descriptionGroup in Model.Descriptions ?? Enumerable.Empty<DescriptionGroupDto>())
     {
-        <h6>@descriptionGroup.Name</h6>
+        <span class="h6 d-block my-2">@descriptionGroup.Name</span>
         foreach (var item in descriptionGroup.Items)
         {
-            <span>@item.Name</span>@Html.Raw(" : ")<span>@item.Value</span><br />
+            <span>@item.Name</span>@Html.Raw(" : ")<span>@item.DescriptionValue</span><br />
         }
     }
 </div>

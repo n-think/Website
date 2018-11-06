@@ -34,6 +34,16 @@ $("div#admin-content").on("click", ".remove-desc-group", removeDescGroup);
 $("div#admin-content").on("click", ".desc-group-items-btn", loadDescGroupItemsDropdown);
 $("div#admin-content").on("click", ".add-desc-group-item", addDescGroupItem);
 $("div#admin-content").on("click", ".remove-desc-group-item", removeDescGroupItem);
+$("div#admin-content").on("click", ".edit-desc-group-item", editDescItem);
+$("div#admin-content").on("click", ".save-desc-group-item", saveEditDescItem);
+$("div#admin-content").on("click", ".cancel-desc-group-item", cancelEditDescItem);
+
+
+$("#post-submit-form").click(function() {
+    $("#edit-form").submit();
+    $(this).prop("disabled", true);
+    $("span#edit-form-submit-icon").removeClass("fa-check").addClass("fa-spinner fa-spin");
+});
 
 function validateAndSubmitJson() {
     var result = $("#edit-form").validate().valid();
@@ -67,8 +77,7 @@ function validateAndSubmitJson() {
         data: json,
         beforeSend: function (jqXHR) {
             $("button#edit-form-submit").prop("disabled", true);
-            $("span#edit-form-submit-icon").removeClass("fa-check");
-            $("span#edit-form-submit-icon").addClass("fa-spinner fa-spin");
+            $("span#edit-form-submit-icon").removeClass("fa-check").addClass("fa-spinner fa-spin");
         },
         success: function (response) {
             $("div#admin-content").html(response);
@@ -170,8 +179,7 @@ function setPrimaryImage() {
         e.classList.remove("img-primary");
     });
     var thumb = $(".admin-img-thumb[data-id=" + img.data("id") + "]");
-    thumb.addClass("img-primary");
-    thumb.removeClass("img-delete");
+    thumb.addClass("img-primary").removeClass("img-delete");
     setImage(thumb);
 }
 
@@ -287,12 +295,11 @@ function loadCategoriesDropdown() {
 
 function addCategory() {
     var select = $("#category-select");
-    var id = select.val();
+    var id = select.val() === "" ? -1 : select.val();
     var existing = $(".category[data-id=" + id + "]");
     if ($("#category-select").val() === "" || existing.length) {
-        if (existing.hasClass("d-none")) {
-            existing.removeClass("d-none");
-            existing.removeClass("cat-delete");
+        if (existing.hasClass("cat-delete")) {
+            existing.removeClass("d-none cat-delete");
             $("#categories").append(existing);
             return;
         }
@@ -303,7 +310,7 @@ function addCategory() {
     var desc = select.find("option:selected").data().subtext;
     var nameSpan = $("<span>", { "class": "category-name", "text": name });
     var descSpan = $("<span>", { "class": "category-desc text-muted", "text": "(" + desc + ")" });
-    var buttonSpan = $(".remove-cat").first().clone();
+    var buttonSpan = $("<span>", { "class": "remove-cat btn-pushy btn btn-outline-danger fa fa-close" });
     var category = $("<div>", { "class": "category cat-add", "data-id": id }).append([nameSpan, descSpan, buttonSpan]);
     category.children().after(" ");
     $("#categories").append(category);
@@ -315,8 +322,7 @@ function removeCategory() {
     if (parent.hasClass("cat-add")) {
         parent.remove();
     } else {
-        parent.addClass("d-none");
-        parent.addClass("cat-delete");
+        parent.addClass("d-none cat-delete");
     }
 }
 
@@ -351,44 +357,55 @@ function loadDescGroupDropdown() {
 }
 
 function addDescGroup() {
-    //var select = $("#category-select");
-    //var id = select.val();
-    //var existing = $(".category[data-id=" + id + "]");
-    //if ($("#category-select").val() === "" || existing.length) {
-    //    if (existing.hasClass("d-none")) {
-    //        existing.removeClass("d-none");
-    //        existing.removeClass("cat-delete");
-    //        $("#categories").append(existing);
-    //        return;
-    //    }
-    //    $("#category-select+.dropdown-toggle").fadeIn(100).fadeOut(100).fadeIn(100).fadeOut(100).fadeIn(100);
-    //    return;
-    //}
-    //var name = select.find("option:selected").text();
-    //var desc = select.find("option:selected").data().subtext;
-    //var nameSpan = $("<span>", { "class": "category-name", "text": name });
-    //var descSpan = $("<span>", { "class": "category-desc text-muted", "text": "(" + desc + ")" });
-    //var buttonSpan = $(".remove-cat").first().clone();
-    //var category = $("<div>", { "class": "category cat-add", "data-id": id }).append([nameSpan, descSpan, buttonSpan]);
-    //category.children().after(" ");
-    //$("#categories").append(category);
+    var select = $("#desc-group-select");
+    var id = select.val() === "" ? -1 : select.val();
+    var existing = $(".desc-group[data-id=" + id + "]");
+    if ($("#desc-group-select").val() === "" || existing.length) {
+        if (existing.hasClass("desc-group-delete")) {
+            existing.removeClass("d-none desc-group-delete");
+            $("#desc-groups").append(existing);
+            return;
+        }
+        $("#desc-group-select+.dropdown-toggle").fadeIn(100).fadeOut(100).fadeIn(100).fadeOut(100).fadeIn(100);
+        return;
+    }
+    var name = select.find("option:selected").text();
+    var desc = select.find("option:selected").data().subtext;
+
+    var strVar = "";
+    strVar += "<div class=\"desc-group my-2 desc-group-add\" data-id=\"" + id + "\">";
+    strVar += "    <div>";
+    strVar += "        <span class=\"desc-group-name h6\">" + name + "</span>";
+    strVar += "        <span class=\"desc-group-desc text-muted\">" + desc + "</span>";
+    strVar += "        <span class=\"remove-desc-group btn-pushy btn btn-outline-danger fa fa-close\"></span>";
+    strVar += "        <div>";
+    strVar += "            <select id=\"desc-group-items-select\" class=\"selectpicker\" hidden data-live-search=\"true\" data-live-search-normalize=\"true\" data-live-search-style=\"contains\"";
+    strVar += "                    data-style=\"btn-outline-primary desc-group-items-btn\" data-width=\"fit\" title=\"Добавить описание\" data-live-search-placeholder=\"Поиск\"></select>";
+    strVar += "            <span class=\"add-desc-group-item btn-pushy btn btn-outline-success fa fa-check\"></span>";
+    strVar += "        </div>";
+    strVar += "    </div>";
+    strVar += "    <div id=\"desc-group-items\">";
+    strVar += "    </div>";
+    strVar += "</div>";
+    var descGroup = $.parseHTML(strVar);
+    $("#desc-groups").append(descGroup);
+    $(descGroup).find("#desc-group-items-select").selectpicker("refresh");
 }
 
 function removeDescGroup() {
-    //var catBtn = $(this);
-    //var parent = catBtn.parent();
-    //if (parent.hasClass("cat-add")) {
-    //    parent.remove();
-    //} else {
-    //    parent.addClass("d-none");
-    //    parent.addClass("cat-delete");
-    //}
+    var btn = $(this);
+    var container = btn.closest("div.desc-group");
+    if (container.hasClass("desc-group-add")) {
+        container.remove();
+    } else {
+        container.addClass("d-none desc-group-delete");
+    }
 }
 
 function loadDescGroupItemsDropdown() {
     var loadingBar;
     var container = $(this).closest(".desc-group");
-    var id = container.data("group-id");
+    var id = container.data("id");
     $.ajax({
         type: "GET",
         url: "/AdminApi/DescriptionItems/" + id,
@@ -417,38 +434,47 @@ function loadDescGroupItemsDropdown() {
 }
 
 function addDescGroupItem() {
-    //var select = $("#category-select");
-    //var id = select.val();
-    //var existing = $(".category[data-id=" + id + "]");
-    //if ($("#category-select").val() === "" || existing.length) {
-    //    if (existing.hasClass("d-none")) {
-    //        existing.removeClass("d-none");
-    //        existing.removeClass("cat-delete");
-    //        $("#categories").append(existing);
-    //        return;
-    //    }
-    //    $("#category-select+.dropdown-toggle").fadeIn(100).fadeOut(100).fadeIn(100).fadeOut(100).fadeIn(100);
-    //    return;
-    //}
-    //var name = select.find("option:selected").text();
-    //var desc = select.find("option:selected").data().subtext;
-    //var nameSpan = $("<span>", { "class": "category-name", "text": name });
-    //var descSpan = $("<span>", { "class": "category-desc text-muted", "text": "(" + desc + ")" });
-    //var buttonSpan = $(".remove-cat").first().clone();
-    //var category = $("<div>", { "class": "category cat-add", "data-id": id }).append([nameSpan, descSpan, buttonSpan]);
-    //category.children().after(" ");
-    //$("#categories").append(category);
+    var container = $(this).closest(".desc-group");
+    var select = container.find("#desc-group-items-select");
+    var id = select.val() === "" ? -1 : select.val();
+    var existing = $(".desc-item[data-id=" + id + "]");
+    if ($("#desc-group-items-select").val() === "" || existing.length) {
+        if (existing.hasClass("desc-item-delete")) {
+            existing.removeClass("d-none desc-item-delete");
+            return;
+        }
+        container.find("#desc-group-items-select+.dropdown-toggle").fadeIn(100).fadeOut(100).fadeIn(100).fadeOut(100)
+            .fadeIn(100);
+    } else {
+        var name = select.find("option:selected").text();
+        var value = "*не указано*";
+        var strVar = "";
+        strVar += "<div class=\"desc-item desc-item-add\" data-id=\"" + id + "\">";
+        strVar += "    <span class=\"desc-item-name\">" + name + "<\/span> : <span class=\"desc-item-value\">" + value + "</span>";
+        strVar += "    <textarea rows=\"3\" class=\"form-control d-none desc-item-input\"></textarea>";
+        strVar += "    <div class=\"desc-item-save d-none\">";
+        strVar += "        <span class=\"btn btn-sm btn-pushy btn-outline-success fa fa-check save-desc-group-item\"></span>";
+        strVar += "        <span class=\"btn btn-sm btn-pushy btn-outline-success fa fa-undo cancel-desc-group-item\"></span>";
+        strVar += "    </div>";
+        strVar += "    <div class=\"desc-item-edit-delete d-inline-block\">";
+        strVar += "        <span class=\"btn btn-sm btn-pushy btn-outline-primary fa fa-edit edit-desc-group-item\"></span>";
+        strVar += "        <span class=\"btn btn-sm btn-pushy btn-outline-danger fa fa-close remove-desc-group-item\"></span>";
+        strVar += "    </div>";
+        strVar += "</div>";
+        var descItem = $.parseHTML(strVar);
+        container.find("#desc-group-items").append(descItem);
+    }
+    //sort ??
 }
 
 function removeDescGroupItem() {
-    //var catBtn = $(this);
-    //var parent = catBtn.parent();
-    //if (parent.hasClass("cat-add")) {
-    //    parent.remove();
-    //} else {
-    //    parent.addClass("d-none");
-    //    parent.addClass("cat-delete");
-    //}
+    var btn = $(this);
+    var container = btn.closest("div.desc-item");
+    if (container.hasClass("desc-item-add")) {
+        container.remove();
+    } else {
+        container.addClass("d-none desc-item-delete");
+    }
 }
 
 function loadImagesFromInput() {
@@ -493,6 +519,30 @@ function loadImagesFromInput() {
         alert("Браузер не поддерживает загрузку картинок.");
     }
 
+}
+
+function editDescItem() {
+    var container = $(this).closest(".desc-item");
+    var textToEdit = container.find(".desc-item-value").addClass("d-none").text();
+    container.find(".desc-item-input").removeClass("d-none").text(textToEdit);
+    container.find(".desc-item-save").removeClass("d-none");
+    container.find(".desc-item-edit-delete").addClass("d-none").removeClass("d-inline-block");
+}
+
+function saveEditDescItem() {
+    var container = $(this).closest(".desc-item").addClass("desc-item-changed");
+    var textToSave = container.find(".desc-item-input").addClass("d-none").val();
+    container.find(".desc-item-value").removeClass("d-none").text(textToSave);
+    container.find(".desc-item-save").addClass("d-none");
+    container.find(".desc-item-edit-delete").removeClass("d-none").addClass("d-inline-block");
+}
+
+function cancelEditDescItem() {
+    var container = $(this).closest(".desc-item");
+    container.find(".desc-item-input").addClass("d-none");
+    container.find(".desc-item-value").removeClass("d-none");
+    container.find(".desc-item-save").addClass("d-none");
+    container.find(".desc-item-edit-delete").removeClass("d-none").addClass("d-inline-block");
 }
 
 // **** user edit scripts

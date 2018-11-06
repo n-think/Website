@@ -561,10 +561,12 @@ namespace Website.Service.Stores
                 .OrderBy(x => x.DescriptionGroupItem.Name) //ordering
                 .Select(x => new DescriptionItemDto()
                 {
-                    Id = x.Id,
-                    DescriptionGroupId = x.DescriptionGroupItem.DescriptionGroupId.GetValueOrDefault(),
+                    Id = x.DescriptionGroupItem.Id,
                     Name = x.DescriptionGroupItem.Name,
-                    Value = x.Value
+                    DescriptionGroupId = x.DescriptionGroupItem.DescriptionGroup.Id,
+                    ProductId = productId,
+                    DescriptionId = x.Id,
+                    DescriptionValue = x.Value
                 })
                 .ToList();
 
