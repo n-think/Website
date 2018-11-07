@@ -35,9 +35,9 @@
     "sourceMap": false
   },
   {
-    "outputFileName": "wwwroot/js/jqueryValFix.min.js",
+    "outputFileName": "wwwroot/js/validation.min.js",
     "inputFiles": [
-      "wwwroot/js/jqueryValFix.js"
+      "wwwroot/js/validation.js"
     ],
     // Optionally specify minification options
     "minify": {

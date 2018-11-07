@@ -564,7 +564,7 @@ namespace Website.Service.Stores
                     Id = x.DescriptionGroupItem.Id,
                     Name = x.DescriptionGroupItem.Name,
                     DescriptionGroupId = x.DescriptionGroupItem.DescriptionGroup.Id,
-                    ProductId = productId,
+                    //ProductId = productId,
                     DescriptionId = x.Id,
                     DescriptionValue = x.Value
                 })

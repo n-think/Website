@@ -9,9 +9,13 @@
     <TrimUnusedDependencies>true</TrimUnusedDependencies>
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
     <ExcludeFoldersFromDeployment>Tests</ExcludeFoldersFromDeployment>
+    <TypeScriptToolsVersion>3.0</TypeScriptToolsVersion>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="run.cmd" />
+    <None Remove="Scripts\admin.ts" />
+    <None Remove="Scripts\site.ts" />
+    <None Remove="Scripts\validation.ts" />
   </ItemGroup>
 
 
@@ -37,10 +41,37 @@
 
 
   <ItemGroup>
+    <TypeScriptCompile Include="Scripts\admin.ts" />
+    <TypeScriptCompile Include="Scripts\site.ts" />
+    <TypeScriptCompile Include="Scripts\validation.ts" />
+  </ItemGroup>
+
+
+  <ItemGroup>
     <Content Update="Views\Admin\DescriptionGroups.cshtml">
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>
+    <Content Update="Views\Test\Form.cshtml">
+      <Pack>$(IncludeRazorContentInPack)</Pack>
+    </Content>
   </ItemGroup>
+
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <TypeScriptTarget>ES5</TypeScriptTarget>
+    <TypeScriptJSXEmit>None</TypeScriptJSXEmit>
+    <TypeScriptModuleKind>ES6</TypeScriptModuleKind>
+    <TypeScriptCompileOnSaveEnabled>True</TypeScriptCompileOnSaveEnabled>
+    <TypeScriptNoImplicitAny>False</TypeScriptNoImplicitAny>
+    <TypeScriptRemoveComments>True</TypeScriptRemoveComments>
+    <TypeScriptOutFile />
+    <TypeScriptOutDir>../wwwroot/js</TypeScriptOutDir>
+    <TypeScriptGeneratesDeclarations>False</TypeScriptGeneratesDeclarations>
+    <TypeScriptNoEmitOnError>True</TypeScriptNoEmitOnError>
+    <TypeScriptSourceMap>True</TypeScriptSourceMap>
+    <TypeScriptMapRoot />
+    <TypeScriptSourceRoot />
+  </PropertyGroup>
 
 
 </Project>

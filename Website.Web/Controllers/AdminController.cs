@@ -19,6 +19,7 @@ using Website.Web.Models.AdminViewModels;
 namespace Website.Web.Controllers
 {
     //[RequireHttps]
+    [Route("[controller]/[action]")]
     [Authorize(Policy = "Administrators")]
     public class AdminController : Controller
     {
@@ -79,7 +80,7 @@ namespace Website.Web.Controllers
             return View(model);
         }
 
-        [HttpGet("Admin/ViewUser/{id:guid}")]
+        [HttpGet("{id:guid}")]
         [Authorize(Policy = "ViewUsers")]
         public async Task<IActionResult> ViewUser(Guid id)
         {
@@ -94,7 +95,7 @@ namespace Website.Web.Controllers
             return View(modelUser);
         }
 
-        [HttpGet("Admin/EditUser/{id:guid}")]
+        [HttpGet("{id:guid}")]
         [Authorize(Policy = "EditUsers")]
         public async Task<IActionResult> EditUser(Guid id)
         {
@@ -207,7 +208,7 @@ namespace Website.Web.Controllers
             return View(model);
         }
 
-        [HttpGet("Admin/ViewItem/{id:required:int:min(0)}")]
+        [HttpGet("{id:required:int:min(0)}")]
         [Authorize(Policy = "ViewItems")]
         public async Task<IActionResult> ViewItem(int id)
         {
@@ -230,7 +231,7 @@ namespace Website.Web.Controllers
             return View("ViewItem", viewModel);
         }
 
-        [HttpGet("Admin/EditItem/{id:required:int:min(0)}")]
+        [HttpGet("{id:required:int:min(0)}")]
         [Authorize(Policy = "EditItems")]
         public async Task<IActionResult> EditItem(int id)
         {
@@ -246,41 +247,40 @@ namespace Website.Web.Controllers
         }
 
 
-        [HttpPost("Admin/EditItem")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Policy = "EditItems")]
-        public async Task<IActionResult> EditItem([FromBody]EditItemViewModel item)
+        public async Task<IActionResult> EditItem([FromBody]EditItemViewModel item) //json input
         {
-            if (item == null || item.Id < 0 || item.Timestamp == null)
+            if (item?.Id == null || item.Timestamp == null)
             {
                 return BadRequest("Введены некорректные данные.");
             }
             //if (ModelState.IsValid)
             //{
-            //    var dbItem = await _shopManager.GetProductById(item.Id, false, false, false);
-            //    if (dbItem == null)
-            //    {
-            //        return PartialView("Error", new ErrorViewModel { Message = $"Товар с id {item.Id} не найден." }); ; //TODO
-            //    }
-
+            //    OperationResult result;
             //    var itemDto = _mapper.Map<ProductDto>(item);
-            //    var result = await _shopManager.UpdateProductAsync(itemDto);
-
+            //    if (item.Id.Value == -1)
+            //    {//create
+            //        result = await _shopManager.UpdateProductAsync(itemDto);
+            //    }
+            //    else
+            //    {//edit
+            //        result = await _shopManager.UpdateProductAsync(itemDto);
+            //    }
+            //    var updated = await _shopManager.GetProductById(item.Id.Value, false, false, false); //get item with updated concurrency stamp
             //    if (result.Succeeded) // update successful
             //    {
             //        TempData["Message"] = "Изменения успешно сохранены";
-            //        return await GetViewItemView(item.Id, true);
+            //        return await GetViewItemView(updated.Id, true);
             //    }
-
-            //    dbItem = await _shopManager.GetProductById(item.Id, false, false, false); //get new item with updated concurrency stamp
-
             //    //add new errors
             //    foreach (var error in result.Errors)
             //    {
             //        ModelState.AddModelError(error.Code, error.Description);
             //        if (error.Code == nameof(OperationErrorDescriber.ConcurrencyFailure) || error.Code == nameof(OperationErrorDescriber.IncorrectImageFormat))
             //        {
-            //            item.Timestamp = dbItem.Timestamp; // to enable save after conc error or incomplete updates
+            //            item.Timestamp = updated?.Timestamp; // to enable save after conc error or incomplete updates
             //            ModelState.Remove("Timestamp"); // remove from the model state or HTML helpers will use the original value
             //        }
             //    }
@@ -292,8 +292,7 @@ namespace Website.Web.Controllers
         [Authorize(Policy = "EditItems")]
         public async Task<IActionResult> AddItem()
         {
-            await Task.CompletedTask;
-            return View();
+            return View("EditItem", new EditItemViewModel { CreateItem = true });
         }
 
         [HttpGet]
@@ -303,14 +302,14 @@ namespace Website.Web.Controllers
             return View();
         }
 
-        [HttpGet("Admin/Categories")]
+        [HttpGet]
         [Authorize(Policy = "ViewItems")]
         public IActionResult Categories()
         {
             return View();
         }
 
-        [HttpPost("Admin/EditCategories")]
+        [HttpPost]
         [Authorize(Policy = "EditItems")]
         public IActionResult EditCategories()
         {

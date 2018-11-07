@@ -1,23 +1,28 @@
+﻿// read client height and submit max items per page
+
 $("a.read-height").click(function () {
     var itemsPerPage = getItemCountFromHeight();
     var anchor = $(this);
     anchor.attr("href", anchor.attr("href") + "?&c=" + itemsPerPage);
-});
+}); //first load from anchors
 $("form#admin-search-form").submit(function () {
     var itemsPerPage = getItemCountFromHeight();
     $(this).append("<input type=\"hidden\" name=\"c\" value=\"" + itemsPerPage + "\"/>");
-});
-$("select.admin-selector").change(function () {
+}); //submit from search
+$("select.admin-selector").change(() => {
     var form = $("form#admin-search-form");
     form.submit();
-});
+}); //submit form from selector
 function getItemCountFromHeight() {
     if (window.innerWidth < 768)
         return 5;
-    var clientHeight = window.innerHeight;
-    var value = Math.round((clientHeight - 400) / 65);
+    const clientHeight = window.innerHeight;
+    const value = Math.round((clientHeight - 400) / 65);
     return value < 5 ? 5 : value;
 }
+
+// **** item edit ****
+
 $("div#admin-content").on("click", "img.admin-img-thumb", setImage);
 $("div#admin-content").on("click", "#image-primary-button", setPrimaryImage);
 $("div#admin-content").on("click", "#image-remove-button", setDeleteImage);
@@ -34,25 +39,29 @@ $("div#admin-content").on("click", ".remove-desc-group-item", removeDescGroupIte
 $("div#admin-content").on("click", ".edit-desc-group-item", editDescItem);
 $("div#admin-content").on("click", ".save-desc-group-item", saveEditDescItem);
 $("div#admin-content").on("click", ".cancel-desc-group-item", cancelEditDescItem);
+
 function validateAndSubmitJson() {
     var result = $("#edit-form").validate().valid();
     if (!result)
         return;
     var data = $("#edit-form").serializeArray();
     console.log(data);
-    var dataToJson = data.reduce(function (res, item) {
+    var dataToJson: any = data.reduce(function (res, item) {
         res[item.name] = item.value;
         return res;
     }, {});
     var csrftoken = $("input[name=\"__RequestVerificationToken\"").val().toString();
+
     dataToJson.price = dataToJson.price.replace(",", ".");
     dataToJson.images = getImagesData();
     dataToJson.categories = getCategoriesData();
     dataToJson.descriptions = getDescriptionsData();
+
     console.log(dataToJson);
     var json = JSON.stringify(dataToJson);
     console.log(json);
     console.log("sending json");
+
     $.ajax({
         type: "POST",
         url: "/Admin/EditItem",
@@ -71,12 +80,24 @@ function validateAndSubmitJson() {
             $("select.selectpicker").selectpicker("refresh");
         },
         error: function (jqXHR, textStatus, errorThrown) {
+            //debug
             document.open();
             document.write(jqXHR.responseText);
             document.close();
+
+            //release
+            //console.log("Error on ajax:", jqXHR, textStatus, errorThrown);
+            //var errorList = $("div.validation-summary-valid>ul>li")[0];
+            //errorList.removeAttribute("style");
+            //if (jqXHR.status === 400) {
+            //    errorList.innerText = jqXHR.responseText; 
+            //} else {
+            //    errorList.innerText = "Возникла ошибка при отправке запроса серверу.";
+            //}
         }
     });
 }
+
 function getImagesData() {
     var container = $("div#image-container");
     if (container.length === 0) {
@@ -93,12 +114,10 @@ function getImagesData() {
         if (e.hasClass("img-add")) {
             images[i].DtoState = "added";
             images[i].DataUrl = e.attr("src");
-        }
-        else {
+        } else {
             if (e.hasClass("img-delete")) {
                 images[i].DtoState = "deleted";
-            }
-            else {
+            } else {
                 images[i].DtoState = "unchanged";
             }
             images[i].Path = e.data("path");
@@ -107,7 +126,9 @@ function getImagesData() {
     });
     return images;
 }
+
 function getCategoriesData() {
+
     var cats = $(".category");
     if (cats.length === 0) {
         return null;
@@ -126,13 +147,13 @@ function getCategoriesData() {
         }
         else if (cat.hasClass("cat-delete")) {
             catData[i].DtoState = "deleted";
-        }
-        else {
+        } else {
             catData[i].DtoState = "unchanged";
         }
     }
     return catData;
 }
+
 function getDescriptionsData() {
     var data = [];
     var descGroups = $(".desc-group");
@@ -168,7 +189,8 @@ function getDescriptionsData() {
     });
     return data;
 }
-function generateImgId() {
+
+function generateImgId() { // random guid-like id //not used
     function s4() {
         return Math.floor((1 + Math.random()) * 0x10000)
             .toString(16)
@@ -176,9 +198,10 @@ function generateImgId() {
     }
     return s4() + s4() + "-" + s4() + "-" + s4() + "-" + s4() + "-" + s4() + s4() + s4();
 }
+
 function setPrimaryImage() {
     var thumbs = $("img.admin-img-thumb");
-    if (thumbs.length === 0) {
+    if (thumbs.length === 0) { //if no images to set return
         return;
     }
     var img = $("img#admin-image-view");
@@ -189,47 +212,45 @@ function setPrimaryImage() {
     thumb.addClass("img-primary").removeClass("img-delete");
     setImage(thumb);
 }
+
 function setDeleteImage() {
     var thumbs = $("img.admin-img-thumb");
-    if (thumbs.length === 0) {
+    if (thumbs.length === 0) { //if no images to delete return
         return;
     }
     var bigImage = $("img#admin-image-view");
     var id = bigImage.data("id");
     var thumbImage = $(".admin-img-thumb[data-id=" + id + "]");
-    if (thumbImage.hasClass("img-delete")) {
+    if (thumbImage.hasClass("img-delete")) { //on un-deleting: remove class
         thumbImage.removeClass("img-delete");
         bigImage.removeClass("img-delete");
-        if ($(".admin-img-thumb.img-primary").length === 0) {
+        if ($(".admin-img-thumb.img-primary").length === 0) { //set primary image if there are none present
             thumbImage.addClass("img-primary");
             bigImage.removeClass("img-primary");
         }
-    }
-    else {
+    } else { // on deleting: add class
         var removedAdded = thumbImage.hasClass("img-add");
-        if (removedAdded) {
+        if (removedAdded) { // remove html if image was just added
             thumbImage.remove();
             var thumbsLeft = $("img.admin-img-thumb");
-            if (thumbsLeft.length === 0) {
+            if (thumbsLeft.length === 0) { // if no images left, clear big image
                 $("img#admin-image-view").attr("src", "");
-            }
-            else {
+            } else {
                 setImage($(".img-primary"));
             }
-        }
-        else {
+        } else { // else just remove class
             thumbImage.addClass("img-delete");
             bigImage.addClass("img-delete");
         }
-        if (thumbImage.hasClass("img-primary")) {
+        if (thumbImage.hasClass("img-primary")) { // if we delete primary image set another image as such
             thumbImage.removeClass("img-primary");
             bigImage.removeClass("img-primary");
             var i = 0;
-            thumbs = $("img.admin-img-thumb");
+            thumbs = $("img.admin-img-thumb"); // get updated image list
             do {
                 thumbImage = $(thumbs[i++]);
             } while (thumbImage.hasClass("img-delete") && thumbs.length > i);
-            if (thumbImage.hasClass("img-delete")) {
+            if (thumbImage.hasClass("img-delete")) { // if all images are deleted return
                 if (removedAdded) {
                     setImage(thumbs.first());
                 }
@@ -242,34 +263,36 @@ function setDeleteImage() {
         }
     }
 }
+
 function setImage(e) {
     var img;
     if (e.target) {
         img = $(e.target);
-    }
-    else {
+    } else {
         img = $(e);
     }
     var newSrc = img.attr("src");
     var target = $("img#admin-image-view").first();
+    //set src
     if (img.attr("src").substring(0, 10) !== "data:image") {
         newSrc = img.data("path");
     }
     target.attr("src", newSrc);
     target.data("id", img.data("id"));
+    //set img-primary class
     if (img.hasClass("img-primary")) {
         target.addClass("img-primary");
-    }
-    else {
+    } else {
         target.removeClass("img-primary");
     }
+    //set img-delete class
     if (img.hasClass("img-delete")) {
         target.addClass("img-delete");
-    }
-    else {
+    } else {
         target.removeClass("img-delete");
     }
 }
+
 function loadCategoriesDropdown() {
     var loadingBar = $("<div>").attr("id", "cat-loading").addClass("text-center mt-1").text("Загрузка")
         .append($("<span>").addClass("fa fa-spinner fa-spin ml-2"));
@@ -282,11 +305,13 @@ function loadCategoriesDropdown() {
         },
         success: function (response) {
             response.forEach(function (item) {
-                $("#category-select").append($("<option>", {
-                    "value": item.id,
-                    "data-subtext": item.description,
-                    "text": item.name
-                }));
+                $("#category-select").append($("<option>",
+                    {
+                        "value": item.id,
+                        "data-subtext": item.description,
+                        "text": item.name
+                    }
+                ));
             });
             loadingBar.remove();
             $("#category-select").selectpicker("refresh");
@@ -296,6 +321,7 @@ function loadCategoriesDropdown() {
         }
     });
 }
+
 function addCategory() {
     var select = $("#category-select");
     var id = select.val() === "" ? -1 : select.val();
@@ -312,22 +338,23 @@ function addCategory() {
     var name = select.find("option:selected").text();
     var desc = select.find("option:selected").data().subtext;
     var nameSpan = $("<span>").addClass("category-name").text(name);
-    var descSpan = $("<span>").addClass("category-desc text-muted").text("(" + desc + ")");
+    var descSpan = $("<span>").addClass("category-desc text-muted").text(`(${desc})`);
     var buttonSpan = $("<span>").addClass("remove-cat btn-pushy btn btn-outline-danger fa fa-close");
     var category = $("<div>").addClass("category cat-add").data("id", id).append([nameSpan, descSpan, buttonSpan]);
     category.children().after(" ");
     $("#categories").append(category);
 }
+
 function removeCategory() {
     var catBtn = $(this);
     var parent = catBtn.parent();
     if (parent.hasClass("cat-add")) {
         parent.remove();
-    }
-    else {
+    } else {
         parent.addClass("d-none cat-delete");
     }
 }
+
 function loadDescGroupDropdown() {
     var loadingBar = $("<div>").attr("id", "desc-group-loading").addClass("text-center mt-1").text("Загрузка")
         .append($("<span>").addClass("fa fa-spinner fa-spin ml-2"));
@@ -340,11 +367,13 @@ function loadDescGroupDropdown() {
         },
         success: function (response) {
             response.forEach(function (item) {
-                $("#desc-group-select").append($("<option>", {
-                    "value": item.id,
-                    "data-subtext": item.description,
-                    "text": item.name
-                }));
+                $("#desc-group-select").append($("<option>",
+                    {
+                        "value": item.id,
+                        "data-subtext": item.description,
+                        "text": item.name
+                    }
+                ));
             });
             loadingBar.remove();
             $("#desc-group-select").selectpicker("refresh");
@@ -354,6 +383,7 @@ function loadDescGroupDropdown() {
         }
     });
 }
+
 function addDescGroup() {
     var select = $("#desc-group-select");
     var id = select.val() === "" ? -1 : select.val();
@@ -369,11 +399,12 @@ function addDescGroup() {
     }
     var name = select.find("option:selected").text();
     var desc = select.find("option:selected").data().subtext;
+
     var strVar = "";
-    strVar += "<div class=\"desc-group my-2 desc-group-add\" data-id=\"" + id + "\">";
+    strVar += `<div class="desc-group my-2 desc-group-add" data-id="${id}">`;
     strVar += ' <div>';
-    strVar += "  <span class=\"desc-group-name h6\">" + name + "</span>";
-    strVar += "  <span class=\"desc-group-desc text-muted\">(" + desc + ")</span>";
+    strVar += `  <span class="desc-group-name h6">${name}</span>`;
+    strVar += `  <span class="desc-group-desc text-muted">(${desc})</span>`;
     strVar += '  <span class="remove-desc-group btn-pushy btn btn-outline-danger btn-sm fa fa-close mb-1"></span>';
     strVar += '   <div>';
     strVar += '    <select id="desc-group-items-select" class="selectpicker" hidden data-live-search="true" data-live-search-normalize="true" data-live-search-style="contains"';
@@ -384,20 +415,21 @@ function addDescGroup() {
     strVar += ' <div class="desc-group-items">';
     strVar += ' </div>';
     strVar += '</div>';
-    var descGroup = $.parseHTML(strVar);
+    var descGroup: any = $.parseHTML(strVar);
     $("#desc-groups").append(descGroup);
     $(descGroup).find("#desc-group-items-select").selectpicker("refresh");
 }
+
 function removeDescGroup() {
     var btn = $(this);
     var container = btn.closest("div.desc-group");
     if (container.hasClass("desc-group-add")) {
         container.remove();
-    }
-    else {
+    } else {
         container.addClass("d-none desc-group-delete");
     }
 }
+
 function loadDescGroupItemsDropdown() {
     var loadingBar = $("<div>").attr("id", "desc-group-items-loading").addClass("text-center mt-1").text("Загрузка")
         .append($("<span>").addClass("fa fa-spinner fa-spin ml-2"));
@@ -412,10 +444,12 @@ function loadDescGroupItemsDropdown() {
         },
         success: function (response) {
             response.forEach(function (item) {
-                container.find("#desc-group-items-select").append($("<option>", {
-                    "value": item.id,
-                    "text": item.name
-                }));
+                container.find("#desc-group-items-select").append($("<option>",
+                    {
+                        "value": item.id,
+                        "text": item.name
+                    }
+                ));
             });
             loadingBar.remove();
             container.find("#desc-group-items-select").selectpicker("refresh");
@@ -425,6 +459,7 @@ function loadDescGroupItemsDropdown() {
         }
     });
 }
+
 function addDescGroupItem() {
     var container = $(this).closest(".desc-group");
     var select = container.find("#desc-group-items-select");
@@ -437,8 +472,7 @@ function addDescGroupItem() {
         }
         container.find("#desc-group-items-select+.dropdown-toggle").fadeIn(100).fadeOut(100).fadeIn(100).fadeOut(100)
             .fadeIn(100);
-    }
-    else {
+    } else {
         var name = select.find("option:selected").text();
         var value = "*не указано*";
         var strVar = "";
@@ -457,17 +491,19 @@ function addDescGroupItem() {
         var descItem = $.parseHTML(strVar);
         container.find(".desc-group-items").append(descItem);
     }
+    //sort ??
 }
+
 function removeDescGroupItem() {
     var btn = $(this);
     var container = btn.closest("div.desc-item");
     if (container.hasClass("desc-item-add")) {
         container.remove();
-    }
-    else {
+    } else {
         container.addClass("d-none desc-item-delete");
     }
 }
+
 function editDescItem() {
     var container = $(this).closest(".desc-item");
     var textToEdit = container.find(".desc-item-value").addClass("d-none").text();
@@ -475,6 +511,7 @@ function editDescItem() {
     container.find(".desc-item-save").removeClass("d-none");
     container.find(".desc-item-edit-delete").addClass("d-none").removeClass("d-inline-block");
 }
+
 function saveEditDescItem() {
     var container = $(this).closest(".desc-item").addClass("desc-item-modified");
     var textToSave = container.find(".desc-item-input").addClass("d-none").val();
@@ -482,6 +519,7 @@ function saveEditDescItem() {
     container.find(".desc-item-save").addClass("d-none");
     container.find(".desc-item-edit-delete").removeClass("d-none").addClass("d-inline-block");
 }
+
 function cancelEditDescItem() {
     var container = $(this).closest(".desc-item");
     container.find(".desc-item-input").addClass("d-none");
@@ -489,74 +527,83 @@ function cancelEditDescItem() {
     container.find(".desc-item-save").addClass("d-none");
     container.find(".desc-item-edit-delete").removeClass("d-none").addClass("d-inline-block");
 }
+
 function loadImagesFromInput() {
+    //Get count of selected files
     var countFiles = $(this)[0].files.length;
     var imageContainer = $("#image-container");
+    //image_holder.empty();
     if (typeof FileReader !== undefined) {
+        //loop for each file selected for uploaded.
         for (var i = 0; i < countFiles; i++) {
             var imgPath = $(this)[0].files[i].name;
             var extn = imgPath.substring(imgPath.lastIndexOf(".") + 1).toLowerCase();
             if (extn === "gif" || extn === "png" || extn === "jpg" || extn === "jpeg") {
                 var reader = new FileReader();
-                reader.onload = function (e) {
+                reader.onload = function (e: any) {
                     var imgClass = "admin-img-thumb img-add m-2 border";
                     var flag = $(".admin-img-thumb.img-primary").length === 0;
-                    if (flag) {
+                    if (flag) { //if no primary image present set this image as primary
                         imgClass = imgClass + " img-primary";
                     }
-                    $("<img />", {
-                        "class": imgClass,
-                        "click": setImage,
-                        "data-id": Math.floor(Math.random() * 10000000 + 10000000),
-                        "src": e.target.result
-                    }).appendTo(imageContainer);
+                    $("<img />",
+                        {
+                            "class": imgClass,
+                            "click": setImage,
+                            "data-id": Math.floor(Math.random() * 10000000 + 10000000), //getImgId() //need only unique int id
+                            "src": e.target.result
+                        }).appendTo(imageContainer);
                     if (flag) {
                         var img = $("img.admin-img-thumb.img-add");
-                        setImage(img);
+                        setImage(img); // set big image
                     }
                 };
                 imageContainer.show();
                 reader.readAsDataURL($(this)[0].files[i]);
             }
+            //else {
+            //    alert("Выберите изображения.");
+            //}
         }
-        this.form.reset();
-    }
-    else {
+        this.form.reset(); //reset this upload form to enable add same file(s)
+    } else {
         alert("Браузер не поддерживает загрузку картинок.");
     }
+
 }
+
+// **** user edit
+
 $("#role-selector").change(function () {
     if ($(this).val() === "admin") {
         $(".admin-options").removeClass("d-none");
-    }
-    else {
+    } else {
         $(".admin-options").addClass("d-none");
     }
 });
+
 $(".admin-options label").click(function () {
     var classes = this.className.split(" ");
     var action = classes[0];
     var group = classes[1];
     $("." + action + "." + group + ":checkbox").click();
 });
+
 $(".admin-options input:checkbox, .admin-options label").click(function () {
     var checkbox = $(this);
     var classes = checkbox.attr("class").split(" ");
     var action = classes[0];
     var group = classes[1];
+
     if (action === "delete" && checkbox.prop("checked") === true) {
-        $(".view." + group + ":checkbox").prop("checked", true).prop("disabled", true);
-        $(".edit." + group + ":checkbox").prop("checked", true).prop("disabled", true);
-    }
-    else if (action === "delete" && checkbox.prop("checked") === false) {
-        $(".view." + group + ":checkbox").prop("checked", false).prop("disabled", false);
-        $(".edit." + group + ":checkbox").prop("checked", false).prop("disabled", false);
-    }
-    else if (action === "edit" && checkbox.prop("checked") === true) {
-        $(".view." + group + ":checkbox").prop("checked", true).prop("disabled", true);
-    }
-    else if (action === "edit" && checkbox.prop("checked") === false) {
-        $(".view." + group + ":checkbox").prop("checked", false).prop("disabled", false);
+        $(`.view.${group}:checkbox`).prop("checked", true).prop("disabled", true);
+        $(`.edit.${group}:checkbox`).prop("checked", true).prop("disabled", true);
+    } else if (action === "delete" && checkbox.prop("checked") === false) {
+        $(`.view.${group}:checkbox`).prop("checked", false).prop("disabled", false);
+        $(`.edit.${group}:checkbox`).prop("checked", false).prop("disabled", false);
+    } else if (action === "edit" && checkbox.prop("checked") === true) {
+        $(`.view.${group}:checkbox`).prop("checked", true).prop("disabled", true);
+    } else if (action === "edit" && checkbox.prop("checked") === false) {
+        $(`.view.${group}:checkbox`).prop("checked", false).prop("disabled", false);
     }
 });
-//# sourceMappingURL=admin.js.map

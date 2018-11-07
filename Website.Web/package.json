@@ -9,6 +9,11 @@
     "jquery-validation": "1.17.0",
     "jquery-validation-unobtrusive": "3.2.10",
     "popper.js": "1.14.4",
-    "bootstrap-select": "1.13.3"
+    "bootstrap-select": "1.13.3",
+    "@types/jquery": "3.3.22",
+    "@types/jquery-validation-unobtrusive": "3.2.32",
+    "@types/bootstrap": "4.1.2",
+    "@types/bootstrap-select": "1.11.1",
+    "@types/popper.js": "1.11.0"
   }
 }

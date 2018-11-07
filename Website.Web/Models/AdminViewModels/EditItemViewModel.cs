@@ -8,15 +8,18 @@ namespace Website.Web.Models.AdminViewModels
     public class EditItemViewModel
     {
         [ScaffoldColumn(false)]
-        public int Id { get; set; }
-        [Display(Name = "Название")]
+        public int? Id { get; set; }
+        [Display(Name = "Наименование")]
+        [Required(ErrorMessage = "Необходимо ввести наименование товара.")]
         public string Name { get; set; }
         [Display(Name = "Описание")]
         public string Description { get; set; }
         [Display(Name = "Артикул")]
+        [Required(ErrorMessage = "Необходимо ввести артикул товара.")]
         public int Code { get; set; }
         [Display(Name = "Цена")]
         [Range(0, int.MaxValue, ErrorMessage = "Цена не может быть меньше нуля.")]
+        [Required(ErrorMessage = "Необходимо ввести цену товара.")]
         [DataType(DataType.Currency)]
         [RegularExpression("\\d+([,.])?\\d+", ErrorMessage = "Поле должно содержать цифры, разделенные запятой или точкой.")] // custom binder converts , -> .
         public decimal Price { get; set; }
@@ -35,6 +38,8 @@ namespace Website.Web.Models.AdminViewModels
         public DateTimeOffset Changed { get; set; }
         [ScaffoldColumn(false)]
         public byte[] Timestamp { get; set; }
+        [ScaffoldColumn(false)]
+        public bool CreateItem { get; set; }
 
         [ScaffoldColumn(false)]
         public List<CategoryDto> Categories { get; set; }
