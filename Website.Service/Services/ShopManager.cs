@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -47,35 +48,25 @@ namespace Website.Service.Services
             {
                 throw new ArgumentNullException(nameof(product));
             }
-
-            var prodResult = await _store.CreateProductAsync(product, CancellationToken);
-
-            if (!product.Categories.IsNullOrEmpty())
+            var validateModelResult = ValidateProductModel(product);
+            if (!validateModelResult.Succeeded)
             {
-                //TODO add prod to cat
-                //await _store.AddProductToCategoryAsync(product, category, CancellationToken);
+                return validateModelResult;
             }
-
-            var imageResult = OperationResult.Success();
             if (!product.Images.IsNullOrEmpty())
             {
-                //TODO 
-                //imageResult = await _store.SaveImagesAsync(product, CancellationToken)
+                var validateImagesResult = ValidateAndProcessImages(product.Images);
+                if (!validateImagesResult.Succeeded)
+                    return validateImagesResult;
+            }
+
+            var prodResult = await _store.CreateProductAsync(product, CancellationToken);
+            if (!prodResult.Succeeded)
+            {
+                return prodResult;
             }
 
             return OperationResult.Success();
-        }
-
-        public async Task<OperationResult> DeleteProductAsync(ProductDto product)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<ProductDto> GetProductById(int id, bool loadImages, bool loadDescriptions, bool loadCategories)
-        {
-            ThrowIfDisposed();
-            var product = await _store.FindProductByIdAsync(id, loadImages, loadDescriptions, loadCategories, CancellationToken);
-            return product;
         }
 
         public async Task<OperationResult> UpdateProductAsync(ProductDto product) //TODO refactor into smaller
@@ -85,30 +76,76 @@ namespace Website.Service.Services
             {
                 throw new ArgumentNullException(nameof(product));
             }
-
-            var prodResult = await _store.UpdateProductAsync(product, CancellationToken);
-            if (!prodResult.Succeeded)
-                return prodResult;
-
-            var catResult = OperationResult.Success();
-            if (!product.Categories.IsNullOrEmpty())
+            var validateModelResult = ValidateProductModel(product);
+            if (!validateModelResult.Succeeded)
             {
-                //TODO add prod to cat
-                //await _store.AddProductToCategoryAsync(product, category, CancellationToken);
+                return validateModelResult;
             }
-
             if (!product.Images.IsNullOrEmpty())
             {
                 var imageResult = ValidateAndProcessImages(product.Images);
                 if (!imageResult.Succeeded)
                     return imageResult;
-
-                imageResult = await _store.SaveImagesAsync(product, CancellationToken);
-                if (!imageResult.Succeeded)
-                    return imageResult;
             }
 
+            var prodResult = await _store.UpdateProductAsync(product, CancellationToken);
+            if (!prodResult.Succeeded)
+                return prodResult;
+
             return OperationResult.Success();
+        }
+
+        private OperationResult ValidateProductModel(ProductDto product)
+        {
+            if (!product.Id.HasValue)
+            {
+                return OperationResult.Failure(_errorDescriber.InvalidModel());
+            }
+            bool hasErrors = false;
+            foreach (var category in product.Categories)
+            {
+                if (category.Id <= 0)
+                {
+                    hasErrors = true;
+                    break;
+                }
+            }
+            if (!hasErrors)
+            {
+                foreach (var descItem in product.Descriptions.SelectMany(x => x.Items))
+                {
+                    if (!descItem.Id.HasValue)
+                    {
+                        hasErrors = true;
+                        break;
+                    }
+                }
+            }
+
+            if (hasErrors)
+            {
+                return OperationResult.Failure(_errorDescriber.InvalidModel());
+            }
+            return OperationResult.Success();
+        }
+
+        public async Task<OperationResult> DeleteProductAsync(ProductDto product)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<ProductDto> GetProductByIdAsync(int id, bool loadImages, bool loadDescriptions, bool loadCategories)
+        {
+            ThrowIfDisposed();
+            var product = await _store.FindProductByIdAsync(id, loadImages, loadDescriptions, loadCategories, CancellationToken);
+            return product;
+        }
+
+        public async Task<ProductDto> GetProductByNameAsync(string name, bool loadImages, bool loadDescriptions, bool loadCategories)
+        {
+            ThrowIfDisposed();
+            var product = await _store.FindProductByNameAsync(name, loadImages, loadDescriptions, loadCategories, CancellationToken);
+            return product;
         }
 
         private OperationResult ValidateAndProcessImages(List<ProductImageDto> productImages)
@@ -121,12 +158,12 @@ namespace Website.Service.Services
                     if (ASCIIEncoding.ASCII.GetByteCount(imageDto.DataUrl) > 5242880)
                     {
                         productImages.RemoveAt(count);
-                        return OperationResult.Failure(_errorDescriber.IncorrectImageFormat());
+                        return OperationResult.Failure(_errorDescriber.InvalidImageFormat());
                     }
 
                     var bitmap = GetBitmapFromDataUrl(imageDto.DataUrl);
                     if (bitmap == null)
-                        return OperationResult.Failure(_errorDescriber.IncorrectImageFormat());
+                        return OperationResult.Failure(_errorDescriber.InvalidImageFormat());
                     if (Math.Max(bitmap.Height, bitmap.Width) > 1000)
                         bitmap = StoreHelpers.ScaleImage(bitmap, 1000, 1000);
                     imageDto.Bitmap = bitmap;

@@ -1,16 +1,17 @@
+// read client height and submit max items per page
 $("a.read-height").click(function () {
     var itemsPerPage = getItemCountFromHeight();
     var anchor = $(this);
     anchor.attr("href", anchor.attr("href") + "?&c=" + itemsPerPage);
-});
+}); //first load from anchors
 $("form#admin-search-form").submit(function () {
     var itemsPerPage = getItemCountFromHeight();
     $(this).append("<input type=\"hidden\" name=\"c\" value=\"" + itemsPerPage + "\"/>");
-});
+}); //submit from search
 $("select.admin-selector").change(function () {
     var form = $("form#admin-search-form");
     form.submit();
-});
+}); //submit form from selector
 function getItemCountFromHeight() {
     if (window.innerWidth < 768)
         return 5;
@@ -18,6 +19,7 @@ function getItemCountFromHeight() {
     var value = Math.round((clientHeight - 400) / 65);
     return value < 5 ? 5 : value;
 }
+// **** item edit ****
 $("div#admin-content").on("click", "img.admin-img-thumb", setImage);
 $("div#admin-content").on("click", "#image-primary-button", setPrimaryImage);
 $("div#admin-content").on("click", "#image-remove-button", setDeleteImage);
@@ -39,20 +41,20 @@ function validateAndSubmitJson() {
     if (!result)
         return;
     var data = $("#edit-form").serializeArray();
-    console.log(data);
+    //console.log(data);
     var dataToJson = data.reduce(function (res, item) {
         res[item.name] = item.value;
         return res;
     }, {});
     var csrftoken = $("input[name=\"__RequestVerificationToken\"").val().toString();
-    dataToJson.price = dataToJson.price.replace(",", ".");
-    dataToJson.images = getImagesData();
-    dataToJson.categories = getCategoriesData();
-    dataToJson.descriptions = getDescriptionsData();
-    console.log(dataToJson);
+    dataToJson.Price = dataToJson.Price.replace(",", ".");
+    dataToJson.Images = getImagesData();
+    dataToJson.Categories = getCategoriesData();
+    dataToJson.Descriptions = getDescriptionsData();
+    //console.log(dataToJson);
     var json = JSON.stringify(dataToJson);
-    console.log(json);
-    console.log("sending json");
+    //console.log(json);
+    //console.log("sending json");
     $.ajax({
         type: "POST",
         url: "/Admin/EditItem",
@@ -71,9 +73,19 @@ function validateAndSubmitJson() {
             $("select.selectpicker").selectpicker("refresh");
         },
         error: function (jqXHR, textStatus, errorThrown) {
+            //debug
             document.open();
             document.write(jqXHR.responseText);
             document.close();
+            //release
+            //console.log("Error on ajax:", jqXHR, textStatus, errorThrown);
+            //var errorList = $("div.validation-summary-valid>ul>li")[0];
+            //errorList.removeAttribute("style");
+            //if (jqXHR.status === 400) {
+            //    errorList.innerText = jqXHR.responseText; 
+            //} else {
+            //    errorList.innerText = "Возникла ошибка при отправке запроса серверу.";
+            //}
         }
     });
 }
@@ -161,7 +173,7 @@ function getDescriptionsData() {
             else if (item.hasClass("desc-item-modified")) {
                 data[i].Items[x].DtoState = "modified";
             }
-            if (item.hasClass("desc-item-delete")) {
+            if (item.hasClass("desc-item-delete") || group.hasClass("desc-group-delete")) {
                 data[i].Items[x].DtoState = "deleted";
             }
         });
@@ -178,7 +190,7 @@ function generateImgId() {
 }
 function setPrimaryImage() {
     var thumbs = $("img.admin-img-thumb");
-    if (thumbs.length === 0) {
+    if (thumbs.length === 0) { //if no images to set return
         return;
     }
     var img = $("img#admin-image-view");
@@ -191,45 +203,45 @@ function setPrimaryImage() {
 }
 function setDeleteImage() {
     var thumbs = $("img.admin-img-thumb");
-    if (thumbs.length === 0) {
+    if (thumbs.length === 0) { //if no images to delete return
         return;
     }
     var bigImage = $("img#admin-image-view");
     var id = bigImage.data("id");
     var thumbImage = $(".admin-img-thumb[data-id=" + id + "]");
-    if (thumbImage.hasClass("img-delete")) {
+    if (thumbImage.hasClass("img-delete")) { //on un-deleting: remove class
         thumbImage.removeClass("img-delete");
         bigImage.removeClass("img-delete");
-        if ($(".admin-img-thumb.img-primary").length === 0) {
+        if ($(".admin-img-thumb.img-primary").length === 0) { //set primary image if there are none present
             thumbImage.addClass("img-primary");
             bigImage.removeClass("img-primary");
         }
     }
-    else {
+    else { // on deleting: add class
         var removedAdded = thumbImage.hasClass("img-add");
-        if (removedAdded) {
+        if (removedAdded) { // remove html if image was just added
             thumbImage.remove();
             var thumbsLeft = $("img.admin-img-thumb");
-            if (thumbsLeft.length === 0) {
+            if (thumbsLeft.length === 0) { // if no images left, clear big image
                 $("img#admin-image-view").attr("src", "");
             }
             else {
                 setImage($(".img-primary"));
             }
         }
-        else {
+        else { // else just remove class
             thumbImage.addClass("img-delete");
             bigImage.addClass("img-delete");
         }
-        if (thumbImage.hasClass("img-primary")) {
+        if (thumbImage.hasClass("img-primary")) { // if we delete primary image set another image as such
             thumbImage.removeClass("img-primary");
             bigImage.removeClass("img-primary");
             var i = 0;
-            thumbs = $("img.admin-img-thumb");
+            thumbs = $("img.admin-img-thumb"); // get updated image list
             do {
                 thumbImage = $(thumbs[i++]);
             } while (thumbImage.hasClass("img-delete") && thumbs.length > i);
-            if (thumbImage.hasClass("img-delete")) {
+            if (thumbImage.hasClass("img-delete")) { // if all images are deleted return
                 if (removedAdded) {
                     setImage(thumbs.first());
                 }
@@ -252,17 +264,20 @@ function setImage(e) {
     }
     var newSrc = img.attr("src");
     var target = $("img#admin-image-view").first();
+    //set src
     if (img.attr("src").substring(0, 10) !== "data:image") {
         newSrc = img.data("path");
     }
     target.attr("src", newSrc);
     target.data("id", img.data("id"));
+    //set img-primary class
     if (img.hasClass("img-primary")) {
         target.addClass("img-primary");
     }
     else {
         target.removeClass("img-primary");
     }
+    //set img-delete class
     if (img.hasClass("img-delete")) {
         target.addClass("img-delete");
     }
@@ -457,6 +472,7 @@ function addDescGroupItem() {
         var descItem = $.parseHTML(strVar);
         container.find(".desc-group-items").append(descItem);
     }
+    //sort ??
 }
 function removeDescGroupItem() {
     var btn = $(this);
@@ -490,9 +506,12 @@ function cancelEditDescItem() {
     container.find(".desc-item-edit-delete").removeClass("d-none").addClass("d-inline-block");
 }
 function loadImagesFromInput() {
+    //Get count of selected files
     var countFiles = $(this)[0].files.length;
     var imageContainer = $("#image-container");
+    //image_holder.empty();
     if (typeof FileReader !== undefined) {
+        //loop for each file selected for uploaded.
         for (var i = 0; i < countFiles; i++) {
             var imgPath = $(this)[0].files[i].name;
             var extn = imgPath.substring(imgPath.lastIndexOf(".") + 1).toLowerCase();
@@ -501,7 +520,7 @@ function loadImagesFromInput() {
                 reader.onload = function (e) {
                     var imgClass = "admin-img-thumb img-add m-2 border";
                     var flag = $(".admin-img-thumb.img-primary").length === 0;
-                    if (flag) {
+                    if (flag) { //if no primary image present set this image as primary
                         imgClass = imgClass + " img-primary";
                     }
                     $("<img />", {
@@ -512,19 +531,23 @@ function loadImagesFromInput() {
                     }).appendTo(imageContainer);
                     if (flag) {
                         var img = $("img.admin-img-thumb.img-add");
-                        setImage(img);
+                        setImage(img); // set big image
                     }
                 };
                 imageContainer.show();
                 reader.readAsDataURL($(this)[0].files[i]);
             }
+            //else {
+            //    alert("Выберите изображения.");
+            //}
         }
-        this.form.reset();
+        $(this).val(""); //reset this upload form to enable adding same file(s)
     }
     else {
         alert("Браузер не поддерживает загрузку картинок.");
     }
 }
+// **** user edit
 $("#role-selector").change(function () {
     if ($(this).val() === "admin") {
         $(".admin-options").removeClass("d-none");

@@ -1,22 +1,23 @@
 ﻿// read client height and submit max items per page
 
-$("a.read-height").click(function (event) {
+$("a.read-height").click(function () {
     var itemsPerPage = getItemCountFromHeight();
-    event.target.href = event.target.href + "?&c=" + itemsPerPage;
+    var anchor = $(this);
+    anchor.attr("href", anchor.attr("href") + "?&c=" + itemsPerPage);
 }); //first load from anchors
 $("form#admin-search-form").submit(function () {
     var itemsPerPage = getItemCountFromHeight();
     $(this).append("<input type=\"hidden\" name=\"c\" value=\"" + itemsPerPage + "\"/>");
 }); //submit from search
-$("select.admin-selector").change(function () {
+$("select.admin-selector").change(() => {
     var form = $("form#admin-search-form");
     form.submit();
 }); //submit form from selector
 function getItemCountFromHeight() {
     if (window.innerWidth < 768)
         return 5;
-    var clientHeight = window.innerHeight;
-    var value = Math.round((clientHeight - 400) / 65);
+    const clientHeight = window.innerHeight;
+    const value = Math.round((clientHeight - 400) / 65);
     return value < 5 ? 5 : value;
 }
 
@@ -44,24 +45,20 @@ function validateAndSubmitJson() {
     if (!result)
         return;
     var data = $("#edit-form").serializeArray();
-    console.log(data);
-    var dataToJson = data.reduce(function (res, item) {
+    //console.log(data);
+    var dataToJson: any = data.reduce(function (res, item) {
         res[item.name] = item.value;
         return res;
     }, {});
-    var csrftoken = dataToJson.__RequestVerificationToken;
-    delete dataToJson.__RequestVerificationToken;
-    dataToJson.Price = dataToJson.Price.replace(",", ".");
-
+    var csrftoken = $("input[name=\"__RequestVerificationToken\"").val().toString();
+    dataToJson.Price = (dataToJson.Price as string).replace(",", ".");
     dataToJson.Images = getImagesData();
     dataToJson.Categories = getCategoriesData();
     dataToJson.Descriptions = getDescriptionsData();
-
-    console.log(dataToJson);
+    //console.log(dataToJson);
     var json = JSON.stringify(dataToJson);
-    console.log(json);
-    console.log("sending json");
-
+    //console.log(json);
+    //console.log("sending json");
     $.ajax({
         type: "POST",
         url: "/Admin/EditItem",
@@ -105,25 +102,25 @@ function getImagesData() {
     }
     var images = [];
     var contImages = container.children();
-    for (var i = 0; i < contImages.length; i++) {
-        var e = contImages[i];
+    contImages.each(function (i, element) {
+        var e = $(element);
         images[i] = {
-            Id: e.dataset.id,
-            Primary: e.classList.contains("img-primary")
+            Id: e.data("id"),
+            Primary: e.hasClass("img-primary")
         };
-        if (e.classList.contains("img-add")) {
+        if (e.hasClass("img-add")) {
             images[i].DtoState = "added";
-            images[i].DataUrl = e.src;
+            images[i].DataUrl = e.attr("src");
         } else {
-            if (e.classList.contains("img-delete")) {
+            if (e.hasClass("img-delete")) {
                 images[i].DtoState = "deleted";
             } else {
                 images[i].DtoState = "unchanged";
             }
-            images[i].Path = e.dataset.path;
-            images[i].ThumbPath = e.getAttribute("src");
+            images[i].Path = e.data("path");
+            images[i].ThumbPath = e.attr("src");
         }
-    }
+    });
     return images;
 }
 
@@ -157,8 +154,8 @@ function getCategoriesData() {
 function getDescriptionsData() {
     var data = [];
     var descGroups = $(".desc-group");
-    descGroups.each(function (i, group) {
-        group = $(group);
+    descGroups.each(function (i, e) {
+        var group = $(e);
         data[i] = {
             Id: group.data("id"),
             Name: group.find(".desc-group-name").text(),
@@ -167,22 +164,22 @@ function getDescriptionsData() {
         };
         data[i].Description = data[i].Description.slice(1, data[i].Description.length - 1);
         var items = group.find(".desc-item");
-        items.each(function (x, item) {
-            item = $(item);
+        items.each(function (x, el) {
+            var item = $(el);
             data[i].Items[x] = {
                 Id: item.data("id"),
                 Name: item.find(".desc-item-name").text(),
                 DescriptionId: item.find(".desc-item-value").data("id"),
                 DescriptionValue: item.find(".desc-item-value").text(),
                 DtoState: "unchanged"
-        };
+            };
             if (item.hasClass("desc-item-add")) {
                 data[i].Items[x].DtoState = "added";
             }
             else if (item.hasClass("desc-item-modified")) {
                 data[i].Items[x].DtoState = "modified";
             }
-            if (item.hasClass("desc-item-delete")) {
+            if (item.hasClass("desc-item-delete") || group.hasClass("desc-group-delete")) {
                 data[i].Items[x].DtoState = "deleted";
             }
         });
@@ -294,13 +291,12 @@ function setImage(e) {
 }
 
 function loadCategoriesDropdown() {
-    var loadingBar;
+    var loadingBar = $("<div>").attr("id", "cat-loading").addClass("text-center mt-1").text("Загрузка")
+        .append($("<span>").addClass("fa fa-spinner fa-spin ml-2"));
     $.ajax({
         type: "GET",
         url: "/AdminApi/Categories",
         beforeSend: function (jqXHR) {
-            loadingBar = $("<div>", { id: "cat-loading", "class": "text-center mt-1", text: "Загрузка" })
-                .append($("<span>", { "class": "fa fa-spinner fa-spin ml-2" }));
             $(".bootstrap-select>.category-btn+.dropdown-menu>.inner")
                 .prepend(loadingBar);
         },
@@ -338,10 +334,10 @@ function addCategory() {
     }
     var name = select.find("option:selected").text();
     var desc = select.find("option:selected").data().subtext;
-    var nameSpan = $("<span>", { "class": "category-name", "text": name });
-    var descSpan = $("<span>", { "class": "category-desc text-muted", "text": "(" + desc + ")" });
-    var buttonSpan = $("<span>", { "class": "remove-cat btn-pushy btn btn-outline-danger fa fa-close" });
-    var category = $("<div>", { "class": "category cat-add", "data-id": id }).append([nameSpan, descSpan, buttonSpan]);
+    var nameSpan = $("<span>").addClass("category-name").text(name);
+    var descSpan = $("<span>").addClass("category-desc text-muted").text(`(${desc})`);
+    var buttonSpan = $("<span>").addClass("remove-cat btn-pushy btn btn-outline-danger fa fa-close");
+    var category = $("<div>").addClass("category cat-add").data("id", id).append([nameSpan, descSpan, buttonSpan]);
     category.children().after(" ");
     $("#categories").append(category);
 }
@@ -357,13 +353,12 @@ function removeCategory() {
 }
 
 function loadDescGroupDropdown() {
-    var loadingBar;
+    var loadingBar = $("<div>").attr("id", "desc-group-loading").addClass("text-center mt-1").text("Загрузка")
+        .append($("<span>").addClass("fa fa-spinner fa-spin ml-2"));
     $.ajax({
         type: "GET",
         url: "/AdminApi/DescriptionGroups",
         beforeSend: function (jqXHR) {
-            loadingBar = $("<div>", { id: "desc-group-loading", "class": "text-center mt-1", text: "Загрузка" })
-                .append($("<span>", { "class": "fa fa-spinner fa-spin ml-2" }));
             $(".bootstrap-select>.desc-group-btn+.dropdown-menu>.inner")
                 .prepend(loadingBar);
         },
@@ -403,21 +398,21 @@ function addDescGroup() {
     var desc = select.find("option:selected").data().subtext;
 
     var strVar = "";
-    strVar += "<div class=\"desc-group my-2 desc-group-add\" data-id=\"" + id + "\">";
-    strVar += " <div>";
-    strVar += "  <span class=\"desc-group-name h6\">" + name + "</span>";
-    strVar += "  <span class=\"desc-group-desc text-muted\">(" + desc + ")</span>";
-    strVar += "  <span class=\"remove-desc-group btn-pushy btn btn-outline-danger btn-sm fa fa-close mb-1\"></span>";
-    strVar += "   <div>";
-    strVar += "    <select id=\"desc-group-items-select\" class=\"selectpicker\" hidden data-live-search=\"true\" data-live-search-normalize=\"true\" data-live-search-style=\"contains\"";
-    strVar += "data-style=\"btn-outline-primary desc-group-items-btn p-1\" data-width=\"fit\" title=\"Добавить описание\" data-live-search-placeholder=\"Поиск\"></select>";
-    strVar += "    <span class=\"add-desc-group-item btn-pushy btn btn-outline-success fa fa-check\"></span>";
-    strVar += "   </div>";
-    strVar += " </div>";
-    strVar += " <div class=\"desc-group-items\">";
-    strVar += " </div>";
-    strVar += "</div>";
-    var descGroup = $.parseHTML(strVar);
+    strVar += `<div class="desc-group my-2 desc-group-add" data-id="${id}">`;
+    strVar += ' <div>';
+    strVar += `  <span class="desc-group-name h6">${name}</span>`;
+    strVar += `  <span class="desc-group-desc text-muted">(${desc})</span>`;
+    strVar += '  <span class="remove-desc-group btn-pushy btn btn-outline-danger btn-sm fa fa-close mb-1"></span>';
+    strVar += '   <div>';
+    strVar += '    <select id="desc-group-items-select" class="selectpicker" hidden data-live-search="true" data-live-search-normalize="true" data-live-search-style="contains"';
+    strVar += 'data-style="btn-outline-primary desc-group-items-btn p-1" data-width="fit" title="Добавить описание" data-live-search-placeholder="Поиск"></select>';
+    strVar += '    <span class="add-desc-group-item btn-pushy btn btn-outline-success fa fa-check"></span>';
+    strVar += '   </div>';
+    strVar += ' </div>';
+    strVar += ' <div class="desc-group-items">';
+    strVar += ' </div>';
+    strVar += '</div>';
+    var descGroup: any = $.parseHTML(strVar);
     $("#desc-groups").append(descGroup);
     $(descGroup).find("#desc-group-items-select").selectpicker("refresh");
 }
@@ -433,15 +428,14 @@ function removeDescGroup() {
 }
 
 function loadDescGroupItemsDropdown() {
-    var loadingBar;
+    var loadingBar = $("<div>").attr("id", "desc-group-items-loading").addClass("text-center mt-1").text("Загрузка")
+        .append($("<span>").addClass("fa fa-spinner fa-spin ml-2"));
     var container = $(this).closest(".desc-group");
     var id = container.data("id");
     $.ajax({
         type: "GET",
         url: "/AdminApi/DescriptionItems/" + id,
         beforeSend: function (jqXHR) {
-            loadingBar = $("<div>", { id: "desc-group-items-loading", "class": "text-center mt-1", text: "Загрузка" })
-                .append($("<span>", { "class": "fa fa-spinner fa-spin ml-2" }));
             container.find(".bootstrap-select>.desc-group-items-btn+.dropdown-menu>.inner")
                 .prepend(loadingBar);
         },
@@ -518,7 +512,7 @@ function editDescItem() {
 function saveEditDescItem() {
     var container = $(this).closest(".desc-item").addClass("desc-item-modified");
     var textToSave = container.find(".desc-item-input").addClass("d-none").val();
-    container.find(".desc-item-value").removeClass("d-none").text(textToSave);
+    container.find(".desc-item-value").removeClass("d-none").text(textToSave.toString());
     container.find(".desc-item-save").addClass("d-none");
     container.find(".desc-item-edit-delete").removeClass("d-none").addClass("d-inline-block");
 }
@@ -543,7 +537,7 @@ function loadImagesFromInput() {
             var extn = imgPath.substring(imgPath.lastIndexOf(".") + 1).toLowerCase();
             if (extn === "gif" || extn === "png" || extn === "jpg" || extn === "jpeg") {
                 var reader = new FileReader();
-                reader.onload = function (e) {
+                reader.onload = function (e: any) {
                     var imgClass = "admin-img-thumb img-add m-2 border";
                     var flag = $(".admin-img-thumb.img-primary").length === 0;
                     if (flag) { //if no primary image present set this image as primary
@@ -568,7 +562,7 @@ function loadImagesFromInput() {
             //    alert("Выберите изображения.");
             //}
         }
-        this.form.reset(); //reset this upload form to enable add same file(s)
+        $(this).val(""); //reset this upload form to enable adding same file(s)
     } else {
         alert("Браузер не поддерживает загрузку картинок.");
     }
@@ -593,19 +587,20 @@ $(".admin-options label").click(function () {
 });
 
 $(".admin-options input:checkbox, .admin-options label").click(function () {
-    var classes = this.className.split(" ");
+    var checkbox = $(this);
+    var classes = checkbox.attr("class").split(" ");
     var action = classes[0];
     var group = classes[1];
 
-    if (action === "delete" && this.checked === true) {
-        $("." + "view" + "." + group + ":checkbox").prop("checked", true).prop("disabled", true);
-        $("." + "edit" + "." + group + ":checkbox").prop("checked", true).prop("disabled", true);
-    } else if (action === "delete" && this.checked === false) {
-        $("." + "view" + "." + group + ":checkbox").prop("checked", false).prop("disabled", false);
-        $("." + "edit" + "." + group + ":checkbox").prop("checked", false).prop("disabled", false);
-    } else if (action === "edit" && this.checked === true) {
-        $("." + "view" + "." + group + ":checkbox").prop("checked", true).prop("disabled", true);
-    } else if (action === "edit" && this.checked === false) {
-        $("." + "view" + "." + group + ":checkbox").prop("checked", false).prop("disabled", false);
+    if (action === "delete" && checkbox.prop("checked") === true) {
+        $(`.view.${group}:checkbox`).prop("checked", true).prop("disabled", true);
+        $(`.edit.${group}:checkbox`).prop("checked", true).prop("disabled", true);
+    } else if (action === "delete" && checkbox.prop("checked") === false) {
+        $(`.view.${group}:checkbox`).prop("checked", false).prop("disabled", false);
+        $(`.edit.${group}:checkbox`).prop("checked", false).prop("disabled", false);
+    } else if (action === "edit" && checkbox.prop("checked") === true) {
+        $(`.view.${group}:checkbox`).prop("checked", true).prop("disabled", true);
+    } else if (action === "edit" && checkbox.prop("checked") === false) {
+        $(`.view.${group}:checkbox`).prop("checked", false).prop("disabled", false);
     }
 });

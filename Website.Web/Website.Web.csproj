@@ -13,9 +13,9 @@
   </PropertyGroup>
   <ItemGroup>
     <None Remove="run.cmd" />
-    <None Remove="Scripts\admin.ts" />
-    <None Remove="Scripts\site.ts" />
-    <None Remove="Scripts\validation.ts" />
+    <None Remove="Typescript\admin.ts" />
+    <None Remove="Typescript\site.ts" />
+    <None Remove="Typescript\validation.ts" />
   </ItemGroup>
 
 
@@ -41,14 +41,17 @@
 
 
   <ItemGroup>
-    <TypeScriptCompile Include="Scripts\admin.ts" />
-    <TypeScriptCompile Include="Scripts\site.ts" />
-    <TypeScriptCompile Include="Scripts\validation.ts" />
+    <TypeScriptCompile Include="Typescript\admin.ts" />
+    <TypeScriptCompile Include="Typescript\site.ts" />
+    <TypeScriptCompile Include="Typescript\validation.ts" />
   </ItemGroup>
 
 
   <ItemGroup>
     <Content Update="Views\Admin\DescriptionGroups.cshtml">
+      <Pack>$(IncludeRazorContentInPack)</Pack>
+    </Content>
+    <Content Update="Views\Admin\DeleteItem.cshtml">
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>
     <Content Update="Views\Test\Form.cshtml">

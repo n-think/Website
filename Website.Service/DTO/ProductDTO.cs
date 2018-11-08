@@ -12,7 +12,7 @@ namespace Website.Service.DTO
             Images = new List<ProductImageDto>();
             Descriptions = new List<DescriptionGroupDto>();
         }
-        public int Id { get; set; }
+        public int? Id { get; set; }
         [Display(Name = "Название")]
         public string Name { get; set; }
         [Display(Name = "Описание")]

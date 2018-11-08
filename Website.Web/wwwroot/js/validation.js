@@ -1,3 +1,9 @@
+// валидация
+// только запятая как десятичный разделитель
+//$.validator.methods.number = function (value, element) {
+//    return this.optional(element) || /^-?(?:\d+|\d{1,3}(?:\.\d{3})+)?(?:,\d+)?$/.test(value); 
+//}
+// и точка и запятая
 $.validator.methods.range = function (value, element, param) {
     var globalizedValue = value.replace(",", ".");
     return this.optional(element) || (globalizedValue >= param[0] && globalizedValue <= param[1]);
@@ -5,6 +11,7 @@ $.validator.methods.range = function (value, element, param) {
 $.validator.methods.number = function (value, element) {
     return this.optional(element) || /^-?(?:\d+|\d{1,3}(?:[\s\.,]\d{3})+)(?:[\.,]\d+)?$/.test(value);
 };
+/* bootstrap 4 compatibility classes */
 (function ($) {
     var defaultOptions = {
         validClass: 'is-valid',
@@ -21,6 +28,8 @@ $.validator.methods.number = function (value, element) {
         }
     };
     $.validator.setDefaults(defaultOptions);
+    //@ts-ignore
+    // ReSharper disable once TsResolvedFromInaccessibleModule
     $.validator.unobtrusive.options = {
         errorClass: defaultOptions.errorClass,
         validClass: defaultOptions.validClass,

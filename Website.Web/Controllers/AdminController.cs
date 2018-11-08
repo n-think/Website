@@ -8,6 +8,7 @@ using Castle.Core.Internal;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Website.Data.EF.Migrations;
 using Website.Service.DTO;
 using Website.Service.Enums;
 using Website.Service.Infrastructure;
@@ -212,22 +213,12 @@ namespace Website.Web.Controllers
         [Authorize(Policy = "ViewItems")]
         public async Task<IActionResult> ViewItem(int id)
         {
-            return await GetViewItemView(id);
-        }
-
-        private async Task<IActionResult> GetViewItemView(int id, bool partial = false)
-        {
-            var prod = await _shopManager.GetProductById(id, true, true, true);
+            var prod = await _shopManager.GetProductByIdAsync(id, true, true, true);
             if (prod == null)
             {
-                if (partial)
-                    return PartialView("Error", new ErrorViewModel { Message = $"Товар с id {id} не найден." });
                 return View("Error", new ErrorViewModel { Message = $"Товар с id {id} не найден." });
             }
             var viewModel = _mapper.Map<ItemViewModel>(prod);
-            viewModel.Descriptions = prod.Descriptions;
-            if (partial)
-                return PartialView("ViewItem", viewModel);
             return View("ViewItem", viewModel);
         }
 
@@ -235,7 +226,7 @@ namespace Website.Web.Controllers
         [Authorize(Policy = "EditItems")]
         public async Task<IActionResult> EditItem(int id)
         {
-            var prod = await _shopManager.GetProductById(id, true, true, true);
+            var prod = await _shopManager.GetProductByIdAsync(id, true, true, true);
             if (prod == null)
             {
                 return View("Error", new ErrorViewModel { Message = $"Товар с id {id} не найден." });
@@ -252,39 +243,44 @@ namespace Website.Web.Controllers
         [Authorize(Policy = "EditItems")]
         public async Task<IActionResult> EditItem([FromBody]EditItemViewModel item) //json input
         {
-            if (item?.Id == null || item.Timestamp == null)
+            if (item?.Id == null || item?.Name == null || item.Timestamp == null)
             {
                 return BadRequest("Введены некорректные данные.");
             }
-            //if (ModelState.IsValid)
-            //{
-            //    OperationResult result;
-            //    var itemDto = _mapper.Map<ProductDto>(item);
-            //    if (item.Id.Value == -1)
-            //    {//create
-            //        result = await _shopManager.UpdateProductAsync(itemDto);
-            //    }
-            //    else
-            //    {//edit
-            //        result = await _shopManager.UpdateProductAsync(itemDto);
-            //    }
-            //    var updated = await _shopManager.GetProductById(item.Id.Value, false, false, false); //get item with updated concurrency stamp
-            //    if (result.Succeeded) // update successful
-            //    {
-            //        TempData["Message"] = "Изменения успешно сохранены";
-            //        return await GetViewItemView(updated.Id, true);
-            //    }
-            //    //add new errors
-            //    foreach (var error in result.Errors)
-            //    {
-            //        ModelState.AddModelError(error.Code, error.Description);
-            //        if (error.Code == nameof(OperationErrorDescriber.ConcurrencyFailure) || error.Code == nameof(OperationErrorDescriber.IncorrectImageFormat))
-            //        {
-            //            item.Timestamp = updated?.Timestamp; // to enable save after conc error or incomplete updates
-            //            ModelState.Remove("Timestamp"); // remove from the model state or HTML helpers will use the original value
-            //        }
-            //    }
-            //}
+            if (ModelState.IsValid)
+            {
+                OperationResult result;
+                ProductDto updatedProductDto;
+
+                var itemDto = _mapper.Map<ProductDto>(item);
+                if (item.Id.Value == -1)
+                {
+                    result = await _shopManager.CreateProductAsync(itemDto);
+                    updatedProductDto = await _shopManager.GetProductByNameAsync(itemDto.Name, true, true, true);
+                }
+                else
+                {
+                    result = await _shopManager.UpdateProductAsync(itemDto);
+                    updatedProductDto = await _shopManager.GetProductByIdAsync(itemDto.Id.GetValueOrDefault(), true, true, true);
+                }
+                if (result.Succeeded)
+                {
+                    TempData["Message"] = "Изменения успешно сохранены";
+                    var itemViewModel = _mapper.Map<ItemViewModel>(updatedProductDto);
+                    return PartialView("ViewItem", itemViewModel);
+
+                }
+                //add new errors
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(error.Code, error.Description);
+                    if (error.Code == nameof(OperationErrorDescriber.ConcurrencyFailure) || error.Code == nameof(OperationErrorDescriber.InvalidImageFormat))
+                    {
+                        item.Timestamp = updatedProductDto?.Timestamp ?? item.Timestamp; ; // to enable save after conc error or incomplete updates
+                        ModelState.Remove("Timestamp"); // remove from the model state or HTML helpers will use the original value
+                    }
+                }
+            }
             return PartialView(item);
         }
 
@@ -293,6 +289,15 @@ namespace Website.Web.Controllers
         public async Task<IActionResult> AddItem()
         {
             return View("EditItem", new EditItemViewModel { CreateItem = true });
+        }
+
+        [HttpGet]
+        [ValidateAntiForgeryToken]
+        [Authorize(Policy = "EditItems")]
+        public async Task<IActionResult> DeleteItem(DeleteItemModel model)
+        {
+            //TODO validate antiforgery manually
+            return View(model);
         }
 
         [HttpGet]

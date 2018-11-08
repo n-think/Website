@@ -7,6 +7,12 @@
 <div class="mb-2">
     <span class="h2 d-inline-block">Просмотр товара</span>
     <a class="btn btn-outline-primary mx-2" asp-action="EditItem" asp-route-id="@Model.Id">Редактировать</a>
+    <form class="d-inline-block" asp-action="DeleteItem" asp-antiforgery="true" method="GET">
+        <input class="btn btn-danger mx-2" type="submit" value="Удалить" />
+        <input name="Name" value="@Model.Name" hidden />
+        <input name="Id" value="@Model.Id" hidden />
+    </form>
+
 </div>
 @if (!(TempData["Message"] as string).IsNullOrEmpty())
 {
@@ -33,13 +39,13 @@
         <div class="table-responsive">
             <table class="table table-striped border">
                 <thead>
-                <tr>
-                    <th scope="col">Параметр</th>
-                    <th scope="col">Значение</th>
-                </tr>
+                    <tr>
+                        <th scope="col">Параметр</th>
+                        <th scope="col">Значение</th>
+                    </tr>
                 </thead>
                 <tbody>
-                @Html.DisplayForModel("TableDataRowDisplay", new { htmlAttributes = new { @class = "admin-view" } })
+                    @Html.DisplayForModel("TableDataRowDisplay", new { htmlAttributes = new { @class = "admin-view" } })
                 </tbody>
             </table>
         </div>

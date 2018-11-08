@@ -146,6 +146,9 @@
 
 /* Responsive table ------end------ */
 
+.input-validation-error {
+    border-color: #dc3545;
+}
 /*Style pagination lists*/
 /* generates at runtime by pagelink tag-helper*/
 .users-pagination {

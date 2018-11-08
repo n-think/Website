@@ -33,12 +33,7 @@ namespace Website.Service.Interfaces
         Task<IEnumerable<CategoryDto>> GetAllCategories(CancellationToken cancellationToken);
         #endregion
 
-        #region images
-        Task<OperationResult> SaveImagesAsync(ProductDto product, CancellationToken cancellationToken);
-        #endregion
-
         #region Descriptions
-        Task<OperationResult> SaveDescriptionsAsync(ProductDto product, CancellationToken cancellationToken);
         Task<IEnumerable<DescriptionGroupDto>> GetDescriptionGroupsAsync(CancellationToken cancellationToken);
         Task<IEnumerable<DescriptionItemDto>> GetDescriptionItemsAsync(int id, CancellationToken cancellationToken);
         #endregion

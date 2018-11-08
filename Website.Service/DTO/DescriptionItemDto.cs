@@ -4,7 +4,7 @@ namespace Website.Service.DTO
 {
     public class DescriptionItemDto
     {
-        public int Id { get; set; }
+        public int? Id { get; set; }
         public string Name { get; set; }
         public int? DescriptionGroupId { get; set; }
         //public int? ProductId { get; set; }

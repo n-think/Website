@@ -11,6 +11,15 @@
             };
         }
 
+        public virtual OperationError InvalidModel()
+        {
+            return new OperationError()
+            {
+                Code = nameof(InvalidModel),
+                Description = $"Получены некорректные данные."
+            };
+        }
+
         public virtual OperationError ConcurrencyFailure()
         {
             return new OperationError
@@ -29,12 +38,12 @@
             };
         }
 
-        public virtual OperationError IncorrectImageFormat()
+        public virtual OperationError InvalidImageFormat()
         {
             return new OperationError
             {
-                Code = nameof(IncorrectImageFormat),
-                Description = $"Изменения изображений не сохранены. Некорректные одно или несколько изображений. Допустимые форматы: jpg, gif, png, tiff, bmp. Размер не более ~3 МБ"
+                Code = nameof(InvalidImageFormat),
+                Description = $"Изменения не сохранены. Некорректные одно или несколько изображений. Допустимые форматы: jpg, gif, png, tiff, bmp. Размер не более ~3 МБ"
             };
         }
 
@@ -43,7 +52,7 @@
             return new OperationError
             {
                 Code = nameof(DiskIOError),
-                Description = $"Возникла ошибка при сохранении изображений."
+                Description = $"Возникла ошибка при сохранении изображений на диск."
             };
         }
     }
