@@ -5,6 +5,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
 using Castle.Core.Internal;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -27,13 +28,12 @@ namespace Website.Web.Controllers
         private readonly IUserManager _userManager;
         private readonly RoleManager _roleManager;
         private readonly IMapper _mapper;
-        private readonly IdentityErrorDescriber _errorDescriber;
         private readonly SignInManager _signInManager;
         private readonly IShopManager _shopManager;
 
-        public AdminController(IUserManager userManager, IShopManager shopManager, RoleManager roleManager, SignInManager signInManager, IMapper mapper, IdentityErrorDescriber describer = null)
+        public AdminController(IUserManager userManager, IShopManager shopManager, RoleManager roleManager, SignInManager signInManager,
+            IMapper mapper, IAntiforgery antiForgery)
         {
-            _errorDescriber = describer ?? new IdentityErrorDescriber();
             _userManager = userManager;
             _roleManager = roleManager;
             _signInManager = signInManager;
@@ -100,7 +100,6 @@ namespace Website.Web.Controllers
         [Authorize(Policy = "EditUsers")]
         public async Task<IActionResult> EditUser(Guid id)
         {
-            //TODO get ViewUser EditUser на 90% одинаковые
             var user = await _userManager.FindByIdAsync(id.ToString());
             if (user == null)
             {
@@ -115,36 +114,35 @@ namespace Website.Web.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Policy = "EditUsers")]
-        public async Task<IActionResult> EditUser(EditUserViewModel user)
+        public async Task<IActionResult> EditUser(EditUserViewModel editModel)
         {
-            if (user == null || user.Id == null || user.ConcurrencyStamp == null)
+            if (editModel?.Id == null || editModel.ConcurrencyStamp == null)
             {
                 return RedirectToAction("Users");
             }
 
             if (ModelState.IsValid)
             {
-                var dtoUser = await _userManager.FindByIdAsync(user.Id);
+                var dtoUser = await _userManager.FindByIdAsync(editModel.Id);
                 if (dtoUser == null)
                 {
-                    return View("Error", new ErrorViewModel { Message = $"Пользователь с id {user.Id} не найден." });
+                    return View("Error", new ErrorViewModel { Message = $"Пользователь с id {editModel.Id} не найден." });
                 }
                 var dbConcStamp = dtoUser.ConcurrencyStamp;
-                _mapper.Map(user, dtoUser);
+                _mapper.Map(editModel, dtoUser);
 
                 var newClaims = new List<Claim>();
-                if (!user.NewClaims.IsNullOrEmpty() && user?.Role == "admin")
+                if (!editModel.NewClaims.IsNullOrEmpty() && editModel.Role == "admin")
                 {
-                    newClaims = user.NewClaims.Select(x => new Claim(x, "")).ToList();
+                    newClaims = editModel.NewClaims.Select(x => new Claim(x, "")).ToList();
                 }
-                if (!user.Role.IsNullOrEmpty())
+                if (!editModel.Role.IsNullOrEmpty())
                 {
-                    newClaims.Add(new Claim(ClaimTypes.Role, user.Role));
+                    newClaims.Add(new Claim(ClaimTypes.Role, editModel.Role));
                 }
                 //try update
-                var result = await _userManager.UpdateUserPasswordClaims(dtoUser, user.Password, newClaims);
-
-                if (result.Succeeded) // update successful
+                var result = await _userManager.UpdateUserPasswordClaims(dtoUser, editModel.Password, newClaims);
+                if (result.Succeeded)
                 {
                     if (HttpContext.User.Claims.First(x => x.Type == ClaimTypes.NameIdentifier).Value == dtoUser.Id)
                     {
@@ -155,21 +153,20 @@ namespace Website.Web.Controllers
                         await _userManager.UpdateSecurityStampAsync(dtoUser);
                     }
                     TempData["Message"] = "Изменения успешно сохранены";
-                    return RedirectToAction("ViewUser", new { id = user.Id });
+                    return RedirectToAction("ViewUser", new { id = editModel.Id });
                 }
-
                 //add new errors
                 foreach (var identityError in result.Errors)
                 {
                     ModelState.AddModelError(identityError.Code, identityError.Description);
                     if (identityError.Code == "ConcurrencyFailure")
                     {
-                        user.ConcurrencyStamp = dbConcStamp; // to enable save after concurrency error
+                        editModel.ConcurrencyStamp = dbConcStamp; // to enable save after concurrency error
                         ModelState.Remove("ConcurrencyStamp"); // remove from the model state or HTML helpers will use the original value
                     }
                 }
             }
-            return View(user);
+            return View(editModel);
         }
 
         [HttpGet]
@@ -190,7 +187,7 @@ namespace Website.Web.Controllers
             var countPerPage = pageCount == null || pageCount <= 0 ? 15 : pageCount.Value;
 
             SortPageResult<ProductDto> result = await _shopManager.GetSortFilterPageAsync(types, search, sortOrder, currPage, countPerPage);
-            //TODO categories filter List<CategoryDTO> allCategories = await _shopManager.GetAllCategoriesAsync();
+            //TODO categories filter // List<CategoryDTO> allCategories = await _shopManager.GetAllCategoriesAsync();
             ViewBag.itemCount = result.TotalN;
 
             var model = new ItemsViewModel()
@@ -286,18 +283,43 @@ namespace Website.Web.Controllers
 
         [HttpGet]
         [Authorize(Policy = "EditItems")]
-        public async Task<IActionResult> AddItem()
+        public IActionResult AddItem()
         {
             return View("EditItem", new EditItemViewModel { CreateItem = true });
         }
 
         [HttpGet]
+        [Authorize(Policy = "EditItems")]
+        public IActionResult DeleteItem(DeleteItemModel model, string deleteToken) //token = 1 use token
+        {
+            if (model?.Id == null || deleteToken == null || deleteToken != TempData["DeleteToken"]?.ToString())
+            {
+                return BadRequest();
+            }
+            return View(model);
+        }
+
+        [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Policy = "EditItems")]
-        public async Task<IActionResult> DeleteItem(DeleteItemModel model)
+        public async Task<IActionResult> DeleteItemConfirm(int? id, string token) //token = 1 use token
         {
-            //TODO validate antiforgery manually
-            return View(model);
+            if (id == null || token == null || token != TempData["DeleteToken"]?.ToString())
+            {
+                return BadRequest();
+            }
+            var itemToDelete = await _shopManager.GetProductByIdAsync(id.Value);
+            if (itemToDelete == null)
+            {
+                ViewData["message"] = "Товар с таким ID не найден или уже удален.";
+            }
+            var result = await _shopManager.DeleteProductAsync(itemToDelete);
+            if (!result.Succeeded)
+            {
+                ViewData["message"] = result.Errors?.FirstOrDefault()?.ToString();
+            }
+            ViewData["message"] = "Товар успешно удален.";
+            return View();
         }
 
         [HttpGet]

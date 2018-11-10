@@ -55,5 +55,21 @@
                 Description = $"Возникла ошибка при сохранении изображений на диск."
             };
         }
+        public virtual OperationError CannotDeleteActiveProduct()
+        {
+            return new OperationError
+            {
+                Code = nameof(CannotDeleteActiveProduct),
+                Description = $"Нельзя удалить активный товар из магазина."
+            };
+        }
+        public virtual OperationError ErrorDeletingProduct()
+        {
+            return new OperationError
+            {
+                Code = nameof(ErrorDeletingProduct),
+                Description = $"Возникла ошибка при удалении товара."
+            };
+        }
     }
 }

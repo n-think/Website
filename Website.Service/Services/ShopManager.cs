@@ -97,7 +97,7 @@ namespace Website.Service.Services
 
         private OperationResult ValidateProductModel(ProductDto product)
         {
-            if (!product.Id.HasValue)
+            if (!product.Id.HasValue || product.Name.IsNullOrEmpty())
             {
                 return OperationResult.Failure(_errorDescriber.InvalidModel());
             }
@@ -112,6 +112,12 @@ namespace Website.Service.Services
             }
             if (!hasErrors)
             {
+                foreach (var group in product.Descriptions)
+                {
+                    if (!group.Id.HasValue || group.Id < 0)
+                        hasErrors = true;
+                    break;
+                }
                 foreach (var descItem in product.Descriptions.SelectMany(x => x.Items))
                 {
                     if (!descItem.Id.HasValue)
@@ -131,7 +137,20 @@ namespace Website.Service.Services
 
         public async Task<OperationResult> DeleteProductAsync(ProductDto product)
         {
-            throw new NotImplementedException();
+            ThrowIfDisposed();
+            if (product?.Id == null)
+                throw new ArgumentException(nameof(product));
+
+            if (product.Available)
+            {
+                return OperationResult.Failure(_errorDescriber.CannotDeleteActiveProduct());
+            }
+            var result = await _store.DeleteProductAsync(product, CancellationToken);
+            if (!result.Succeeded)
+            {
+                return OperationResult.Failure(_errorDescriber.ErrorDeletingProduct());
+            }
+            return OperationResult.Success();
         }
 
         public async Task<ProductDto> GetProductByIdAsync(int id, bool loadImages, bool loadDescriptions, bool loadCategories)

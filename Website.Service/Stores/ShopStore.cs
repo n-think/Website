@@ -40,10 +40,10 @@ namespace Website.Service.Stores
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public DbContext Context { get; private set; }
-        public OperationErrorDescriber ErrorDescriber { get; set; }
+        private DbContext Context { get; set; }
+        private OperationErrorDescriber ErrorDescriber { get; set; }
 
-        private static object _lock = new Object();
+        private static readonly object _lock = new Object();
         private bool _disposed;
         private readonly IMapper _mapper;
         private readonly ILogger<ShopStore> _logger;
@@ -271,13 +271,24 @@ namespace Website.Service.Stores
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
 
-            var entry = await ProductsSet.FindAsync(new[] { product.Id }, cancellationToken);
+            var entry = await ProductsSet.FindAsync(new object[] { product.Id }, cancellationToken);
+
             if (entry != null)
             {
+                await Context.Entry(entry).Collection(x => x.Images).LoadAsync(cancellationToken);
                 ProductsSet.Remove(entry);
                 try
                 {
                     await SaveChanges(cancellationToken);
+                    var imagesToDelete = new ImagesToDisk();
+                    foreach (var productImage in entry.Images)
+                    {
+                        var imagePath = $"/{productImage.Path}/{productImage.Name}.{productImage.Format}";
+                        var imageThumbPath = $"/{productImage.Path}/{productImage.ThumbName}.{productImage.Format}";
+                        var item = (imagePath, imageThumbPath);
+                        imagesToDelete.ImagesAndThumbsToDelete.Add(item);
+                    }
+                    ProcessImagesOnDisk(imagesToDelete);
                 }
                 catch (DbUpdateException)
                 {
@@ -394,7 +405,7 @@ namespace Website.Service.Stores
             foreach (var category in categories)
             {
                 var prodToCat = new ProductToCategory() { ProductId = productId, CategoryId = category.Id };
-                var product = await ProductsSet.FindAsync( new object[] {productId}, cancellationToken);
+                var product = await ProductsSet.FindAsync(new object[] { productId }, cancellationToken);
                 switch (category.DtoState)
                 {
                     case DtoState.Added:
@@ -441,11 +452,11 @@ namespace Website.Service.Stores
                 {
                     case DtoState.Added:
                         {
-                            var fileFormat = ImagesSaveFormat.ToString().ToLower();
-                            GetImageAvailableFileName(productId, fileFormat, out string imageName, out string imageThumbName, imagesToDisk.ImagesToSave);
-                            imagesToDisk.ImagesToSave.Add(imageName, image.Bitmap);
-                            dbImage.Name = imageName;
-                            dbImage.ThumbName = imageThumbName;
+                            var fileFormat = ImagesSaveFormat.ToLower();
+                            var imageNames = GetAvailableImageFileName(productId, imagesToDisk.ImagesToSave);
+                            imagesToDisk.ImagesToSave.Add(imageNames.Item1, image.Bitmap);
+                            dbImage.Name = imageNames.Item1;
+                            dbImage.ThumbName = imageNames.Item2;
                             dbImage.Format = fileFormat;
                             ImagesSet.Add(dbImage);
                             break;
@@ -476,20 +487,20 @@ namespace Website.Service.Stores
             return imagesToDisk;
         }
 
-        private void GetImageAvailableFileName(int productId, string fileFormat, out string imageName, out string imageThumbName,
-            Dictionary<string, Bitmap> pendingAdditions)
+        private (string, string) GetAvailableImageFileName(int productId, Dictionary<string, Bitmap> pendingAdditions)
         {
             var path = Path.Combine(_hostingEnvironment.WebRootPath, ImagesSavePath);
             int counter = 0;
-            string imagePath;
+            string imageName;
+            string imageThumbName;
             var files = Directory.GetFiles(path, productId + "_*");
+            files = files.Select(Path.GetFileNameWithoutExtension).ToArray();
             do
             {
                 imageName = $"{productId}_{++counter}";
-                imagePath = $"{path}\\{imageName}.{fileFormat}";
-            } while (files.Contains(imagePath) || pendingAdditions.ContainsKey(imageName));
-
-            imageThumbName = $"{productId}_{counter}_s";
+                imageThumbName = $"{productId}_{counter}_s";
+            } while (files.Contains(imageName) || files.Contains(imageThumbName) || pendingAdditions.ContainsKey(imageName));
+            return (imageName, imageThumbName);
         }
 
         private void ProcessImagesOnDisk(ImagesToDisk images)
@@ -508,7 +519,15 @@ namespace Website.Service.Stores
                 Bitmap thumbImage = StoreHelpers.ScaleImage(bitmap, 150, 150);
 
                 var encoder = ImageCodecInfo.GetImageEncoders().First(c => c.FormatID == ImageFormat.Jpeg.Guid);
-                var encParams = new EncoderParameters() { Param = new[] { new EncoderParameter(Encoder.Quality, 70L) } };
+                var encParams = new EncoderParameters()
+                {
+                    Param = new[]
+                {
+                    new EncoderParameter(Encoder.Quality, 70L),
+                    new EncoderParameter(Encoder.ScanMethod, (long)EncoderValue.RenderProgressive),
+                }
+                };
+
                 bitmap.Save(imagePath, encoder, encParams);
                 thumbImage.Save(imageThumbPath, encoder, encParams);
             }
@@ -640,6 +659,12 @@ namespace Website.Service.Stores
             if (descs.IsNullOrEmpty())
                 return null;
 
+            descs.ForEach(x =>
+            {
+                if (x.DescriptionGroupItem.DescriptionGroup == null)
+                    x.DescriptionGroupItem.DescriptionGroup = new DescriptionGroup() { Id = -1, Name = "*группа удалена*" };
+            });
+
             var descGroups = descs //get flattened description groups from description nav property
                 .Select(x => x.DescriptionGroupItem.DescriptionGroup)
                 .GroupBy(x => x.Id)
@@ -656,14 +681,20 @@ namespace Website.Service.Stores
 
             var descItems = descs //convert descriptions to dto items
                 .OrderBy(x => x.DescriptionGroupItem.Name) //ordering
-                .Select(x => new DescriptionItemDto()
+                .Select(x =>
                 {
-                    Id = x.DescriptionGroupItem.Id,
-                    Name = x.DescriptionGroupItem.Name,
-                    DescriptionGroupId = x.DescriptionGroupItem.DescriptionGroup.Id,
-                    //ProductId = productId,
-                    DescriptionId = x.Id,
-                    DescriptionValue = x.Value
+                    var dto = new DescriptionItemDto()
+                    {
+                        Id = x.DescriptionGroupItem.Id,
+                        Name = x.DescriptionGroupItem.Name,
+                        DescriptionGroupId = x.DescriptionGroupItem.DescriptionGroup.Id,
+                        DescriptionId = x.Id,
+                        DescriptionValue = x.Value
+                    };
+                    if (x.DescriptionGroupItem.DescriptionGroup.Name == "*группа удалена*" ||
+                        x.DescriptionGroupItem.DescriptionGroup.Id == -1)
+                        dto.Id = null;
+                    return dto;
                 })
                 .ToList();
 

@@ -48,6 +48,9 @@
 
 
   <ItemGroup>
+    <Content Update="Views\Admin\DeleteItemConfirm.cshtml">
+      <Pack>$(IncludeRazorContentInPack)</Pack>
+    </Content>
     <Content Update="Views\Admin\DescriptionGroups.cshtml">
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>

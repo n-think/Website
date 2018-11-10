@@ -1,18 +1,19 @@
 ﻿
 @{
     ViewData["Title"] = "Просмотр товара";
+    TempData["DeleteToken"] = Guid.NewGuid();
 }
 @using Castle.Core.Internal
 @model ItemViewModel
 <div class="mb-2">
     <span class="h2 d-inline-block">Просмотр товара</span>
     <a class="btn btn-outline-primary mx-2" asp-action="EditItem" asp-route-id="@Model.Id">Редактировать</a>
-    <form class="d-inline-block" asp-action="DeleteItem" asp-antiforgery="true" method="GET">
-        <input class="btn btn-danger mx-2" type="submit" value="Удалить" />
+    <form class="d-inline-block" asp-action="DeleteItem" method="get">
+        <input class="btn btn-outline-danger mr-2" type="submit" value="Удалить" />
         <input name="Name" value="@Model.Name" hidden />
         <input name="Id" value="@Model.Id" hidden />
+        <input name="DeleteToken" value="@TempData.Peek("DeleteToken")" hidden />
     </form>
-
 </div>
 @if (!(TempData["Message"] as string).IsNullOrEmpty())
 {

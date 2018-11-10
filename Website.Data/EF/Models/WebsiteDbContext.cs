@@ -45,9 +45,6 @@ namespace Website.Data.EF.Models
             modelBuilder.Entity<ProductImage>(entity =>
             {
                 entity.Property(e => e.Format).HasMaxLength(10);
-                //entity.HasIndex(e => new {e.ProductId, e.Primary})
-                //    .HasFilter("[Primary] = 1 AND [ProductId] IS NOT Null")
-                //    .IsUnique();
                 entity.HasIndex(e => e.Name).IsUnique();
                 entity.HasIndex(e => e.ThumbName).IsUnique();
             });
@@ -80,7 +77,7 @@ namespace Website.Data.EF.Models
                 entity.HasOne(d => d.Product)
                     .WithMany(p => p.Descriptions)
                     .HasForeignKey(d => d.ProductId)
-                    .OnDelete(DeleteBehavior.SetNull)
+                    .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("FK_Descriptions_Products");
             });
 
@@ -96,7 +93,7 @@ namespace Website.Data.EF.Models
                 entity.HasMany(e => e.Images)
                     .WithOne(e => e.Product)
                     .HasForeignKey(e => e.ProductId)
-                    .OnDelete(DeleteBehavior.SetNull);
+                    .OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasIndex(e => e.Code)
                     .IsUnique();
