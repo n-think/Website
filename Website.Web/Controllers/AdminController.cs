@@ -294,7 +294,7 @@ namespace Website.Web.Controllers
         {
             if (model?.Id == null || deleteToken == null || deleteToken != TempData["DeleteToken"]?.ToString())
             {
-                return BadRequest();
+                return View("Error", new ErrorViewModel { Message = $"Переход на страницу удаления товара возможен только после его просмотра." });
             }
             return View(model);
         }
@@ -306,7 +306,7 @@ namespace Website.Web.Controllers
         {
             if (id == null || token == null || token != TempData["DeleteToken"]?.ToString())
             {
-                return BadRequest();
+                return View("Error", new ErrorViewModel { Message = $"Получены некорректные данные." });
             }
             var itemToDelete = await _shopManager.GetProductByIdAsync(id.Value);
             if (itemToDelete == null)
@@ -316,9 +316,12 @@ namespace Website.Web.Controllers
             var result = await _shopManager.DeleteProductAsync(itemToDelete);
             if (!result.Succeeded)
             {
-                ViewData["message"] = result.Errors?.FirstOrDefault()?.ToString();
+                ViewData["message"] = result.Errors?.FirstOrDefault()?.Description;
             }
-            ViewData["message"] = "Товар успешно удален.";
+            else
+            {
+                ViewData["message"] = "Товар успешно удален.";
+            }
             return View();
         }
 
@@ -331,9 +334,10 @@ namespace Website.Web.Controllers
 
         [HttpGet]
         [Authorize(Policy = "ViewItems")]
-        public IActionResult Categories()
+        public async Task<IActionResult> Categories()
         {
-            return View();
+            var cats = await _shopManager.GetAllCategoriesAsync(true);
+            return View(cats.ToTree());
         }
 
         [HttpPost]

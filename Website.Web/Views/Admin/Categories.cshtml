@@ -3,5 +3,106 @@
     ViewData["Title"] = "Категории";
     ViewData.AddActivePage(AdminNavPages.Categories);
 }
+@using Microsoft.AspNetCore.Html
+@model IEnumerable<CategoryDtoTreeItem>
 
 <h2>Категории</h2>
+<div class="row">
+    <div class="col-lg-6 view">
+        <div class="tree">
+            @GetTreeList(Model)
+        </div>
+    </div>
+    <div class="col-lg-6 create">
+        <form class="">
+            <input class="form-control m-2" value="123" />
+            <input class="form-control m-2" value="321" />
+        </form>
+    </div>
+</div>
+@section Scripts{ 
+    <script>
+        $(document).ready(function() {
+            $(".category-expander").on("click",
+                function () {
+                    $(this)
+                        .toggleClass('fa-minus')
+                        .toggleClass('fa-plus');
+                });
+        })
+    </script>
+}
+<style>
+    .list-group.list-group-root .list-group-item {
+        border-radius: 0;
+    }
+
+    .list-group.list-group-root > .list-group > .list-group > .list-group-item {
+        padding-left: 30px;
+    }
+
+    .list-group.list-group-root > .list-group > .list-group > .list-group > .list-group > .list-group-item {
+        padding-left: 45px;
+    }
+
+    .list-group.list-group-root > .list-group > .list-group > .list-group > .list-group > .list-group > .list-group > .list-group-item {
+        padding-left: 60px;
+    }
+</style>
+
+@functions
+{
+    bool _firstCall = true;
+    private IHtmlContent GetTreeList(IEnumerable<CategoryDtoTreeItem> categories)
+    {
+        var ul = new TagBuilder("ul");
+        if (_firstCall)
+        {
+            ul.AddCssClass("list-group list-group-root");
+            _firstCall = false;
+        }
+        else
+        {
+            ul.AddCssClass("list-group");
+        }
+
+        foreach (var category in categories)
+        {
+            var divExpanderWithName = new TagBuilder("div");
+
+            divExpanderWithName.AddCssClass("list-group-item list-group-item-action");
+
+
+
+            var name = new TagBuilder("span");
+            name.AddCssClass("mx-2");
+            name.InnerHtml.Append(category.Name);
+            var count = new TagBuilder("span");
+            count.InnerHtml.Append("Продуктов: " + category.ProductCount.GetValueOrDefault().ToString());
+            count.AddCssClass("badge badge-primary badge-pill");
+            var icon = new TagBuilder("span");
+            icon.AddCssClass("fa fa-minus category-expander");
+            icon.Attributes.Add("href", "#category-" + category.Id);
+            icon.Attributes.Add("data-toggle", "collapse");
+            if (!category.Children.Any())
+            {
+                icon.Attributes.Add("style", "visibility: hidden");
+            }
+            divExpanderWithName.InnerHtml.AppendHtml(icon);
+            divExpanderWithName.InnerHtml.AppendHtml(name);
+            divExpanderWithName.InnerHtml.AppendHtml(count);
+
+            var li = new TagBuilder("li");
+            var innerList = GetTreeList(category.Children);
+
+            li.InnerHtml.AppendHtml(innerList);
+            li.Attributes.Add("id", "category-" + category.Id);
+            li.Attributes.Add("data-id", category.Id.ToString());
+            li.AddCssClass("list-group collapse show");
+
+            ul.InnerHtml.AppendHtml(divExpanderWithName);
+            ul.InnerHtml.AppendHtml(li);
+        }
+        return ul;
+    }
+}

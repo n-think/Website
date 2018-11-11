@@ -30,7 +30,7 @@ namespace Website.Service.Interfaces
         Task<TDtoCategory> FindCategoryByNameAsync(string categoryName, CancellationToken cancellationToken);
         Task<OperationResult> UpdateCategoryAsync(TDtoCategory category, CancellationToken cancellationToken);
         Task<OperationResult> DeleteCategoryAsync(TDtoCategory category, CancellationToken cancellationToken);
-        Task<IEnumerable<CategoryDto>> GetAllCategories(CancellationToken cancellationToken);
+        Task<IEnumerable<CategoryDto>> GetAllCategories(bool getProductCount, CancellationToken cancellationToken);
         #endregion
 
         #region Descriptions

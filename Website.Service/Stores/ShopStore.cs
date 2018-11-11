@@ -387,11 +387,23 @@ namespace Website.Service.Stores
             return OperationResult.Success();
         }
 
-        public async Task<IEnumerable<CategoryDto>> GetAllCategories(CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IEnumerable<CategoryDto>> GetAllCategories(bool getProductCount,
+            CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
-
+            if (getProductCount)
+            { //TODO auto resolve map
+                return await CategoriesSet.Select(x=> new CategoryDto
+                {
+                    Description = x.Description,
+                    Id = x.Id,
+                    Name = x.Name,
+                    ParentId = x.ParentId,
+                    ProductCount = x.ProductCategory.Count(),
+                    Timestamp = x.Timestamp
+                }).ToListAsync(cancellationToken);
+            }
             return await CategoriesSet.ProjectTo<CategoryDto>(_mapper.ConfigurationProvider).ToListAsync(cancellationToken);
         }
 

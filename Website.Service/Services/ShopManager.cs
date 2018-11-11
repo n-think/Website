@@ -242,10 +242,10 @@ namespace Website.Service.Services
             return result;
         }
 
-        public async Task<IEnumerable<CategoryDto>> GetAllCategoriesAsync()
+        public async Task<IEnumerable<CategoryDto>> GetAllCategoriesAsync(bool getProductCount = false)
         {
             ThrowIfDisposed();
-            return await _store.GetAllCategories(CancellationToken);
+            return await _store.GetAllCategories(getProductCount, CancellationToken);
         }
 
         public async Task<IEnumerable<DescriptionGroupDto>> GetDescriptionGroupsAsync()

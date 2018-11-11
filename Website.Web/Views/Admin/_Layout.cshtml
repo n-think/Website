@@ -4,11 +4,13 @@
 @section Css {
     <environment include="Development">
         <link rel="stylesheet" href="~/lib/bootstrap-select/bootstrap-select.css" />
+        <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true"/>
     </environment>
     <environment exclude="Development">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.3/css/bootstrap-select.min.css"
               integrity="sha256-q+3CS1i6GuPNz/JQk7dapdWXvii85xf7vecZx2QqsFI="
               crossorigin="anonymous" />
+        <link rel="stylesheet" href="~/css/admin.min.css" asp-append-version="true" />
     </environment>
 }
 

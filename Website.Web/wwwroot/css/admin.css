@@ -1,0 +1,81 @@
+﻿/*Style pagination lists*/
+/* generates at runtime by pagelink tag-helper*/
+.users-pagination {
+    padding: 1rem;
+    margin: 0;
+}
+
+/* big checkboxes in admin view/edit pages*/
+input.form-control.admin-edit[type="checkbox"] {
+    width: 2.375rem !important;
+}
+
+.admin-view > input[type="checkbox"] {
+    width: 1.1em !important;
+    height: 1.1em !important;
+}
+
+/* admin edit user*/
+
+.admin-options .claims-label {
+    font-weight: bold;
+    margin-top: 0.3em;
+    margin-bottom: 0.3em;
+}
+
+/* admin edit item*/
+
+.admin-img-box {
+    height: 25rem;
+    width: 100%;
+    display: inline-block;
+    position: relative;
+}
+
+#admin-image-view {
+    max-height: 100%;
+    max-width: 100%;
+    width: auto;
+    height: auto;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
+}
+
+.admin-img-thumb {
+    cursor: pointer;
+    max-width: 9rem;
+    max-height: 8rem;
+    margin: 0.2em;
+}
+
+.admin-img-thumb:hover {
+    -webkit-transform: scale(1.2);
+    -moz-transform: scale(1.2);
+    -o-transform: scale(1.2);
+    transform: scale(1.2);
+    transition: all 0.2s;
+    -webkit-transition: all 0.2s;
+}
+
+
+.btn-pushy:active {
+    -webkit-transform: scale(0.9);
+    -moz-transform: scale(0.9);
+    -o-transform: scale(0.9);
+    transform: scale(0.9);
+    transition: all 0s;
+    -webkit-transition: all 0s;
+}
+
+
+img.img-primary {
+    outline: 0.4em double green;
+}
+
+img.img-delete {
+    outline: 0.4em double red;
+}
