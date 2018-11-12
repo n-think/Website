@@ -11,12 +11,13 @@ using Website.Service.Interfaces;
 namespace Website.Web.Controllers
 {
     [ApiController]
-    [Route("[controller]/[action]")]
-    public class AdminApiController : ControllerBase
+    [Authorize(Policy = "Administrators")]
+    [Route("api/admin/[action]")]
+    public class ApiAdminController : ControllerBase
     {
         private IShopManager _shopManager;
 
-        public AdminApiController(IShopManager sManager)
+        public ApiAdminController(IShopManager sManager)
         {
             _shopManager = sManager;
         }
@@ -25,7 +26,13 @@ namespace Website.Web.Controllers
         [Authorize(Policy = "ViewItems")]
         public async Task<IActionResult> Categories()
         {
-            var categories = await _shopManager.GetAllCategoriesAsync();
+            var categories = (await _shopManager.GetAllCategoriesAsync())
+                .Select(x=> new
+                {
+                    x.Id,
+                    x.Name,
+                    x.Description
+                });
             return Ok(categories);
         }
 

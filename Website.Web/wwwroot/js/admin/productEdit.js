@@ -1,25 +1,3 @@
-// read client height and submit max items per page
-$("a.read-height").click(function () {
-    var itemsPerPage = getItemCountFromHeight();
-    var anchor = $(this);
-    anchor.attr("href", anchor.attr("href") + "?&c=" + itemsPerPage);
-}); //first load from anchors
-$("form#admin-search-form").submit(function () {
-    var itemsPerPage = getItemCountFromHeight();
-    $(this).append("<input type=\"hidden\" name=\"c\" value=\"" + itemsPerPage + "\"/>");
-}); //submit from search
-$("select.admin-selector").change(function () {
-    var form = $("form#admin-search-form");
-    form.submit();
-}); //submit form from selector
-function getItemCountFromHeight() {
-    if (window.innerWidth < 768)
-        return 5;
-    var clientHeight = window.innerHeight;
-    var value = Math.round((clientHeight - 400) / 65);
-    return value < 5 ? 5 : value;
-}
-// **** item edit ****
 $("div#admin-content").on("click", "img.admin-img-thumb", setImage);
 $("div#admin-content").on("click", "#image-primary-button", setPrimaryImage);
 $("div#admin-content").on("click", "#image-remove-button", setDeleteImage);
@@ -57,7 +35,7 @@ function validateAndSubmitJson() {
     //console.log("sending json");
     $.ajax({
         type: "POST",
-        url: "/Admin/EditItem",
+        url: "/admin/editItem",
         headers: {
             RequestVerificationToken: csrftoken,
             "Content-Type": "application/json"
@@ -74,11 +52,11 @@ function validateAndSubmitJson() {
         },
         error: function (jqXHR, textStatus, errorThrown) {
             //debug
+            console.log("Error on ajax:", jqXHR, textStatus, errorThrown);
             document.open();
             document.write(jqXHR.responseText);
             document.close();
             //release
-            //console.log("Error on ajax:", jqXHR, textStatus, errorThrown);
             //var errorList = $("div.validation-summary-valid>ul>li")[0];
             //errorList.removeAttribute("style");
             //if (jqXHR.status === 400) {
@@ -290,7 +268,7 @@ function loadCategoriesDropdown() {
         .append($("<span>").addClass("fa fa-spinner fa-spin ml-2"));
     $.ajax({
         type: "GET",
-        url: "/AdminApi/Categories",
+        url: "/api/admin/Categories",
         beforeSend: function (jqXHR) {
             $(".bootstrap-select>.category-btn+.dropdown-menu>.inner")
                 .prepend(loadingBar);
@@ -348,7 +326,7 @@ function loadDescGroupDropdown() {
         .append($("<span>").addClass("fa fa-spinner fa-spin ml-2"));
     $.ajax({
         type: "GET",
-        url: "/AdminApi/DescriptionGroups",
+        url: "/api/admin/DescriptionGroups",
         beforeSend: function (jqXHR) {
             $(".bootstrap-select>.desc-group-btn+.dropdown-menu>.inner")
                 .prepend(loadingBar);
@@ -385,20 +363,20 @@ function addDescGroup() {
     var name = select.find("option:selected").text();
     var desc = select.find("option:selected").data().subtext;
     var strVar = "";
-    strVar += "<div class=\"desc-group my-2 desc-group-add\" data-id=\"" + id + "\">";
-    strVar += ' <div>';
+    strVar += '<div class="desc-group my-2 desc-group-add" data-id="${id}">';
+    strVar += " <div>";
     strVar += "  <span class=\"desc-group-name h6\">" + name + "</span>";
     strVar += "  <span class=\"desc-group-desc text-muted\">(" + desc + ")</span>";
-    strVar += '  <span class="remove-desc-group btn-pushy btn btn-outline-danger btn-sm fa fa-close mb-1"></span>';
-    strVar += '   <div>';
-    strVar += '    <select id="desc-group-items-select" class="selectpicker" hidden data-live-search="true" data-live-search-normalize="true" data-live-search-style="contains"';
-    strVar += 'data-style="btn-outline-primary desc-group-items-btn p-1" data-width="fit" title="Добавить описание" data-live-search-placeholder="Поиск"></select>';
-    strVar += '    <span class="add-desc-group-item btn-pushy btn btn-outline-success fa fa-check"></span>';
-    strVar += '   </div>';
-    strVar += ' </div>';
-    strVar += ' <div class="desc-group-items">';
-    strVar += ' </div>';
-    strVar += '</div>';
+    strVar += "  <span class=\"remove-desc-group btn-pushy btn btn-outline-danger btn-sm fa fa-close mb-1\"></span>";
+    strVar += "   <div>";
+    strVar += "    <select id=\"desc-group-items-select\" class=\"selectpicker\" hidden data-live-search=\"true\" data-live-search-normalize=\"true\" data-live-search-style=\"contains\"";
+    strVar += "data-style=\"btn-outline-primary desc-group-items-btn p-1\" data-width=\"fit\" title=\"\u0414\u043E\u0431\u0430\u0432\u0438\u0442\u044C \u043E\u043F\u0438\u0441\u0430\u043D\u0438\u0435\" data-live-search-placeholder=\"\u041F\u043E\u0438\u0441\u043A\"></select>";
+    strVar += "    <span class=\"add-desc-group-item btn-pushy btn btn-outline-success fa fa-check\"></span>";
+    strVar += "   </div>";
+    strVar += " </div>";
+    strVar += " <div class=\"desc-group-items\">";
+    strVar += " </div>";
+    strVar += "</div>";
     var descGroup = $.parseHTML(strVar);
     $("#desc-groups").append(descGroup);
     $(descGroup).find("#desc-group-items-select").selectpicker("refresh");
@@ -420,7 +398,7 @@ function loadDescGroupItemsDropdown() {
     var id = container.data("id");
     $.ajax({
         type: "GET",
-        url: "/AdminApi/DescriptionItems/" + id,
+        url: "/api/admin/DescriptionItems/" + id,
         beforeSend: function (jqXHR) {
             container.find(".bootstrap-select>.desc-group-items-btn+.dropdown-menu>.inner")
                 .prepend(loadingBar);
@@ -458,7 +436,7 @@ function addDescGroupItem() {
         var value = "*не указано*";
         var strVar = "";
         strVar += "<div class=\"desc-item desc-item-add\" data-id=\"" + id + "\">";
-        strVar += " <span class=\"desc-item-name\">" + name + "<\/span> : <span class=\"desc-item-value\">" + value + "</span>";
+        strVar += " <span class=\"desc-item-name\">" + name + "</span> : <span class=\"desc-item-value\">" + value + "</span>";
         strVar += " <textarea rows=\"3\" class=\"form-control d-none desc-item-input\"></textarea>";
         strVar += " <div class=\"desc-item-save d-none\">";
         strVar += "  <span class=\"btn btn-sm btn-pushy btn-outline-success fa fa-check save-desc-group-item\"></span>";
@@ -547,39 +525,4 @@ function loadImagesFromInput() {
         alert("Браузер не поддерживает загрузку картинок.");
     }
 }
-// **** user edit
-$("#role-selector").change(function () {
-    if ($(this).val() === "admin") {
-        $(".admin-options").removeClass("d-none");
-    }
-    else {
-        $(".admin-options").addClass("d-none");
-    }
-});
-$(".admin-options label").click(function () {
-    var classes = this.className.split(" ");
-    var action = classes[0];
-    var group = classes[1];
-    $("." + action + "." + group + ":checkbox").click();
-});
-$(".admin-options input:checkbox, .admin-options label").click(function () {
-    var checkbox = $(this);
-    var classes = checkbox.attr("class").split(" ");
-    var action = classes[0];
-    var group = classes[1];
-    if (action === "delete" && checkbox.prop("checked") === true) {
-        $(".view." + group + ":checkbox").prop("checked", true).prop("disabled", true);
-        $(".edit." + group + ":checkbox").prop("checked", true).prop("disabled", true);
-    }
-    else if (action === "delete" && checkbox.prop("checked") === false) {
-        $(".view." + group + ":checkbox").prop("checked", false).prop("disabled", false);
-        $(".edit." + group + ":checkbox").prop("checked", false).prop("disabled", false);
-    }
-    else if (action === "edit" && checkbox.prop("checked") === true) {
-        $(".view." + group + ":checkbox").prop("checked", true).prop("disabled", true);
-    }
-    else if (action === "edit" && checkbox.prop("checked") === false) {
-        $(".view." + group + ":checkbox").prop("checked", false).prop("disabled", false);
-    }
-});
-//# sourceMappingURL=admin.js.map
+//# sourceMappingURL=productEdit.js.map

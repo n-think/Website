@@ -1,4 +1,5 @@
 Website.Web/wwwroot/js/*.min.js
+Website.Web/wwwroot/js/admin/*.min.js
 Website.Web/wwwroot/css/*.min.css
 
 ## Ignore Visual Studio temporary files, build results, and

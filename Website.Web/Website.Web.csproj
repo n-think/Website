@@ -14,8 +14,10 @@
   <ItemGroup>
     <None Remove="run.cmd" />
     <None Remove="Typescript\admin.ts" />
+    <None Remove="Typescript\admin\categories.ts" />
+    <None Remove="Typescript\admin\productEdit.ts" />
+    <None Remove="Typescript\admin\userEdit.ts" />
     <None Remove="Typescript\site.ts" />
-    <None Remove="Typescript\validation.ts" />
   </ItemGroup>
 
 
@@ -41,7 +43,10 @@
 
 
   <ItemGroup>
-    <TypeScriptCompile Include="Typescript\admin.ts" />
+    <TypeScriptCompile Include="Typescript\admin\admin.ts" />
+    <TypeScriptCompile Include="Typescript\admin\categories.ts" />
+    <TypeScriptCompile Include="Typescript\admin\productEdit.ts" />
+    <TypeScriptCompile Include="Typescript\admin\userEdit.ts" />
     <TypeScriptCompile Include="Typescript\site.ts" />
     <TypeScriptCompile Include="Typescript\validation.ts" />
   </ItemGroup>

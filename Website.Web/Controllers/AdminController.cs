@@ -238,7 +238,7 @@ namespace Website.Web.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Policy = "EditItems")]
-        public async Task<IActionResult> EditItem([FromBody]EditItemViewModel item) //json input
+        public async Task<IActionResult> EditItem([FromBody]EditItemViewModel item) //json input //TODO move to api?
         {
             if (item?.Id == null || item?.Name == null || item.Timestamp == null)
             {

@@ -29,16 +29,50 @@
     "sourceMap": false
   },
   {
-    "outputFileName": "wwwroot/js/admin.min.js",
+    "outputFileName": "wwwroot/js/admin/admin.min.js",
     "inputFiles": [
-      "wwwroot/js/admin.js"
+      "wwwroot/js/admin/admin.js"
     ],
-    // Optionally specify minification options
     "minify": {
       "enabled": true,
       "renameLocals": true
     },
-    // Optionally generate .map file
+    "sourceMap": false
+  },
+  {
+    "outputFileName": "wwwroot/js/admin/categories.min.js",
+    "inputFiles": [
+      "wwwroot/js/admin/categories.js"
+    ],
+
+    "minify": {
+      "enabled": true,
+      "renameLocals": true
+    },
+    "sourceMap": false
+  },
+  {
+    "outputFileName": "wwwroot/js/admin/productEdit.min.js",
+    "inputFiles": [
+      "wwwroot/js/admin/productEdit.js"
+    ],
+
+    "minify": {
+      "enabled": true,
+      "renameLocals": true
+    },
+    "sourceMap": false
+  },
+  {
+    "outputFileName": "wwwroot/js/admin/userEdit.min.js",
+    "inputFiles": [
+      "wwwroot/js/admin/userEdit.js"
+    ],
+
+    "minify": {
+      "enabled": true,
+      "renameLocals": true
+    },
     "sourceMap": false
   },
   {
@@ -46,14 +80,15 @@
     "inputFiles": [
       "wwwroot/js/validation.js"
     ],
-    // Optionally specify minification options
+
     "minify": {
       "enabled": true,
       "renameLocals": true
     },
-    // Optionally generate .map file
     "sourceMap": false
   },
+
+  //lib
   //jquery-validation localization
   {
     "outputFileName": "wwwroot/lib/jquery-validation/messages_ru.js",
