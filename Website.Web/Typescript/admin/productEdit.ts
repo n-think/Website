@@ -374,19 +374,19 @@ function addDescGroup() {
     var desc = select.find("option:selected").data().subtext;
 
     var strVar = "";
-    strVar += '<div class="desc-group my-2 desc-group-add" data-id="${id}">';
-    strVar += " <div>";
-    strVar += `  <span class="desc-group-name h6">${name}</span>`;
-    strVar += `  <span class="desc-group-desc text-muted">(${desc})</span>`;
-    strVar += `  <span class="remove-desc-group btn-pushy btn btn-outline-danger btn-sm fa fa-close mb-1"></span>`;
-    strVar += "   <div>";
-    strVar += `    <select id="desc-group-items-select" class="selectpicker" hidden data-live-search="true" data-live-search-normalize="true" data-live-search-style="contains"`;
+    strVar += `<div class="desc-group my-2 desc-group-add" data-id="${id}">`;
+    strVar += "<div>";
+    strVar += `<span class="desc-group-name h6">${name}</span>`;
+    strVar += `<span class="desc-group-desc text-muted">(${desc})</span>`;
+    strVar += `<span class="remove-desc-group btn-pushy btn btn-outline-danger btn-sm fa fa-close mb-1"></span>`;
+    strVar += "<div>";
+    strVar += `<select id="desc-group-items-select" class="selectpicker" hidden data-live-search="true" data-live-search-normalize="true" data-live-search-style="contains"`;
     strVar += `data-style="btn-outline-primary desc-group-items-btn p-1" data-width="fit" title="Добавить описание" data-live-search-placeholder="Поиск"></select>`;
-    strVar += `    <span class="add-desc-group-item btn-pushy btn btn-outline-success fa fa-check"></span>`;
-    strVar += "   </div>";
-    strVar += " </div>";
-    strVar += ` <div class="desc-group-items">`;
-    strVar += " </div>";
+    strVar += `<span class="add-desc-group-item btn-pushy btn btn-outline-success fa fa-check"></span>`;
+    strVar += "</div>";
+    strVar += "</div>";
+    strVar += `<div class="desc-group-items">`;
+    strVar += "</div>";
     strVar += "</div>";
     var descGroup: any = $.parseHTML(strVar);
     $("#desc-groups").append(descGroup);
@@ -410,7 +410,7 @@ function loadDescGroupItemsDropdown() {
     var id = container.data("id");
     $.ajax({
         type: "GET",
-        url: "/api/admin/DescriptionItems/" + id,
+        url: `/api/admin/DescriptionItems/${id}`,
         beforeSend: function (jqXHR) {
             container.find(".bootstrap-select>.desc-group-items-btn+.dropdown-menu>.inner")
                 .prepend(loadingBar);
@@ -450,16 +450,16 @@ function addDescGroupItem() {
         var value = "*не указано*";
         var strVar = "";
         strVar += `<div class="desc-item desc-item-add" data-id="${id}">`;
-        strVar += ` <span class="desc-item-name">${name}<\/span> : <span class="desc-item-value">${value}</span>`;
-        strVar += ` <textarea rows="3" class="form-control d-none desc-item-input"></textarea>`;
-        strVar += ` <div class="desc-item-save d-none">`;
-        strVar += `  <span class="btn btn-sm btn-pushy btn-outline-success fa fa-check save-desc-group-item"></span>`;
-        strVar += `  <span class="btn btn-sm btn-pushy btn-outline-danger fa fa-undo cancel-desc-group-item"></span>`;
-        strVar += " </div>";
-        strVar += ` <div class="desc-item-edit-delete d-inline-block">`;
-        strVar += `  <span class="btn btn-sm btn-pushy btn-outline-primary fa fa-edit edit-desc-group-item"></span>`;
-        strVar += `  <span class="btn btn-sm btn-pushy btn-outline-danger fa fa-close remove-desc-group-item"></span>`;
-        strVar += " </div>";
+        strVar += `<span class="desc-item-name">${name}<\/span> : <span class="desc-item-value">${value}</span>`;
+        strVar += `<textarea rows="3" class="form-control d-none desc-item-input"></textarea>`;
+        strVar += `<div class="desc-item-save d-none">`;
+        strVar += `<span class="btn btn-sm btn-pushy btn-outline-success fa fa-check save-desc-group-item"></span>`;
+        strVar += `<span class="btn btn-sm btn-pushy btn-outline-danger fa fa-undo cancel-desc-group-item"></span>`;
+        strVar += "</div>";
+        strVar += `<div class="desc-item-edit-delete d-inline-block">`;
+        strVar += `<span class="btn btn-sm btn-pushy btn-outline-primary fa fa-edit edit-desc-group-item"></span>`;
+        strVar += `<span class="btn btn-sm btn-pushy btn-outline-danger fa fa-close remove-desc-group-item"></span>`;
+        strVar += "</div>";
         strVar += "</div>";
         var descItem = $.parseHTML(strVar);
         container.find(".desc-group-items").append(descItem);

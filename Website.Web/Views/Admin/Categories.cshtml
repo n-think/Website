@@ -8,29 +8,68 @@
 
 <h2>Категории</h2>
 <div class="row">
-    <div class="col-lg-6 view">
-        <div class="tree">
+    <div class="col-lg-6" style="overflow-y: scroll; max-height: 35rem;">
+        <div class="tree m-1">
             @GetTreeList(Model)
         </div>
     </div>
-    <div class="col-lg-6 create">
-        <form class="">
-            <input class="form-control m-2" value="123" />
-            <input class="form-control m-2" value="321" />
-        </form>
+    <div class="col-lg-6">
+        <div class="mb-2">
+            <div>
+                <span class="h3">Информация о категории</span>
+                <div id="cat-view-controls" class="d-none" style="vertical-align: top">
+                    <span id="edit-cat" class="btn-pushy btn btn-outline-primary fa fa-pencil"></span>
+                    <span id="remove-cat" class="btn-pushy btn btn-outline-danger fa fa-remove" ></span>
+                </div>
+                <div id="cat-edit-controls" class="d-none" style="vertical-align: top">
+                    <span id="save-edit-cat" class="btn-pushy btn btn-outline-success fa fa-pencil"></span>
+                    <span id="cancel-edit-cat" class="btn-pushy btn btn-outline-primary fa fa-undo"></span>
+                </div>
+                
+            </div>
+            <div class="mb-2">
+                <label for="cat-id-preview">Id:</label>
+                <input id="cat-id-preview" class="form-control" readonly placeholder="Выберите категорию для отображения информации">
+            </div>
+            <div class="mb-2">
+                <label for="cat-name-preview">Имя:</label>
+                <input id="cat-name-preview" class="form-control" readonly placeholder="Выберите категорию для отображения информации">
+            </div>
+            <div class="mb-2">
+                <label for="cat-desc-preview">Описание (отображается только администраторам):</label>
+                <input id="cat-desc-preview" class="form-control" readonly placeholder="Выберите категорию для отображения информации">
+            </div>
+            <div class="mb-2">
+                <label for="cat-parent-preview">Родительская категория:</label>
+                <input id="cat-parent-preview" class="form-control" readonly placeholder="Выберите категорию для отображения информации">
+            </div>
+        </div>
+        <div>
+            <div>
+                <span class="h3">Добавить категорию</span>
+                <span id="add-cat" class="btn-pushy btn btn-outline-success fa fa-check"></span>
+                <span id="reset-cat" class="btn-pushy btn btn-outline-primary fa fa-undo"></span>
+            </div>
+            <form class="">
+                <input id="cat-name" class="form-control my-2" placeholder="Имя">
+                <input id="cat-desc" class="form-control my-2" placeholder="Описание (отображается только администраторам)">
+                <label class="d-block">Родительская категория:</label>
+                <select id="category-select" class="selectpicker" data-live-search="true" data-live-search-normalize="true" data-live-search-style="contains"
+                        data-style="btn-outline-primary category-btn" data-width="auto" title="Выбрать категорию" data-live-search-placeholder="Поиск">
+                    @foreach (var cat in Model)
+                    {
+                        foreach (var item in GetNodeAndChildren(cat))
+                        {
+                            <option value="@item.Id" data-subtext="@item.Description">@item.Name</option>
+                        }
+                    }
+                </select>
+            </form>
+        </div>
     </div>
 </div>
-@section Scripts{ 
-    <script>
-        $(document).ready(function() {
-            $(".category-expander").on("click",
-                function () {
-                    $(this)
-                        .toggleClass('fa-minus')
-                        .toggleClass('fa-plus');
-                });
-        })
-    </script>
+
+@section Scripts{
     <environment include="Development">
         <script src="~/js/admin/categories.js" asp-append-version="true"></script>
     </environment>
@@ -38,26 +77,20 @@
         <script src="~/js/admin/categories.min.js" asp-append-version="true"></script>
     </environment>
 }
-<style>
-    .list-group.list-group-root .list-group-item {
-        border-radius: 0;
-    }
-
-    .list-group.list-group-root > .list-group > .list-group > .list-group-item {
-        padding-left: 30px;
-    }
-
-    .list-group.list-group-root > .list-group > .list-group > .list-group > .list-group > .list-group-item {
-        padding-left: 45px;
-    }
-
-    .list-group.list-group-root > .list-group > .list-group > .list-group > .list-group > .list-group > .list-group > .list-group-item {
-        padding-left: 60px;
-    }
-</style>
-
 @functions
 {
+    private IEnumerable<CategoryDtoTreeItem> GetNodeAndChildren(CategoryDtoTreeItem node)
+    {
+        yield return node;
+        foreach (var child in node.Children)
+        {
+            foreach (var x in GetNodeAndChildren(child))
+            {
+                yield return x;
+            }
+        }
+    }
+
     bool _firstCall = true;
     private IHtmlContent GetTreeList(IEnumerable<CategoryDtoTreeItem> categories)
     {
@@ -76,14 +109,14 @@
         {
             var divExpanderWithName = new TagBuilder("div");
 
-            divExpanderWithName.AddCssClass("list-group-item list-group-item-action");
+            divExpanderWithName.AddCssClass("list-group-item list-group-item-action category");
+            divExpanderWithName.Attributes.Add("data-id", category.Id.ToString());
+            divExpanderWithName.Attributes.Add("data-name", category.Name);
+            divExpanderWithName.Attributes.Add("data-desc", category.Description);
 
             var name = new TagBuilder("span");
             name.AddCssClass("mx-2");
             name.InnerHtml.Append(category.Name);
-            var count = new TagBuilder("span");
-            count.InnerHtml.Append("Продуктов: " + category.ProductCount.GetValueOrDefault().ToString());
-            count.AddCssClass("badge badge-primary badge-pill");
             var icon = new TagBuilder("span");
             icon.AddCssClass("fa fa-minus category-expander");
             icon.Attributes.Add("href", "#category-" + category.Id);
@@ -94,14 +127,20 @@
             }
             divExpanderWithName.InnerHtml.AppendHtml(icon);
             divExpanderWithName.InnerHtml.AppendHtml(name);
-            divExpanderWithName.InnerHtml.AppendHtml(count);
+            if (category.ProductCount.GetValueOrDefault() != 0)
+            {
+                var count = new TagBuilder("span");
+                count.InnerHtml.Append("Продуктов: " + category.ProductCount.GetValueOrDefault());
+                count.AddCssClass("badge");
+                count.AddCssClass("badge-primary");
+                divExpanderWithName.InnerHtml.AppendHtml(count);
+            }
 
             var li = new TagBuilder("li");
             var innerList = GetTreeList(category.Children);
 
             li.InnerHtml.AppendHtml(innerList);
             li.Attributes.Add("id", "category-" + category.Id);
-            li.Attributes.Add("data-id", category.Id.ToString());
             li.AddCssClass("list-group collapse show");
 
             ul.InnerHtml.AppendHtml(divExpanderWithName);

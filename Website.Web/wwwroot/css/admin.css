@@ -52,14 +52,14 @@ input.form-control.admin-edit[type="checkbox"] {
     margin: 0.2em;
 }
 
-.admin-img-thumb:hover {
-    -webkit-transform: scale(1.2);
-    -moz-transform: scale(1.2);
-    -o-transform: scale(1.2);
-    transform: scale(1.2);
-    transition: all 0.2s;
-    -webkit-transition: all 0.2s;
-}
+    .admin-img-thumb:hover {
+        -webkit-transform: scale(1.2);
+        -moz-transform: scale(1.2);
+        -o-transform: scale(1.2);
+        transform: scale(1.2);
+        transition: all 0.2s;
+        -webkit-transition: all 0.2s;
+    }
 
 
 .btn-pushy:active {
@@ -78,4 +78,29 @@ img.img-primary {
 
 img.img-delete {
     outline: 0.4em double red;
+}
+
+/* categories page indent */
+.list-group.list-group-root .list-group-item {
+    border-radius: 0;
+}
+
+.list-group.list-group-root > .list-group > .list-group > .list-group-item {
+    padding-left: 30px;
+}
+
+.list-group.list-group-root > .list-group > .list-group > .list-group > .list-group > .list-group-item {
+    padding-left: 45px;
+}
+
+.list-group.list-group-root > .list-group > .list-group > .list-group > .list-group > .list-group > .list-group > .list-group-item {
+    padding-left: 60px;
+}
+
+.list-group.list-group-root > .list-group > .list-group > .list-group > .list-group > .list-group > .list-group > .list-group > .list-group > .list-group-item {
+    padding-left: 75px;
+}
+
+.list-group.list-group-root > .list-group > .list-group > .list-group > .list-group > .list-group > .list-group > .list-group > .list-group > .list-group > .list-group > .list-group-item {
+    padding-left: 90px;
 }

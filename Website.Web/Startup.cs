@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Builder;
@@ -20,25 +22,27 @@ using Website.Service.Stores;
 using Website.Web.Infrastructure;
 using Website.Web.Infrastructure.Localization;
 using Website.Web.Infrastructure.Mapper;
-
+using Microsoft.AspNetCore.DataProtection;
 
 namespace Website.Web
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, IHostingEnvironment environment)
         {
             Configuration = configuration;
+            Environment = environment;
         }
 
         public IConfiguration Configuration { get; }
+        public IHostingEnvironment Environment { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<WebsiteDbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
-                //.UseLazyLoadingProxies());
+            //.UseLazyLoadingProxies());
 
             services.AddDbContext<WebsiteDbContext>();
             services.AddAutoMapper(opt =>
@@ -121,6 +125,13 @@ namespace Website.Web
                     .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
             AddPolicies(services);
+            services.AddDataProtection()
+                // This helps surviving a restart: a same app will find back its keys.
+                .PersistKeysToFileSystem(new DirectoryInfo(Environment.ContentRootPath + "\\keys"))
+                // This helps surviving a site update: each app has its own store, building the site creates a new app
+                .SetApplicationName("MyWebsite")
+                .ProtectKeysWithDpapi();
+                //.SetDefaultKeyLifetime(TimeSpan.FromDays(90)); //default 90 days
         }
 
         private void AddCustomInterfaces(IServiceCollection services)

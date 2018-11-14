@@ -7,7 +7,7 @@
 }
 
 <div class="container">
-    <h4>@Process.GetCurrentProcess().WorkingSet64</h4>
+    <h4>@Process.GetCurrentProcess().WorkingSet64.ToString("N0")</h4>
     <br />
 
     @foreach (var item in Model)
