@@ -11,15 +11,6 @@ namespace Website.Web.Controllers
         //}
         //
         //private ILogger _logger;
-
-        //public override void OnActionExecuting(ActionExecutingContext context) // не работает с 403 редиректом
-        //{
-        //    if (Response.StatusCode == 200) 
-        //    {
-        //        Response.StatusCode = 404;
-        //        context.Result = Error404();
-        //    }
-        //}
         
         [Route("/Error")]
         public IActionResult ErrorDefault()

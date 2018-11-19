@@ -1,5 +1,4 @@
-﻿
-@{
+﻿@{
     ViewData["Title"] = "Категории";
     ViewData.AddActivePage(AdminNavPages.Categories);
 }
@@ -17,31 +16,43 @@
         <div class="mb-2">
             <div>
                 <span class="h3">Информация о категории</span>
-                <div id="cat-view-controls" class="d-none" style="vertical-align: top">
-                    <span id="edit-cat" class="btn-pushy btn btn-outline-primary fa fa-pencil"></span>
-                    <span id="remove-cat" class="btn-pushy btn btn-outline-danger fa fa-remove" ></span>
-                </div>
-                <div id="cat-edit-controls" class="d-none" style="vertical-align: top">
-                    <span id="save-edit-cat" class="btn-pushy btn btn-outline-success fa fa-pencil"></span>
-                    <span id="cancel-edit-cat" class="btn-pushy btn btn-outline-primary fa fa-undo"></span>
-                </div>
-                
+                <span id="cat-view-controls" class="d-none" style="vertical-align: top">
+                    <span id="edit-cat" class="btn-pushy btn btn-outline-primary fa fa-pencil" style="vertical-align: top"></span>
+                    <span id="remove-cat" class="btn-pushy btn btn-outline-danger fa fa-remove" style="vertical-align: top"></span>
+                </span>
+                <span id="cat-edit-controls" class="d-none">
+                    <span id="save-edit-cat" class="btn-pushy btn btn-outline-success fa fa-check" style="vertical-align: top"></span>
+                    <span id="cancel-edit-cat" class="btn-pushy btn btn-outline-primary fa fa-undo" style="vertical-align: top"></span>
+                </span>
             </div>
+            <div id="view-edit-message" class="d-none"></div>
             <div class="mb-2">
                 <label for="cat-id-preview">Id:</label>
                 <input id="cat-id-preview" class="form-control" readonly placeholder="Выберите категорию для отображения информации">
             </div>
             <div class="mb-2">
                 <label for="cat-name-preview">Имя:</label>
-                <input id="cat-name-preview" class="form-control" readonly placeholder="Выберите категорию для отображения информации">
+                <input id="cat-name-preview" class="form-control cat-input-edit" readonly placeholder="Выберите категорию для отображения информации">
             </div>
             <div class="mb-2">
                 <label for="cat-desc-preview">Описание (отображается только администраторам):</label>
-                <input id="cat-desc-preview" class="form-control" readonly placeholder="Выберите категорию для отображения информации">
+                <input id="cat-desc-preview" class="form-control cat-input-edit" readonly placeholder="Выберите категорию для отображения информации">
             </div>
             <div class="mb-2">
                 <label for="cat-parent-preview">Родительская категория:</label>
-                <input id="cat-parent-preview" class="form-control" readonly placeholder="Выберите категорию для отображения информации">
+                <input id="cat-parent-preview" class="form-control cat-input-edit" readonly placeholder="Выберите категорию для отображения информации">
+                <div id="edit-category-select-container" class="d-none">
+                    <select id="edit-category-select" class="selectpicker" data-live-search="true" data-live-search-normalize="true" data-live-search-style="contains"
+                            data-style="btn-outline-primary category-btn"  title="Выбрать категорию" data-live-search-placeholder="Поиск">
+                        @foreach (var cat in Model)
+                        {
+                            foreach (var item in GetNodeAndChildren(cat))
+                            {
+                                <option value="@item.Id" data-subtext="@item.Description">@item.Name</option>
+                            }
+                        }
+                    </select>
+                </div>
             </div>
         </div>
         <div>
@@ -50,12 +61,13 @@
                 <span id="add-cat" class="btn-pushy btn btn-outline-success fa fa-check"></span>
                 <span id="reset-cat" class="btn-pushy btn btn-outline-primary fa fa-undo"></span>
             </div>
+            <div id="add-message" class="d-none"></div>
             <form class="">
                 <input id="cat-name" class="form-control my-2" placeholder="Имя">
                 <input id="cat-desc" class="form-control my-2" placeholder="Описание (отображается только администраторам)">
                 <label class="d-block">Родительская категория:</label>
-                <select id="category-select" class="selectpicker" data-live-search="true" data-live-search-normalize="true" data-live-search-style="contains"
-                        data-style="btn-outline-primary category-btn" data-width="auto" title="Выбрать категорию" data-live-search-placeholder="Поиск">
+                <select id="add-category-select" class="selectpicker" data-live-search="true" data-live-search-normalize="true" data-live-search-style="contains"
+                        data-style="btn-outline-primary category-btn" title="Выбрать категорию" data-live-search-placeholder="Поиск">
                     @foreach (var cat in Model)
                     {
                         foreach (var item in GetNodeAndChildren(cat))
@@ -77,8 +89,10 @@
         <script src="~/js/admin/categories.min.js" asp-append-version="true"></script>
     </environment>
 }
+
 @functions
 {
+
     private IEnumerable<CategoryDtoTreeItem> GetNodeAndChildren(CategoryDtoTreeItem node)
     {
         yield return node;
@@ -92,6 +106,7 @@
     }
 
     bool _firstCall = true;
+
     private IHtmlContent GetTreeList(IEnumerable<CategoryDtoTreeItem> categories)
     {
         var ul = new TagBuilder("ul");
@@ -148,4 +163,5 @@
         }
         return ul;
     }
+
 }

@@ -1,19 +1,11 @@
-﻿
-@{
+﻿@{
     ViewData["Title"] = "Просмотр товара";
-    TempData["DeleteToken"] = Guid.NewGuid();
 }
 @using Castle.Core.Internal
 @model ItemViewModel
 <div class="mb-2">
     <span class="h2 d-inline-block">Просмотр товара</span>
     <a class="btn btn-outline-primary mx-2" asp-action="EditItem" asp-route-id="@Model.Id">Редактировать</a>
-    <form class="d-inline-block" asp-action="DeleteItem" method="get">
-        <input class="btn btn-outline-danger mr-2" type="submit" value="Удалить" />
-        <input name="Name" value="@Model.Name" hidden />
-        <input name="Id" value="@Model.Id" hidden />
-        <input name="DeleteToken" value="@TempData.Peek("DeleteToken")" hidden />
-    </form>
 </div>
 @if (!(TempData["Message"] as string).IsNullOrEmpty())
 {
@@ -24,13 +16,13 @@
     <div class="col-md-7">
         <div>
             <div class="admin-img-box">
-                <img id="admin-image-view" src="@Model.Images?.FirstOrDefault(x => x.Primary)?.PathSrc" alt="Нет изображения" />
+                <img id="admin-image-view" src="@Model.Images?.FirstOrDefault(x => x.Primary)?.PathSrc" alt="Нет изображения"/>
                 <span></span>
             </div>
             <div id="image-container" class="admin-img-thumbs">
                 @foreach (var item in Model.Images ?? Enumerable.Empty<ProductImageDto>())
                 {
-                    <img class="admin-img-thumb" data-path="@item.PathSrc" src="@item.ThumbPathSrc" />
+                    <img class="admin-img-thumb" data-path="@item.PathSrc" src="@item.ThumbPathSrc"/>
                 }
             </div>
         </div>
@@ -40,13 +32,13 @@
         <div class="table-responsive">
             <table class="table table-striped border">
                 <thead>
-                    <tr>
-                        <th scope="col">Параметр</th>
-                        <th scope="col">Значение</th>
-                    </tr>
+                <tr>
+                    <th scope="col">Параметр</th>
+                    <th scope="col">Значение</th>
+                </tr>
                 </thead>
                 <tbody>
-                    @Html.DisplayForModel("TableDataRowDisplay", new { htmlAttributes = new { @class = "admin-view" } })
+                @Html.DisplayForModel("TableDataRowDisplay", new {htmlAttributes = new {@class = "admin-view"}})
                 </tbody>
             </table>
         </div>
@@ -56,7 +48,9 @@
     <span class="h3 d-block">Категории</span>
     @foreach (var cat in Model.Categories ?? Enumerable.Empty<CategoryDto>())
     {
-        <span>@cat.Name</span>@Html.Raw(" : ")<span>@cat.Description</span><br />
+        <span>@cat.Name</span>
+        @Html.Raw(" : ")<span>@cat.Description</span>
+        <br/>
     }
 </div>
 <div class="admin-item-descriptions">
@@ -66,7 +60,19 @@
         <span class="h6 d-block my-2">@descriptionGroup.Name</span>
         foreach (var item in descriptionGroup.Items)
         {
-            <span>@item.Name</span>@Html.Raw(" : ")<span>@item.DescriptionValue</span><br />
+            <span>@item.Name</span>
+            @Html.Raw(" : ")<span>@item.DescriptionValue</span>
+            <br/>
         }
     }
 </div>
+
+@section Scripts
+{
+    <environment include="Development">
+        <script src="~/js/admin/productEdit.js" asp-append-version="true"></script>
+    </environment>
+    <environment exclude="Development">
+        <script src="~/js/admin/productEdit.min.js" asp-append-version="true"></script>
+    </environment>
+}

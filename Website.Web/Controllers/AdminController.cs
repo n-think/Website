@@ -31,7 +31,8 @@ namespace Website.Web.Controllers
         private readonly SignInManager _signInManager;
         private readonly IShopManager _shopManager;
 
-        public AdminController(IUserManager userManager, IShopManager shopManager, RoleManager roleManager, SignInManager signInManager,
+        public AdminController(IUserManager userManager, IShopManager shopManager, RoleManager roleManager,
+            SignInManager signInManager,
             IMapper mapper, IAntiforgery antiForgery)
         {
             _userManager = userManager;
@@ -40,6 +41,7 @@ namespace Website.Web.Controllers
             _mapper = mapper;
             _shopManager = shopManager;
         }
+
         public IActionResult Index()
         {
             return View();
@@ -48,13 +50,12 @@ namespace Website.Web.Controllers
         [HttpGet]
         [Authorize(Policy = "ViewUsers")]
         public async Task<IActionResult> Users(
-            [FromQuery(Name = "s")]string search,
-            [FromQuery(Name = "st")]RoleSelector roles,
-            [FromQuery(Name = "o")]string sortOrder,
-            [FromQuery(Name = "p")]int? page,
-            [FromQuery(Name = "c")]int? pageCount)
+            [FromQuery(Name = "s")] string search,
+            [FromQuery(Name = "st")] RoleSelector roles,
+            [FromQuery(Name = "o")] string sortOrder,
+            [FromQuery(Name = "p")] int? page,
+            [FromQuery(Name = "c")] int? pageCount)
         {
-
             if (sortOrder.IsNullOrEmpty())
             {
                 sortOrder = nameof(UserDto.Email);
@@ -63,7 +64,8 @@ namespace Website.Web.Controllers
             var currPage = page == null || page < 0 ? 1 : page.Value;
             var countPerPage = pageCount == null || pageCount <= 0 ? 15 : pageCount.Value;
 
-            SortPageResult<UserDto> result = await _userManager.GetSortFilterPageAsync(roles, search, sortOrder, currPage, countPerPage);
+            SortPageResult<UserDto> result =
+                await _userManager.GetSortFilterPageAsync(roles, search, sortOrder, currPage, countPerPage);
 
             ViewBag.itemCount = result.TotalN;
 
@@ -74,7 +76,7 @@ namespace Website.Web.Controllers
                 Descending = sortOrder.EndsWith("_desc"),
                 CurrentPage = currPage,
                 CountPerPage = countPerPage,
-                Roles = (int)roles,
+                Roles = (int) roles,
                 ItemCount = result.TotalN,
                 Users = result.FilteredData
             };
@@ -88,9 +90,11 @@ namespace Website.Web.Controllers
             var user = await _userManager.FindByIdAsync(id.ToString());
             if (user == null)
             {
-                return View("Error", new ErrorViewModel { Message = $"Пользователь с id {id} не найден." });
+                return View("Error", new ErrorViewModel {Message = $"Пользователь с id {id} не найден."});
             }
+
             var modelUser = _mapper.Map<UserViewModel>(user);
+
             modelUser.CurrentClaims = await _userManager.GetClaimsAsync(user);
             modelUser.Role = (await _userManager.GetRolesAsync(user)).FirstOrDefault() ?? "без роли";
             return View(modelUser);
@@ -103,8 +107,9 @@ namespace Website.Web.Controllers
             var user = await _userManager.FindByIdAsync(id.ToString());
             if (user == null)
             {
-                return View("Error", new ErrorViewModel { Message = $"Пользователь с id {id} не найден." });
+                return View("Error", new ErrorViewModel {Message = $"Пользователь с id {id} не найден."});
             }
+
             var modelUser = _mapper.Map<EditUserViewModel>(user);
             modelUser.CurrentClaims = await _userManager.GetClaimsAsync(user);
             modelUser.Role = (await _userManager.GetRolesAsync(user)).FirstOrDefault() ?? "без роли";
@@ -126,8 +131,9 @@ namespace Website.Web.Controllers
                 var dtoUser = await _userManager.FindByIdAsync(editModel.Id);
                 if (dtoUser == null)
                 {
-                    return View("Error", new ErrorViewModel { Message = $"Пользователь с id {editModel.Id} не найден." });
+                    return View("Error", new ErrorViewModel {Message = $"Пользователь с id {editModel.Id} не найден."});
                 }
+
                 var dbConcStamp = dtoUser.ConcurrencyStamp;
                 _mapper.Map(editModel, dtoUser);
 
@@ -136,10 +142,12 @@ namespace Website.Web.Controllers
                 {
                     newClaims = editModel.NewClaims.Select(x => new Claim(x, "")).ToList();
                 }
+
                 if (!editModel.Role.IsNullOrEmpty())
                 {
                     newClaims.Add(new Claim(ClaimTypes.Role, editModel.Role));
                 }
+
                 //try update
                 var result = await _userManager.UpdateUserPasswordClaims(dtoUser, editModel.Password, newClaims);
                 if (result.Succeeded)
@@ -152,9 +160,11 @@ namespace Website.Web.Controllers
                     {
                         await _userManager.UpdateSecurityStampAsync(dtoUser);
                     }
+
                     TempData["Message"] = "Изменения успешно сохранены";
-                    return RedirectToAction("ViewUser", new { id = editModel.Id });
+                    return RedirectToAction("ViewUser", new {id = editModel.Id});
                 }
+
                 //add new errors
                 foreach (var identityError in result.Errors)
                 {
@@ -162,21 +172,23 @@ namespace Website.Web.Controllers
                     if (identityError.Code == "ConcurrencyFailure")
                     {
                         editModel.ConcurrencyStamp = dbConcStamp; // to enable save after concurrency error
-                        ModelState.Remove("ConcurrencyStamp"); // remove from the model state or HTML helpers will use the original value
+                        ModelState.Remove(
+                            "ConcurrencyStamp"); // remove from the model state or HTML helpers will use the original value
                     }
                 }
             }
+
             return View(editModel);
         }
 
         [HttpGet]
         [Authorize(Policy = "ViewItems")]
         public async Task<IActionResult> Items(
-            [FromQuery(Name = "s")]string search,
-            [FromQuery(Name = "st")]ItemTypeSelector types,
-            [FromQuery(Name = "o")]string sortOrder,
-            [FromQuery(Name = "p")]int? page,
-            [FromQuery(Name = "c")]int? pageCount)
+            [FromQuery(Name = "s")] string search,
+            [FromQuery(Name = "st")] ItemTypeSelector types,
+            [FromQuery(Name = "o")] string sortOrder,
+            [FromQuery(Name = "p")] int? page,
+            [FromQuery(Name = "c")] int? pageCount)
         {
             if (sortOrder.IsNullOrEmpty())
             {
@@ -186,7 +198,8 @@ namespace Website.Web.Controllers
             var currPage = page ?? 1;
             var countPerPage = pageCount == null || pageCount <= 0 ? 15 : pageCount.Value;
 
-            SortPageResult<ProductDto> result = await _shopManager.GetSortFilterPageAsync(types, search, sortOrder, currPage, countPerPage);
+            SortPageResult<ProductDto> result =
+                await _shopManager.GetSortFilterPageAsync(types, search, sortOrder, currPage, countPerPage);
             //TODO categories filter // List<CategoryDTO> allCategories = await _shopManager.GetAllCategoriesAsync();
             ViewBag.itemCount = result.TotalN;
 
@@ -197,7 +210,7 @@ namespace Website.Web.Controllers
                 Descending = sortOrder.EndsWith("_desc"),
                 CurrentPage = currPage,
                 CountPerPage = countPerPage,
-                Types = (int)types,
+                Types = (int) types,
                 ItemCount = result.TotalN,
                 Items = result.FilteredData
                 //,Categories = allCategories
@@ -213,8 +226,9 @@ namespace Website.Web.Controllers
             var prod = await _shopManager.GetProductByIdAsync(id, true, true, true);
             if (prod == null)
             {
-                return View("Error", new ErrorViewModel { Message = $"Товар с id {id} не найден." });
+                return View("Error", new ErrorViewModel {Message = $"Товар с id {id} не найден."});
             }
+
             var viewModel = _mapper.Map<ItemViewModel>(prod);
             return View("ViewItem", viewModel);
         }
@@ -226,7 +240,7 @@ namespace Website.Web.Controllers
             var prod = await _shopManager.GetProductByIdAsync(id, true, true, true);
             if (prod == null)
             {
-                return View("Error", new ErrorViewModel { Message = $"Товар с id {id} не найден." });
+                return View("Error", new ErrorViewModel {Message = $"Товар с id {id} не найден."});
             }
 
             var viewModel = _mapper.Map<EditItemViewModel>(prod);
@@ -238,12 +252,13 @@ namespace Website.Web.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Policy = "EditItems")]
-        public async Task<IActionResult> EditItem([FromBody]EditItemViewModel item) //json input //TODO move to api?
+        public async Task<IActionResult> EditItem([FromBody] EditItemViewModel item) //json input //TODO move to api?
         {
             if (item?.Id == null || item?.Name == null || item.Timestamp == null)
             {
                 return BadRequest("Введены некорректные данные.");
             }
+
             if (ModelState.IsValid)
             {
                 OperationResult result;
@@ -258,26 +273,32 @@ namespace Website.Web.Controllers
                 else
                 {
                     result = await _shopManager.UpdateProductAsync(itemDto);
-                    updatedProductDto = await _shopManager.GetProductByIdAsync(itemDto.Id.GetValueOrDefault(), true, true, true);
+                    updatedProductDto =
+                        await _shopManager.GetProductByIdAsync(itemDto.Id.GetValueOrDefault(), true, true, true);
                 }
+
                 if (result.Succeeded)
                 {
                     TempData["Message"] = "Изменения успешно сохранены";
                     var itemViewModel = _mapper.Map<ItemViewModel>(updatedProductDto);
                     return PartialView("ViewItem", itemViewModel);
-
                 }
+
                 //add new errors
                 foreach (var error in result.Errors)
                 {
                     ModelState.AddModelError(error.Code, error.Description);
-                    if (error.Code == nameof(OperationErrorDescriber.ConcurrencyFailure) || error.Code == nameof(OperationErrorDescriber.InvalidImageFormat))
+                    if (error.Code == nameof(OperationErrorDescriber.ConcurrencyFailure) ||
+                        error.Code == nameof(OperationErrorDescriber.InvalidImageFormat))
                     {
-                        item.Timestamp = updatedProductDto?.Timestamp ?? item.Timestamp; ; // to enable save after conc error or incomplete updates
-                        ModelState.Remove("Timestamp"); // remove from the model state or HTML helpers will use the original value
+                        item.Timestamp = updatedProductDto?.Timestamp ?? item.Timestamp;
+                        ; // to enable save after conc error or incomplete updates
+                        ModelState.Remove(
+                            "Timestamp"); // remove from the model state or HTML helpers will use the original value
                     }
                 }
             }
+
             return PartialView(item);
         }
 
@@ -285,7 +306,7 @@ namespace Website.Web.Controllers
         [Authorize(Policy = "EditItems")]
         public IActionResult AddItem()
         {
-            return View("EditItem", new EditItemViewModel { CreateItem = true });
+            return View("EditItem", new EditItemViewModel {CreateItem = true});
         }
 
         [HttpGet]
@@ -294,8 +315,11 @@ namespace Website.Web.Controllers
         {
             if (model?.Id == null || deleteToken == null || deleteToken != TempData["DeleteToken"]?.ToString())
             {
-                return View("Error", new ErrorViewModel { Message = $"Переход на страницу удаления товара возможен только после его просмотра." });
+                return View("Error",
+                    new ErrorViewModel
+                        {Message = $"Переход на страницу удаления товара возможен только после его просмотра."});
             }
+
             return View(model);
         }
 
@@ -306,13 +330,15 @@ namespace Website.Web.Controllers
         {
             if (id == null || token == null || token != TempData["DeleteToken"]?.ToString())
             {
-                return View("Error", new ErrorViewModel { Message = $"Получены некорректные данные." });
+                return View("Error", new ErrorViewModel {Message = $"Получены некорректные данные."});
             }
+
             var itemToDelete = await _shopManager.GetProductByIdAsync(id.Value);
             if (itemToDelete == null)
             {
                 ViewData["message"] = "Товар с таким ID не найден или уже удален.";
             }
+
             var result = await _shopManager.DeleteProductAsync(itemToDelete);
             if (!result.Succeeded)
             {
@@ -322,6 +348,7 @@ namespace Website.Web.Controllers
             {
                 ViewData["message"] = "Товар успешно удален.";
             }
+
             return View();
         }
 

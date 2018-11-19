@@ -21,7 +21,8 @@ namespace Website.Service.Services
 {
     public class ShopManager : IDisposable, IShopManager
     {
-        public ShopManager(IShopStore<ProductDto, ProductImageDto, CategoryDto, DescriptionGroupDto, OrderDto> store, ILogger<ShopManager> logger, IHttpContextAccessor context, OperationErrorDescriber errorDescriber = null)
+        public ShopManager(IShopStore<ProductDto, ProductImageDto, CategoryDto, DescriptionGroupDto, OrderDto> store,
+            ILogger<ShopManager> logger, IHttpContextAccessor context, OperationErrorDescriber errorDescriber = null)
         {
             _store = store ?? throw new ArgumentNullException(nameof(store));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -48,11 +49,13 @@ namespace Website.Service.Services
             {
                 throw new ArgumentNullException(nameof(product));
             }
+
             var validateModelResult = ValidateProductModel(product);
             if (!validateModelResult.Succeeded)
             {
                 return validateModelResult;
             }
+
             if (!product.Images.IsNullOrEmpty())
             {
                 var validateImagesResult = ValidateAndProcessImages(product.Images);
@@ -76,11 +79,13 @@ namespace Website.Service.Services
             {
                 throw new ArgumentNullException(nameof(product));
             }
+
             var validateModelResult = ValidateProductModel(product);
             if (!validateModelResult.Succeeded)
             {
                 return validateModelResult;
             }
+
             if (!product.Images.IsNullOrEmpty())
             {
                 var imageResult = ValidateAndProcessImages(product.Images);
@@ -101,6 +106,7 @@ namespace Website.Service.Services
             {
                 return OperationResult.Failure(_errorDescriber.InvalidModel());
             }
+
             bool hasErrors = false;
             foreach (var category in product.Categories)
             {
@@ -110,6 +116,7 @@ namespace Website.Service.Services
                     break;
                 }
             }
+
             if (!hasErrors)
             {
                 foreach (var group in product.Descriptions)
@@ -118,6 +125,7 @@ namespace Website.Service.Services
                         hasErrors = true;
                     break;
                 }
+
                 foreach (var descItem in product.Descriptions.SelectMany(x => x.Items))
                 {
                     if (!descItem.Id.HasValue)
@@ -132,6 +140,7 @@ namespace Website.Service.Services
             {
                 return OperationResult.Failure(_errorDescriber.InvalidModel());
             }
+
             return OperationResult.Success();
         }
 
@@ -145,25 +154,31 @@ namespace Website.Service.Services
             {
                 return OperationResult.Failure(_errorDescriber.CannotDeleteActiveProduct());
             }
+
             var result = await _store.DeleteProductAsync(product, CancellationToken);
             if (!result.Succeeded)
             {
                 return OperationResult.Failure(_errorDescriber.ErrorDeletingProduct());
             }
+
             return OperationResult.Success();
         }
 
-        public async Task<ProductDto> GetProductByIdAsync(int id, bool loadImages, bool loadDescriptions, bool loadCategories)
+        public async Task<ProductDto> GetProductByIdAsync(int id, bool loadImages, bool loadDescriptions,
+            bool loadCategories)
         {
             ThrowIfDisposed();
-            var product = await _store.FindProductByIdAsync(id, loadImages, loadDescriptions, loadCategories, CancellationToken);
+            var product =
+                await _store.FindProductByIdAsync(id, loadImages, loadDescriptions, loadCategories, CancellationToken);
             return product;
         }
 
-        public async Task<ProductDto> GetProductByNameAsync(string name, bool loadImages, bool loadDescriptions, bool loadCategories)
+        public async Task<ProductDto> GetProductByNameAsync(string name, bool loadImages, bool loadDescriptions,
+            bool loadCategories)
         {
             ThrowIfDisposed();
-            var product = await _store.FindProductByNameAsync(name, loadImages, loadDescriptions, loadCategories, CancellationToken);
+            var product = await _store.FindProductByNameAsync(name, loadImages, loadDescriptions, loadCategories,
+                CancellationToken);
             return product;
         }
 
@@ -187,14 +202,17 @@ namespace Website.Service.Services
                         bitmap = StoreHelpers.ScaleImage(bitmap, 1000, 1000);
                     imageDto.Bitmap = bitmap;
                 }
+
                 count++;
             }
+
             return OperationResult.Success();
         }
 
         private Bitmap GetBitmapFromDataUrl(string dataUrl)
         {
-            var regex = new Regex(@"^data\:(?<type>image\/(jpg|jpeg|gif|png|tiff|bmp));base64,(?<data>[A-Z0-9\+\/\=]+)$",
+            var regex = new Regex(
+                @"^data\:(?<type>image\/(jpg|jpeg|gif|png|tiff|bmp));base64,(?<data>[A-Z0-9\+\/\=]+)$",
                 RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase);
             var match = regex.Match(dataUrl);
             if (!match.Success)
@@ -212,6 +230,7 @@ namespace Website.Service.Services
                 _logger.LogInformation(e, "Error converting image from DataUrl.");
                 return null;
             }
+
             var memoryStream = new MemoryStream(rawData);
             Image image;
             try
@@ -223,10 +242,12 @@ namespace Website.Service.Services
                 _logger.LogInformation(e, "Error converting image from DataUrl.");
                 return null;
             }
+
             return new Bitmap(image);
         }
 
-        public async Task<SortPageResult<ProductDto>> GetSortFilterPageAsync(ItemTypeSelector types, string searchString, string sortPropName, int currPage, int countPerPage)
+        public async Task<SortPageResult<ProductDto>> GetSortFilterPageAsync(ItemTypeSelector types,
+            string searchString, string sortPropName, int currPage, int countPerPage)
         {
             ThrowIfDisposed();
             // check inputs
@@ -234,10 +255,11 @@ namespace Website.Service.Services
             if (countPerPage < 0) throw new ArgumentOutOfRangeException(nameof(countPerPage));
             if (currPage < 0) throw new ArgumentOutOfRangeException(nameof(currPage));
             if (!Enum.IsDefined(typeof(ItemTypeSelector), types))
-                throw new InvalidEnumArgumentException(nameof(ItemTypeSelector), (int)types, typeof(ItemTypeSelector));
+                throw new InvalidEnumArgumentException(nameof(ItemTypeSelector), (int) types, typeof(ItemTypeSelector));
 
             SortPageResult<ProductDto> result = await
-                _store.SortFilterPageResultAsync(types, searchString, sortPropName, currPage, countPerPage, CancellationToken);
+                _store.SortFilterPageResultAsync(types, searchString, sortPropName, currPage, countPerPage,
+                    CancellationToken);
 
             return result;
         }
@@ -282,7 +304,6 @@ namespace Website.Service.Services
             // set large fields to null.
             this._store?.Dispose();
             _disposed = true;
-
         }
 
         public void Dispose()
@@ -292,7 +313,5 @@ namespace Website.Service.Services
         }
 
         #endregion
-
     }
 }
-

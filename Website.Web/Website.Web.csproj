@@ -12,7 +12,7 @@
     <TypeScriptToolsVersion>3.0</TypeScriptToolsVersion>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="run.cmd" />
+    <None Remove="Typescript\tsconfig.json" />
     <None Remove="Typescript\admin.ts" />
     <None Remove="Typescript\admin\categories.ts" />
     <None Remove="Typescript\admin\productEdit.ts" />
@@ -24,14 +24,13 @@
   <ItemGroup>
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="5.0.1" />
     <PackageReference Include="BuildBundlerMinifier" Version="2.8.391" />
-    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.5.1" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="2.1.4">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Packaging.Tools.Trimming" Version="1.1.0-preview1-26619-01" />
-    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.1.5" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.1.6" PrivateAssets="All" />
     <PackageReference Include="System.Drawing.Common" Version="4.5.1" />
   </ItemGroup>
 
@@ -64,6 +63,12 @@
     </Content>
     <Content Update="Views\Test\Form.cshtml">
       <Pack>$(IncludeRazorContentInPack)</Pack>
+    </Content>
+    <Content Update="Typescript\tsconfig.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Update="wwwroot\js\admin\admin.js.map">
+      <DependentUpon>admin.js</DependentUpon>
     </Content>
   </ItemGroup>
 

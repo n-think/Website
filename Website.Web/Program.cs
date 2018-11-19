@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
@@ -39,7 +40,7 @@ namespace Website.Web
                 }
             }
 
-            #endregion 
+            #endregion
 
             host.Run();
         }
@@ -47,12 +48,8 @@ namespace Website.Web
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost
                 .CreateDefaultBuilder(args)
-#if DEBUG
-                .UseApplicationInsights()
-#endif
                 .UseKestrel()
                 .UseIISIntegration()
                 .UseStartup<Startup>();
-
     }
 }

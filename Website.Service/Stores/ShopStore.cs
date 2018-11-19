@@ -31,7 +31,8 @@ namespace Website.Service.Stores
         /// <summary>
         /// Constructs a new instance of CustomProductStoreBase".
         /// </summary>
-        public ShopStore(DbContext dbContext, IMapper mapper, IHostingEnvironment environment, ILogger<ShopStore> logger, OperationErrorDescriber describer = null)
+        public ShopStore(DbContext dbContext, IMapper mapper, IHostingEnvironment environment,
+            ILogger<ShopStore> logger, OperationErrorDescriber describer = null)
         {
             ErrorDescriber = describer ?? new OperationErrorDescriber();
             Context = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
@@ -76,7 +77,8 @@ namespace Website.Service.Stores
 
         #region product
 
-        public async Task<OperationResult> CreateProductAsync(ProductDto product, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<OperationResult> CreateProductAsync(ProductDto product,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -116,10 +118,12 @@ namespace Website.Service.Stores
                     AutoSaveChanges = true;
                 }
             }
+
             return OperationResult.Success();
         }
 
-        private async Task UpdateProductCatDescImage(ProductDto product, int dbProductId, CancellationToken cancellationToken)
+        private async Task UpdateProductCatDescImage(ProductDto product, int dbProductId,
+            CancellationToken cancellationToken)
         {
             if (product == null)
                 throw new ArgumentNullException(nameof(product));
@@ -128,11 +132,13 @@ namespace Website.Service.Stores
                 await UpdateProductCategories(dbProductId, product.Categories, cancellationToken);
                 await Context.SaveChangesAsync(cancellationToken);
             }
+
             if (!product.Descriptions.IsNullOrEmpty()) // add desc
             {
                 await UpdateProductDescriptions(dbProductId, product.Descriptions, cancellationToken);
                 await Context.SaveChangesAsync(cancellationToken);
             }
+
             if (!product.Images.IsNullOrEmpty()) //add images
             {
                 lock (_lock)
@@ -144,7 +150,8 @@ namespace Website.Service.Stores
             }
         }
 
-        public async Task<OperationResult> UpdateProductAsync(ProductDto product, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<OperationResult> UpdateProductAsync(ProductDto product,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -176,7 +183,6 @@ namespace Website.Service.Stores
                     await UpdateProductCatDescImage(product, dbProduct.Id, cancellationToken);
                     transaction.Commit();
                 }
-
                 catch (DbUpdateConcurrencyException)
                 {
                     return OperationResult.Failure(ErrorDescriber.ConcurrencyFailure());
@@ -194,11 +200,13 @@ namespace Website.Service.Stores
                     AutoSaveChanges = true;
                 }
             }
+
             return OperationResult.Success();
         }
 
         public async Task<ProductDto> FindProductByIdAsync(int productId, bool loadImages,
-            bool loadDescriptions, bool loadCategories, CancellationToken cancellationToken = default(CancellationToken))
+            bool loadDescriptions, bool loadCategories,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -210,7 +218,8 @@ namespace Website.Service.Stores
         }
 
         public async Task<ProductDto> FindProductByNameAsync(string productName, bool loadImages,
-            bool loadDescriptions, bool loadCategories, CancellationToken cancellationToken = default(CancellationToken))
+            bool loadDescriptions, bool loadCategories,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -248,6 +257,7 @@ namespace Website.Service.Stores
             {
                 return null;
             }
+
             var dto = _mapper.Map<ProductDto>(product);
 
             if (loadDescriptions)
@@ -263,15 +273,17 @@ namespace Website.Service.Stores
                 var cat = _mapper.Map<CategoryDto>(productToCategory.Category);
                 dto.Categories.Add(cat);
             }
+
             return dto;
         }
 
-        public async Task<OperationResult> DeleteProductAsync(ProductDto product, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<OperationResult> DeleteProductAsync(ProductDto product,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
 
-            var entry = await ProductsSet.FindAsync(new object[] { product.Id }, cancellationToken);
+            var entry = await ProductsSet.FindAsync(new object[] {product.Id}, cancellationToken);
 
             if (entry != null)
             {
@@ -288,6 +300,7 @@ namespace Website.Service.Stores
                         var item = (imagePath, imageThumbPath);
                         imagesToDelete.ImagesAndThumbsToDelete.Add(item);
                     }
+
                     ProcessImagesOnDisk(imagesToDelete);
                 }
                 catch (DbUpdateException)
@@ -295,6 +308,7 @@ namespace Website.Service.Stores
                     return OperationResult.Failure(ErrorDescriber.DbUpdateFailure());
                 }
             }
+
             return OperationResult.Success();
         }
 
@@ -302,7 +316,8 @@ namespace Website.Service.Stores
 
         #region categories
 
-        public async Task<OperationResult> CreateCategoryAsync(CategoryDto category, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<OperationResult> CreateCategoryAsync(CategoryDto category,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -319,10 +334,12 @@ namespace Website.Service.Stores
             {
                 return OperationResult.Failure(ErrorDescriber.DbUpdateFailure());
             }
+
             return OperationResult.Success();
         }
 
-        public async Task<CategoryDto> FindCategoryByNameAsync(string categoryName, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<CategoryDto> FindCategoryByNameAsync(string categoryName,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -338,7 +355,8 @@ namespace Website.Service.Stores
             return dbCategory;
         }
 
-        public async Task<OperationResult> UpdateCategoryAsync(CategoryDto category, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<OperationResult> UpdateCategoryAsync(CategoryDto category,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -361,17 +379,19 @@ namespace Website.Service.Stores
             {
                 return OperationResult.Failure(ErrorDescriber.DbUpdateFailure());
             }
+
             return OperationResult.Success();
         }
 
-        public async Task<OperationResult> DeleteCategoryAsync(CategoryDto category, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<OperationResult> DeleteCategoryAsync(CategoryDto category,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
             if (category == null)
                 throw new ArgumentNullException(nameof(category));
 
-            var entry = await CategoriesSet.FindAsync(new[] { category.Id }, cancellationToken);
+            var entry = await CategoriesSet.FindAsync(new[] {category.Id}, cancellationToken);
             if (entry != null)
             {
                 CategoriesSet.Remove(entry);
@@ -384,6 +404,7 @@ namespace Website.Service.Stores
                     return OperationResult.Failure(ErrorDescriber.DbUpdateFailure());
                 }
             }
+
             return OperationResult.Success();
         }
 
@@ -393,8 +414,9 @@ namespace Website.Service.Stores
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
             if (getProductCount)
-            { //TODO auto resolve map
-                return await CategoriesSet.Select(x=> new CategoryDto
+            {
+                //TODO auto resolve map
+                return await CategoriesSet.Select(x => new CategoryDto
                 {
                     Description = x.Description,
                     Id = x.Id,
@@ -404,10 +426,13 @@ namespace Website.Service.Stores
                     Timestamp = x.Timestamp
                 }).ToListAsync(cancellationToken);
             }
-            return await CategoriesSet.ProjectTo<CategoryDto>(_mapper.ConfigurationProvider).ToListAsync(cancellationToken);
+
+            return await CategoriesSet.ProjectTo<CategoryDto>(_mapper.ConfigurationProvider)
+                .ToListAsync(cancellationToken);
         }
 
-        private async Task<OperationResult> UpdateProductCategories(int productId, IEnumerable<CategoryDto> categories, CancellationToken cancellationToken = default(CancellationToken))
+        private async Task<OperationResult> UpdateProductCategories(int productId, IEnumerable<CategoryDto> categories,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -416,8 +441,8 @@ namespace Website.Service.Stores
 
             foreach (var category in categories)
             {
-                var prodToCat = new ProductToCategory() { ProductId = productId, CategoryId = category.Id };
-                var product = await ProductsSet.FindAsync(new object[] { productId }, cancellationToken);
+                var prodToCat = new ProductToCategory() {ProductId = productId, CategoryId = category.Id};
+                var product = await ProductsSet.FindAsync(new object[] {productId}, cancellationToken);
                 switch (category.DtoState)
                 {
                     case DtoState.Added:
@@ -429,6 +454,7 @@ namespace Website.Service.Stores
                         break;
                 }
             }
+
             try
             {
                 await SaveChanges(cancellationToken);
@@ -441,6 +467,7 @@ namespace Website.Service.Stores
             {
                 return OperationResult.Failure(ErrorDescriber.DbUpdateFailure());
             }
+
             return OperationResult.Success();
         }
 
@@ -448,7 +475,8 @@ namespace Website.Service.Stores
 
         #region images 
 
-        private ImagesToDisk SaveImagesToContext(int productId, IEnumerable<ProductImageDto> images, CancellationToken cancellationToken)
+        private ImagesToDisk SaveImagesToContext(int productId, IEnumerable<ProductImageDto> images,
+            CancellationToken cancellationToken)
         {
             var imagesToDisk = new ImagesToDisk();
             foreach (var image in images) //TODO tests 
@@ -463,39 +491,40 @@ namespace Website.Service.Stores
                 switch (image.DtoState)
                 {
                     case DtoState.Added:
-                        {
-                            var fileFormat = ImagesSaveFormat.ToLower();
-                            var imageNames = GetAvailableImageFileName(productId, imagesToDisk.ImagesToSave);
-                            imagesToDisk.ImagesToSave.Add(imageNames.Item1, image.Bitmap);
-                            dbImage.Name = imageNames.Item1;
-                            dbImage.ThumbName = imageNames.Item2;
-                            dbImage.Format = fileFormat;
-                            ImagesSet.Add(dbImage);
-                            break;
-                        }
+                    {
+                        var fileFormat = ImagesSaveFormat.ToLower();
+                        var imageNames = GetAvailableImageFileName(productId, imagesToDisk.ImagesToSave);
+                        imagesToDisk.ImagesToSave.Add(imageNames.Item1, image.Bitmap);
+                        dbImage.Name = imageNames.Item1;
+                        dbImage.ThumbName = imageNames.Item2;
+                        dbImage.Format = fileFormat;
+                        ImagesSet.Add(dbImage);
+                        break;
+                    }
                     case DtoState.Deleted:
-                        {
-                            if (!image.Id.HasValue)
-                                break;
-                            dbImage.Id = image.Id.Value;
-                            if (!ImagesSet.Any(x => x.Id == image.Id))
-                                break; //nothing to remove from db due to concurrency or smth
-                            imagesToDisk.ImagesAndThumbsToDelete.Add((image.Path, image.ThumbPath));
-                            ImagesSet.Remove(dbImage);
+                    {
+                        if (!image.Id.HasValue)
                             break;
-                        }
+                        dbImage.Id = image.Id.Value;
+                        if (!ImagesSet.Any(x => x.Id == image.Id))
+                            break; //nothing to remove from db due to concurrency or smth
+                        imagesToDisk.ImagesAndThumbsToDelete.Add((image.Path, image.ThumbPath));
+                        ImagesSet.Remove(dbImage);
+                        break;
+                    }
                     case DtoState.Modified: //not used yet
                     default:
-                        {
-                            if (!image.Id.HasValue)
-                                break;
-                            dbImage.Id = image.Id.Value;
-                            ImagesSet.Attach(dbImage);
-                            Context.Entry(dbImage).Property(x => x.Primary).IsModified = true;
+                    {
+                        if (!image.Id.HasValue)
                             break;
-                        }
+                        dbImage.Id = image.Id.Value;
+                        ImagesSet.Attach(dbImage);
+                        Context.Entry(dbImage).Property(x => x.Primary).IsModified = true;
+                        break;
+                    }
                 }
             }
+
             return imagesToDisk;
         }
 
@@ -511,7 +540,9 @@ namespace Website.Service.Stores
             {
                 imageName = $"{productId}_{++counter}";
                 imageThumbName = $"{productId}_{counter}_s";
-            } while (files.Contains(imageName) || files.Contains(imageThumbName) || pendingAdditions.ContainsKey(imageName));
+            } while (files.Contains(imageName) || files.Contains(imageThumbName) ||
+                     pendingAdditions.ContainsKey(imageName));
+
             return (imageName, imageThumbName);
         }
 
@@ -534,15 +565,16 @@ namespace Website.Service.Stores
                 var encParams = new EncoderParameters()
                 {
                     Param = new[]
-                {
-                    new EncoderParameter(Encoder.Quality, 70L),
-                    new EncoderParameter(Encoder.ScanMethod, (long)EncoderValue.RenderProgressive),
-                }
+                    {
+                        new EncoderParameter(Encoder.Quality, 70L),
+                        new EncoderParameter(Encoder.ScanMethod, (long) EncoderValue.RenderProgressive),
+                    }
                 };
 
                 bitmap.Save(imagePath, encoder, encParams);
                 thumbImage.Save(imageThumbPath, encoder, encParams);
             }
+
             //delete
             foreach (var imagesTuple in images.ImagesAndThumbsToDelete)
             {
@@ -553,6 +585,7 @@ namespace Website.Service.Stores
                 {
                     System.IO.File.Delete(imagePath);
                 }
+
                 if (System.IO.File.Exists(imageThumbPath))
                 {
                     System.IO.File.Delete(imageThumbPath);
@@ -582,7 +615,8 @@ namespace Website.Service.Stores
 
         #region Descriptions
 
-        private async Task<OperationResult> UpdateProductDescriptions(int dbProductId, List<DescriptionGroupDto> productDescriptions, CancellationToken cancellationToken)
+        private async Task<OperationResult> UpdateProductDescriptions(int dbProductId,
+            List<DescriptionGroupDto> productDescriptions, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -620,6 +654,7 @@ namespace Website.Service.Stores
                         break;
                 }
             }
+
             try
             {
                 await SaveChanges(cancellationToken);
@@ -632,10 +667,12 @@ namespace Website.Service.Stores
             {
                 return OperationResult.Failure(ErrorDescriber.DbUpdateFailure());
             }
+
             return OperationResult.Success();
         }
 
-        public async Task<IEnumerable<DescriptionGroupDto>> GetDescriptionGroupsAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IEnumerable<DescriptionGroupDto>> GetDescriptionGroupsAsync(
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -645,7 +682,8 @@ namespace Website.Service.Stores
                 .ToListAsync(cancellationToken);
         }
 
-        public async Task<IEnumerable<DescriptionItemDto>> GetDescriptionItemsAsync(int id, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IEnumerable<DescriptionItemDto>> GetDescriptionItemsAsync(int id,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -657,7 +695,8 @@ namespace Website.Service.Stores
                 .ToListAsync(cancellationToken);
         }
 
-        private async Task<List<DescriptionGroupDto>> GetProductDescriptions(int productId, CancellationToken cancellationToken = default(CancellationToken))
+        private async Task<List<DescriptionGroupDto>> GetProductDescriptions(int productId,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -674,7 +713,8 @@ namespace Website.Service.Stores
             descs.ForEach(x =>
             {
                 if (x.DescriptionGroupItem.DescriptionGroup == null)
-                    x.DescriptionGroupItem.DescriptionGroup = new DescriptionGroup() { Id = -1, Name = "*группа удалена*" };
+                    x.DescriptionGroupItem.DescriptionGroup = new DescriptionGroup()
+                        {Id = -1, Name = "*группа удалена*"};
             });
 
             var descGroups = descs //get flattened description groups from description nav property
@@ -721,13 +761,15 @@ namespace Website.Service.Stores
                     }
                 }
             }
+
             return descGroups;
         }
 
         #endregion
 
 
-        public async Task<SortPageResult<ProductDto>> SortFilterPageResultAsync(ItemTypeSelector types, string searchString, string sortPropName, int currPage,
+        public async Task<SortPageResult<ProductDto>> SortFilterPageResultAsync(ItemTypeSelector types,
+            string searchString, string sortPropName, int currPage,
             int countPerPage, CancellationToken cancellationToken = default(CancellationToken))
         {
             ThrowIfDisposed();
@@ -735,7 +777,7 @@ namespace Website.Service.Stores
             if (countPerPage < 0) throw new ArgumentOutOfRangeException(nameof(countPerPage));
             if (currPage < 0) throw new ArgumentOutOfRangeException(nameof(currPage));
             if (!Enum.IsDefined(typeof(ItemTypeSelector), types))
-                throw new InvalidEnumArgumentException(nameof(ItemTypeSelector), (int)types, typeof(ItemTypeSelector));
+                throw new InvalidEnumArgumentException(nameof(ItemTypeSelector), (int) types, typeof(ItemTypeSelector));
 
             IQueryable<Product> prodQuery = ProductsSet.AsQueryable();
 
@@ -745,8 +787,9 @@ namespace Website.Service.Stores
             int totalProductsN = await prodQuery.CountAsync(cancellationToken);
             PaginateProductsQuery(currPage, countPerPage, ref prodQuery);
 
-            var productsDto = await prodQuery.ProjectTo<ProductDto>(_mapper.ConfigurationProvider).ToListAsync(cancellationToken);
-            return new SortPageResult<ProductDto> { FilteredData = productsDto, TotalN = totalProductsN };
+            var productsDto = await prodQuery.ProjectTo<ProductDto>(_mapper.ConfigurationProvider)
+                .ToListAsync(cancellationToken);
+            return new SortPageResult<ProductDto> {FilteredData = productsDto, TotalN = totalProductsN};
         }
 
         private void PaginateProductsQuery(int currPage, int countPerPage, ref IQueryable<Product> prodQuery)

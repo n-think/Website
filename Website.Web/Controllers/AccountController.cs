@@ -35,8 +35,7 @@ namespace Website.Web.Controllers
             _logger = logger;
         }
 
-        [TempData]
-        public string ErrorMessage { get; set; }
+        [TempData] public string ErrorMessage { get; set; }
 
         [HttpGet]
         [AllowAnonymous]
@@ -59,19 +58,23 @@ namespace Website.Web.Controllers
             {
                 // This doesn't count login failures towards account lockout
                 // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-                var result = await _signInManager.PasswordSignInAsync(model.Login, model.Password, model.RememberMe, lockoutOnFailure: true);
+                var result = await _signInManager.PasswordSignInAsync(model.Login, model.Password, model.RememberMe,
+                    lockoutOnFailure: true);
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("Пользователь авторизовался.");
                     return RedirectToLocal(returnUrl);
                 }
+
                 if (result.RequiresTwoFactor)
                 {
-                    return RedirectToAction(nameof(LoginWith2Fa), new { returnUrl, model.RememberMe });
+                    return RedirectToAction(nameof(LoginWith2Fa), new {returnUrl, model.RememberMe});
                 }
+
                 if (result.IsLockedOut)
                 {
-                    _logger.LogWarning("Аккаунт пользователя заблокирован из за большого количества неудачных попыток авторизации.");
+                    _logger.LogWarning(
+                        "Аккаунт пользователя заблокирован из за большого количества неудачных попыток авторизации.");
                     return RedirectToAction("ErrorLockout", "Error");
                 }
                 else
@@ -97,7 +100,7 @@ namespace Website.Web.Controllers
                 throw new ApplicationException($"Unable to load two-factor authentication user.");
             }
 
-            var model = new LoginWith2FaViewModel { RememberMe = rememberMe };
+            var model = new LoginWith2FaViewModel {RememberMe = rememberMe};
             ViewData["ReturnUrl"] = returnUrl;
 
             return View(model);
@@ -106,7 +109,8 @@ namespace Website.Web.Controllers
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> LoginWith2Fa(LoginWith2FaViewModel model, bool rememberMe, string returnUrl = null)
+        public async Task<IActionResult> LoginWith2Fa(LoginWith2FaViewModel model, bool rememberMe,
+            string returnUrl = null)
         {
             if (!ModelState.IsValid)
             {
@@ -121,7 +125,9 @@ namespace Website.Web.Controllers
 
             var authenticatorCode = model.TwoFactorCode.Replace(" ", string.Empty).Replace("-", string.Empty);
 
-            var result = await _signInManager.TwoFactorAuthenticatorSignInAsync(authenticatorCode, rememberMe, model.RememberMachine);
+            var result =
+                await _signInManager.TwoFactorAuthenticatorSignInAsync(authenticatorCode, rememberMe,
+                    model.RememberMachine);
 
             if (result.Succeeded)
             {
@@ -160,7 +166,8 @@ namespace Website.Web.Controllers
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> LoginWithRecoveryCode(LoginWithRecoveryCodeViewModel model, string returnUrl = null)
+        public async Task<IActionResult> LoginWithRecoveryCode(LoginWithRecoveryCodeViewModel model,
+            string returnUrl = null)
         {
             if (!ModelState.IsValid)
             {
@@ -182,6 +189,7 @@ namespace Website.Web.Controllers
                 _logger.LogInformation("User with ID {UserId} logged in with a recovery code.", user.Id);
                 return RedirectToLocal(returnUrl);
             }
+
             if (result.IsLockedOut)
             {
                 _logger.LogWarning("User with ID {UserId} account locked out.", user.Id);
@@ -220,7 +228,7 @@ namespace Website.Web.Controllers
                     RegistrationDate = DateTimeOffset.Now
                 };
 
-                var user = new UserDto() { UserName = model.Email, Email = model.Email, UserProfile = userProfile};
+                var user = new UserDto() {UserName = model.Email, Email = model.Email, UserProfile = userProfile};
 
                 var result = await _userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
@@ -236,6 +244,7 @@ namespace Website.Web.Controllers
 
                     return RedirectToLocal(returnUrl);
                 }
+
                 AddErrors(result);
             }
 
@@ -258,7 +267,7 @@ namespace Website.Web.Controllers
         public IActionResult ExternalLogin(string provider, string returnUrl = null)
         {
             // Request a redirect to the external login provider.
-            var redirectUrl = Url.Action(nameof(ExternalLoginCallback), "Account", new { returnUrl });
+            var redirectUrl = Url.Action(nameof(ExternalLoginCallback), "Account", new {returnUrl});
             var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
             return Challenge(properties, provider);
         }
@@ -272,6 +281,7 @@ namespace Website.Web.Controllers
                 ErrorMessage = $"Error from external provider: {remoteError}";
                 return RedirectToAction(nameof(Login));
             }
+
             var info = await _signInManager.GetExternalLoginInfoAsync();
             if (info == null)
             {
@@ -279,12 +289,14 @@ namespace Website.Web.Controllers
             }
 
             // Sign in the user with this external login provider if the user already has a login.
-            var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
+            var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey,
+                isPersistent: false, bypassTwoFactor: true);
             if (result.Succeeded)
             {
                 _logger.LogInformation("User logged in with {Name} provider.", info.LoginProvider);
                 return RedirectToLocal(returnUrl);
             }
+
             if (result.IsLockedOut)
             {
                 return RedirectToAction("ErrorLockout", "Error");
@@ -295,14 +307,15 @@ namespace Website.Web.Controllers
                 ViewData["ReturnUrl"] = returnUrl;
                 ViewData["LoginProvider"] = info.LoginProvider;
                 var email = info.Principal.FindFirstValue(ClaimTypes.Email);
-                return View("ExternalLogin", new ExternalLoginViewModel { Email = email });
+                return View("ExternalLogin", new ExternalLoginViewModel {Email = email});
             }
         }
 
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ExternalLoginConfirmation(ExternalLoginViewModel model, string returnUrl = null)
+        public async Task<IActionResult> ExternalLoginConfirmation(ExternalLoginViewModel model,
+            string returnUrl = null)
         {
             if (ModelState.IsValid)
             {
@@ -312,7 +325,8 @@ namespace Website.Web.Controllers
                 {
                     throw new ApplicationException("Error loading external login information during confirmation.");
                 }
-                var user = new UserDto() { UserName = model.Email, Email = model.Email };
+
+                var user = new UserDto() {UserName = model.Email, Email = model.Email};
                 var result = await _userManager.CreateAsync(user);
                 if (result.Succeeded)
                 {
@@ -324,6 +338,7 @@ namespace Website.Web.Controllers
                         return RedirectToLocal(returnUrl);
                     }
                 }
+
                 AddErrors(result);
             }
 
@@ -339,11 +354,13 @@ namespace Website.Web.Controllers
             {
                 return RedirectToAction(nameof(HomeController.Index), "Home");
             }
+
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
             {
                 throw new ApplicationException($"Unable to load user with ID '{userId}'.");
             }
+
             var result = await _userManager.ConfirmEmailAsync(user, code);
             return View(result.Succeeded ? "ConfirmEmail" : "Error");
         }
@@ -374,7 +391,7 @@ namespace Website.Web.Controllers
                 var code = await _userManager.GeneratePasswordResetTokenAsync(user);
                 var callbackUrl = Url.ResetPasswordCallbackLink(user.Id, code, Request.Scheme);
                 await _emailSender.SendEmailAsync(model.Email, "Reset Password",
-                   $"Please reset your password by clicking here: <a href='{callbackUrl}'>link</a>");
+                    $"Please reset your password by clicking here: <a href='{callbackUrl}'>link</a>");
                 return RedirectToAction(nameof(ForgotPasswordConfirmation));
             }
 
@@ -397,7 +414,8 @@ namespace Website.Web.Controllers
             {
                 throw new ApplicationException("A code must be supplied for password reset.");
             }
-            var model = new ResetPasswordViewModel { Code = code };
+
+            var model = new ResetPasswordViewModel {Code = code};
             return View(model);
         }
 
@@ -410,17 +428,20 @@ namespace Website.Web.Controllers
             {
                 return View(model);
             }
+
             var user = await _userManager.FindByEmailAsync(model.Email);
             if (user == null)
             {
                 // Don't reveal that the user does not exist
                 return RedirectToAction(nameof(ResetPasswordConfirmation));
             }
+
             var result = await _userManager.ResetPasswordAsync(user, model.Code, model.Password);
             if (result.Succeeded)
             {
                 return RedirectToAction(nameof(ResetPasswordConfirmation));
             }
+
             AddErrors(result);
             return View();
         }

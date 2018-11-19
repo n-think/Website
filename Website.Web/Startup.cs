@@ -212,7 +212,7 @@ namespace Website.Web
             }
 
             app.UseStaticFiles();
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection(); //no need behind iis
             app.UseCookiePolicy();
 
             app.UseAuthentication();

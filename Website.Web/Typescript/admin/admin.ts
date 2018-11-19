@@ -20,3 +20,11 @@ function getItemCountFromHeight() {
     const value = Math.round((clientHeight - 400) / 65);
     return value < 5 ? 5 : value;
 }
+
+//TODO webpack
+enum DtoState {
+    Unchanged = "unchanged",
+    Added = "added",
+    Deleted = "deleted",
+    Modified = "modified",
+}
