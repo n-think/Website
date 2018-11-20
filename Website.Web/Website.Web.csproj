@@ -42,12 +42,12 @@
 
 
   <ItemGroup>
-    <TypeScriptCompile Include="Typescript\admin\admin.ts" />
-    <TypeScriptCompile Include="Typescript\admin\categories.ts" />
-    <TypeScriptCompile Include="Typescript\admin\productEdit.ts" />
-    <TypeScriptCompile Include="Typescript\admin\userEdit.ts" />
-    <TypeScriptCompile Include="Typescript\site.ts" />
-    <TypeScriptCompile Include="Typescript\validation.ts" />
+    <TypeScriptCompile Include="Scripts\admin\admin.ts" />
+    <TypeScriptCompile Include="Scripts\admin\categories.ts" />
+    <TypeScriptCompile Include="Scripts\admin\productEdit.ts" />
+    <TypeScriptCompile Include="Scripts\admin\userEdit.ts" />
+    <TypeScriptCompile Include="Scripts\site\site.ts" />
+    <TypeScriptCompile Include="Scripts\site\validationFixes.ts" />
   </ItemGroup>
 
 
@@ -73,21 +73,12 @@
   </ItemGroup>
 
 
-  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
-    <TypeScriptTarget>ES5</TypeScriptTarget>
-    <TypeScriptJSXEmit>None</TypeScriptJSXEmit>
-    <TypeScriptModuleKind>ES6</TypeScriptModuleKind>
-    <TypeScriptCompileOnSaveEnabled>True</TypeScriptCompileOnSaveEnabled>
-    <TypeScriptNoImplicitAny>False</TypeScriptNoImplicitAny>
-    <TypeScriptRemoveComments>True</TypeScriptRemoveComments>
-    <TypeScriptOutFile />
-    <TypeScriptOutDir>../wwwroot/js</TypeScriptOutDir>
-    <TypeScriptGeneratesDeclarations>False</TypeScriptGeneratesDeclarations>
-    <TypeScriptNoEmitOnError>True</TypeScriptNoEmitOnError>
-    <TypeScriptSourceMap>True</TypeScriptSourceMap>
-    <TypeScriptMapRoot />
-    <TypeScriptSourceRoot />
-  </PropertyGroup>
+  <ItemGroup>
+    <Folder Include="wwwroot\dist" />
+  </ItemGroup>
 
+  <PropertyGroup>
+    <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
+  </PropertyGroup>
 
 </Project>

@@ -1,4 +1,6 @@
-﻿namespace userEdit {
+﻿import $ from "jquery";
+
+module userEdit {
     $("#role-selector").change(function () {
         if ($(this).val() === "admin") {
             $(".admin-options").removeClass("d-none");

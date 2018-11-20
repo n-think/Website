@@ -5,12 +5,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>@Html.Raw(ViewData["Title"])</title>
     <environment include="Development">
-        <link rel="stylesheet" href="~/lib/bootstrap/bootstrap.css" />
-        <link rel="stylesheet" href="~/lib/font-awesome/font-awesome.css" />
+        <link rel="stylesheet" href="~/lib/bootstrap/bootstrap.css"/>
+        <link rel="stylesheet" href="~/lib/font-awesome/font-awesome.css"/>
         <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
     </environment>
     <environment exclude="Development">
@@ -18,83 +18,72 @@
               asp-fallback-href="~/lib/bootstrap/bootstrap.min.css"
               asp-fallback-test-class="sr-only" asp-fallback-test-property="position" asp-fallback-test-value="absolute"
               crossorigin="anonymous"
-              integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" />
+              integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"/>
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
               asp-fallback-href="~/lib/font-awesome/font-awesome.min.css">
-        <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true" />
+        <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true"/>
     </environment>
     @RenderSection("Css", required: false)
 </head>
 <body>
-    <div class="jumbotron mb-0 p-3 h">
-        <div class="container text-center">
-            <h1>Сайт</h1>
-            <p>
-                <environment exclude="Production"><span class="text-danger d-block">@Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")</span></environment>
-                <span>Логин: "admin" Пароль: "@(Configuration.GetSection("AdminAccount").GetValue<string>("Password"))"</span>
-            </p>
+<div class="jumbotron mb-0 p-3 h">
+    <div class="container text-center">
+        <h1>Сайт</h1>
+        <p>
+            <environment exclude="Production">
+                <span class="text-danger d-block">@Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")</span>
+            </environment>
+            <span>Логин: "admin" Пароль: "@(Configuration.GetSection("AdminAccount").GetValue<string>("Password"))"</span>
+        </p>
+    </div>
+</div>
+<div id="instant-search-results" class="p-2 mt-2 dropdown-menu border-dark text-truncate">
+    <div>Item1 Item1 Item1 Item1</div>
+    <div>Item2 Item2 Item2 Item2</div>
+</div>
+<nav id="navbar" class="navbar navbar-dark bg-dark navbar-expand-md p-0">
+    <div class="container-fluid px-0">
+        <a class="navbar-brand m-0 btn btn-link rounded-0" asp-area="" asp-controller="Home" asp-action="Index">
+            <span class="fa fa-home"></span>
+        </a>
+        <input id="mini-nav-search" class="w-50 form-control m-1 p-1 px-2" type="search" placeholder="Поиск" aria-label="Search">
+        <button class="navbar-toggler btn btn-outline-light btn-link rounded-0" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div id="navbarSupportedContent" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link btn btn-link rounded-0" asp-area="" asp-controller="" asp-action="">Магазин</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link btn btn-link rounded-0" asp-area="" asp-controller="Test" asp-action="Calc">Калькулятор</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link btn btn-link rounded-0" asp-area="" asp-controller="Home" asp-action="About">О нас</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link btn btn-link rounded-0" asp-area="" asp-controller="Home" asp-action="Contact">Контакты</a>
+                </li>
+                <li id="nav-search-li" class="nav-item" style="width: 28rem;">
+                    <input id="nav-search" class="form-control m-1 p-1 px-2" type="search" placeholder="Поиск" aria-label="Search">
+                </li>
+            </ul>
+            @await Html.PartialAsync("_LoginPartial")
         </div>
     </div>
-    <div id="instant-search-results" class="p-2 mt-2 dropdown-menu border-dark text-truncate">
-        <div>Item1 Item1 Item1 Item1</div>
-        <div>Item2 Item2 Item2 Item2</div>
-    </div>
-    <nav id="navbar" class="navbar navbar-dark bg-dark navbar-expand-md p-0">
-        <div class="container-fluid px-0">
-            <a class="navbar-brand m-0 btn btn-link rounded-0" asp-area="" asp-controller="Home" asp-action="Index"><span class="fa fa-home"></span></a>
-            <input id="mini-nav-search" class="w-50 form-control m-1 p-1 px-2" type="search" placeholder="Поиск" aria-label="Search">
-            <button class="navbar-toggler btn btn-outline-light btn-link rounded-0" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
-                    aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div id="navbarSupportedContent" class="navbar-collapse collapse">
-                <ul class="nav navbar-nav">
-                    <li class="nav-item"><a class="nav-link btn btn-link rounded-0" asp-area="" asp-controller="" asp-action="">Магазин</a></li>
-                    <li class="nav-item"><a class="nav-link btn btn-link rounded-0" asp-area="" asp-controller="Test" asp-action="Calc">Калькулятор</a></li>
-                    <li class="nav-item"><a class="nav-link btn btn-link rounded-0" asp-area="" asp-controller="Home" asp-action="About">О нас</a></li>
-                    <li class="nav-item"><a class="nav-link btn btn-link rounded-0" asp-area="" asp-controller="Home" asp-action="Contact">Контакты</a></li>
-                    <li id="nav-search-li" class="nav-item" style="width: 28rem;">
-                        <input id="nav-search" class="form-control m-1 p-1 px-2" type="search" placeholder="Поиск" aria-label="Search">
-                    </li>
-                </ul>
-                @await Html.PartialAsync("_LoginPartial")
-            </div>
-        </div>
-    </nav>
-    <div class="main-body">
-        @RenderBody()
-    </div>
-    <div class="footer">
-        <hr class="mt-0 border-top" />
-        <footer class="text-center">
-            <p>&copy; 2018 - сайт</p>
-        </footer>
-    </div>
-    <environment include="Development">
-        <script src="~/lib/jquery/jquery.js"></script>
-        <script src="~/lib/popper/umd/popper.js"></script>
-        <script src="~/lib/bootstrap/bootstrap.js"></script>
-        <script src="~/js/site.js" asp-append-version="true"></script>
-    </environment>
-    <environment exclude="Development">
-        <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-3.3.1.min.js"
-                asp-fallback-src="~/lib/jquery/jquery.min.js"
-                asp-fallback-test="window.jQuery"
-                crossorigin="anonymous"
-                integrity="sha384-tsQFqpEReu7ZLhBV2VZlAu7zcOV+rXbYlF2cqB8txI/8aZajjp4Bqd+V6D5IgvKT">
-        </script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.4/umd/popper.min.js"
-                asp-fallback-src="~/lib/popper/umd/popper.min.js"
-                integrity="sha384-GM0Y80ecpwKxF1D5XCrGanKusGDy9WW0O2sSM84neB4iFhvKp3fwnoIRnPsQcN1R"
-                crossorigin="anonymous"></script>
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"
-                asp-fallback-src="~/lib/bootstrap/bootstrap.min.js"
-                asp-fallback-test="window.jQuery && window.jQuery.fn && window.jQuery.fn.modal"
-                crossorigin="anonymous"
-                integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy">
-        </script>
-        <script src="~/js/site.min.js" asp-append-version="true"></script>
-    </environment>
-    @RenderSection("Scripts", required: false)
+</nav>
+<div class="main-body">
+    @RenderBody()
+</div>
+<div class="footer">
+    <hr class="mt-0 border-top"/>
+    <footer class="text-center">
+        <p>&copy; 2018 - сайт</p>
+    </footer>
+</div>
+<script src="~/dist/common-bundle.js" asp-append-version="true"></script>
+<script src="~/dist/site-bundle.js" asp-append-version="true"></script>
+@RenderSection("Scripts", required: false)
 </body>
 </html>

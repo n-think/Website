@@ -1,4 +1,9 @@
-﻿namespace categories {
+﻿import $ from "jquery";
+import "./enums";
+import "bootstrap-select"
+import "bootstrap"
+
+module categories {
 
     $(".category-expander").on("click", categoryExpanderToggle);
     $(".list-group-item.list-group-item-action.category").on("click", viewCategory);

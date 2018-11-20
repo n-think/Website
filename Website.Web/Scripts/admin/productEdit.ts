@@ -1,5 +1,11 @@
-﻿namespace productEdit {
+﻿import $ from "jquery";
+import "./enums";
+import "bootstrap"
+import "bootstrap-select"
+import "jquery-validation-unobtrusive"
 
+module productEdit {    
+    
     $("div#admin-content")
         .on("click", "#edit-form-submit", validateAndSubmitJson)
         .on("click", "img.admin-img-thumb", setImage)
@@ -17,9 +23,7 @@
         .on("click", ".remove-desc-group-item", removeDescGroupItem)
         .on("click", ".edit-desc-group-item", editDescItem)
         .on("click", ".save-desc-group-item", saveEditDescItem)
-        .on("click", ".cancel-desc-group-item", cancelEditDescItem);
-
-    let state = enums.DtoState;
+        .on("click", ".cancel-desc-group-item", cancelEditDescItem);   
 
     function validateAndSubmitJson() {
         let editForm = $("#edit-form");
@@ -91,13 +95,13 @@
                 Primary: e.hasClass("img-primary")
             };
             if (e.hasClass("img-add")) {
-                images[i].DtoState = state.Added;
+                images[i].DtoState = enums.DtoState.Added;
                 images[i].DataUrl = e.attr("src");
             } else {
                 if (e.hasClass("img-delete")) {
-                    images[i].DtoState = state.Deleted;
+                    images[i].DtoState = enums.DtoState.Deleted;
                 } else {
-                    images[i].DtoState = state.Unchanged;
+                    images[i].DtoState = enums.DtoState.Unchanged;
                 }
                 images[i].Path = e.data("path");
                 images[i].ThumbPath = e.attr("src");
@@ -119,14 +123,14 @@
                 Id: cat.data("id"),
                 Name: cat.find(".category-name").text(),
                 Description: cat.find(".category-desc").text(),
-                DtoState: state.Unchanged
+                DtoState: enums.DtoState.Unchanged
             };
             catData[i].Description = catData[i].Description.slice(1, catData[i].Description.length - 1);
             if (cat.hasClass("cat-add")) {
-                catData[i].DtoState = state.Added;
+                catData[i].DtoState = enums.DtoState.Added;
             }
             else if (cat.hasClass("cat-delete")) {
-                catData[i].DtoState = state.Deleted;
+                catData[i].DtoState = enums.DtoState.Deleted;
             }
         }
         return catData;
@@ -152,16 +156,16 @@
                     Name: item.find(".desc-item-name").text(),
                     DescriptionId: item.find(".desc-item-value").data("id"),
                     DescriptionValue: item.find(".desc-item-value").text(),
-                    DtoState: state.Unchanged
+                    DtoState: enums.DtoState.Unchanged
                 };
                 if (item.hasClass("desc-item-add")) {
-                    data[i].Items[x].DtoState = state.Added;
+                    data[i].Items[x].DtoState = enums.DtoState.Added;
                 }
                 else if (item.hasClass("desc-item-modified")) {
-                    data[i].Items[x].DtoState = state.Modified;
+                    data[i].Items[x].DtoState = enums.DtoState.Modified;
                 }
                 if (item.hasClass("desc-item-delete") || group.hasClass("desc-group-delete")) {
-                    data[i].Items[x].DtoState = state.Deleted;
+                    data[i].Items[x].DtoState = enums.DtoState.Deleted;
                 }
             });
         });
