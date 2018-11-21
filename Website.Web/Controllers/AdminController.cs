@@ -116,7 +116,7 @@ namespace Website.Web.Controllers
             return View(modelUser);
         }
 
-        [HttpPost]
+        [HttpPost("{id:guid}")]
         [ValidateAntiForgeryToken]
         [Authorize(Policy = "EditUsers")]
         public async Task<IActionResult> EditUser(EditUserViewModel editModel)

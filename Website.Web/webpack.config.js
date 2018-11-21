@@ -2,7 +2,6 @@ var CleanWebpackPlugin = require('clean-webpack-plugin');
 var distFolder = __dirname + "/wwwroot/dist";
 module.exports = {
 
-
     entry: {
         site: "./Scripts/site/index.ts",        
         admin: "./Scripts/admin/index.ts"
@@ -11,6 +10,7 @@ module.exports = {
         filename: "[name]-bundle.js",
         path: distFolder
     },
+    watch: true,
     optimization: {
         splitChunks: {
             chunks: "all",
