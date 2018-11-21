@@ -18,6 +18,7 @@ var productEdit;
         .on("click", ".edit-desc-group-item", editDescItem)
         .on("click", ".save-desc-group-item", saveEditDescItem)
         .on("click", ".cancel-desc-group-item", cancelEditDescItem);
+    var state = enums.DtoState;
     function validateAndSubmitJson() {
         var editForm = $("#edit-form");
         var result = editForm.validate().valid();
@@ -77,15 +78,15 @@ var productEdit;
                 Primary: e.hasClass("img-primary")
             };
             if (e.hasClass("img-add")) {
-                images[i].DtoState = DtoState.Added;
+                images[i].DtoState = state.Added;
                 images[i].DataUrl = e.attr("src");
             }
             else {
                 if (e.hasClass("img-delete")) {
-                    images[i].DtoState = DtoState.Deleted;
+                    images[i].DtoState = state.Deleted;
                 }
                 else {
-                    images[i].DtoState = DtoState.Unchanged;
+                    images[i].DtoState = state.Unchanged;
                 }
                 images[i].Path = e.data("path");
                 images[i].ThumbPath = e.attr("src");
@@ -105,14 +106,14 @@ var productEdit;
                 Id: cat.data("id"),
                 Name: cat.find(".category-name").text(),
                 Description: cat.find(".category-desc").text(),
-                DtoState: DtoState.Unchanged
+                DtoState: state.Unchanged
             };
             catData[i].Description = catData[i].Description.slice(1, catData[i].Description.length - 1);
             if (cat.hasClass("cat-add")) {
-                catData[i].DtoState = DtoState.Added;
+                catData[i].DtoState = state.Added;
             }
             else if (cat.hasClass("cat-delete")) {
-                catData[i].DtoState = DtoState.Deleted;
+                catData[i].DtoState = state.Deleted;
             }
         }
         return catData;
@@ -137,16 +138,16 @@ var productEdit;
                     Name: item.find(".desc-item-name").text(),
                     DescriptionId: item.find(".desc-item-value").data("id"),
                     DescriptionValue: item.find(".desc-item-value").text(),
-                    DtoState: DtoState.Unchanged
+                    DtoState: state.Unchanged
                 };
                 if (item.hasClass("desc-item-add")) {
-                    data[i].Items[x].DtoState = DtoState.Added;
+                    data[i].Items[x].DtoState = state.Added;
                 }
                 else if (item.hasClass("desc-item-modified")) {
-                    data[i].Items[x].DtoState = DtoState.Modified;
+                    data[i].Items[x].DtoState = state.Modified;
                 }
                 if (item.hasClass("desc-item-delete") || group.hasClass("desc-group-delete")) {
-                    data[i].Items[x].DtoState = DtoState.Deleted;
+                    data[i].Items[x].DtoState = state.Deleted;
                 }
             });
         });
@@ -485,4 +486,3 @@ var productEdit;
         }
     }
 })(productEdit || (productEdit = {}));
-//# sourceMappingURL=productEdit.js.map

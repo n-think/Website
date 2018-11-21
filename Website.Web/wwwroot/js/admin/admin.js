@@ -18,11 +18,13 @@ function getItemCountFromHeight() {
     var value = Math.round((clientHeight - 400) / 65);
     return value < 5 ? 5 : value;
 }
-var DtoState;
-(function (DtoState) {
-    DtoState["Unchanged"] = "unchanged";
-    DtoState["Added"] = "added";
-    DtoState["Deleted"] = "deleted";
-    DtoState["Modified"] = "modified";
-})(DtoState || (DtoState = {}));
-//# sourceMappingURL=admin.js.map
+var enums;
+(function (enums) {
+    var DtoState;
+    (function (DtoState) {
+        DtoState["Unchanged"] = "unchanged";
+        DtoState["Added"] = "added";
+        DtoState["Deleted"] = "deleted";
+        DtoState["Modified"] = "modified";
+    })(DtoState = enums.DtoState || (enums.DtoState = {}));
+})(enums || (enums = {}));

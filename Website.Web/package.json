@@ -12,7 +12,7 @@
     "bootstrap-select": "1.13.3",
     "@types/jquery": "3.3.22",
     "@types/jquery-validation-unobtrusive": "3.2.32",
-    "@types/bootstrap": "4.1.2",
+    /* "@types/bootstrap": "4.1.2", */
     "@types/bootstrap-select": "1.11.1",
     "@types/popper.js": "1.11.0"
   }

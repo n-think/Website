@@ -69,4 +69,3 @@ var categories;
         }
     }
 })(categories || (categories = {}));
-//# sourceMappingURL=categories.js.map

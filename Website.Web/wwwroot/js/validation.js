@@ -26,4 +26,3 @@ $.validator.methods.number = function (value, element) {
         validClass: defaultOptions.validClass,
     };
 })(jQuery);
-//# sourceMappingURL=validation.js.map

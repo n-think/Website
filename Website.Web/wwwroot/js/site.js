@@ -9,4 +9,3 @@ function stickyNavbar() {
         navbar.classList.remove("fixed-top");
     }
 }
-//# sourceMappingURL=site.js.map

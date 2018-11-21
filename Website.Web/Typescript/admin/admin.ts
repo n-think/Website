@@ -21,10 +21,12 @@ function getItemCountFromHeight() {
     return value < 5 ? 5 : value;
 }
 
-//TODO webpack
-enum DtoState {
-    Unchanged = "unchanged",
-    Added = "added",
-    Deleted = "deleted",
-    Modified = "modified",
+namespace enums{
+    export enum DtoState {
+        Unchanged = "unchanged",
+        Added = "added",
+        Deleted = "deleted",
+        Modified = "modified",
+    }
 }
+
