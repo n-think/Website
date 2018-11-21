@@ -1,7 +1,5 @@
 ﻿import $ from "jquery";
 import "./enums";
-import "bootstrap-select"
-import "bootstrap"
 
 module categories {
 

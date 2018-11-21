@@ -7,6 +7,7 @@ import $ from "jquery";
 import "jquery-validation";
 import "jquery-validation-unobtrusive";
 
+// (function ($) {
 // и точка и запятая
 $.validator.methods.range = function (value, element, param) {
     var globalizedValue = value.replace(",", ".");
@@ -38,3 +39,4 @@ $.validator.unobtrusive.options = {
     errorClass: defaultOptions.errorClass,
     validClass: defaultOptions.validClass,
 };
+// })(jQuery);

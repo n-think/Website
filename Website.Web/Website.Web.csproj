@@ -22,8 +22,7 @@
 
 
   <ItemGroup>
-    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="5.0.1" />
-    <PackageReference Include="BuildBundlerMinifier" Version="2.8.391" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="6.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="2.1.4">
       <PrivateAssets>all</PrivateAssets>
@@ -75,6 +74,32 @@
 
   <ItemGroup>
     <Folder Include="wwwroot\dist" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="wwwroot\lib\jquery-validation-unobtrusive\jquery.validate.unobtrusive.js" />
+    <_ContentIncludedByDefault Remove="wwwroot\lib\jquery-validation-unobtrusive\jquery.validate.unobtrusive.min.js" />
+    <_ContentIncludedByDefault Remove="wwwroot\lib\popper\popper.js" />
+    <_ContentIncludedByDefault Remove="wwwroot\lib\popper\popper.js.map" />
+    <_ContentIncludedByDefault Remove="wwwroot\lib\popper\popper.min.js" />
+    <_ContentIncludedByDefault Remove="wwwroot\lib\popper\popper.min.js.map" />
+    <_ContentIncludedByDefault Remove="wwwroot\lib\popper\umd\popper.js" />
+    <_ContentIncludedByDefault Remove="wwwroot\lib\popper\umd\popper.js.map" />
+    <_ContentIncludedByDefault Remove="wwwroot\lib\popper\umd\popper.min.js" />
+    <_ContentIncludedByDefault Remove="wwwroot\lib\popper\umd\popper.min.js.map" />
+    <_ContentIncludedByDefault Remove="wwwroot\js\admin\admin.js" />
+    <_ContentIncludedByDefault Remove="wwwroot\js\admin\admin.min.js" />
+    <_ContentIncludedByDefault Remove="wwwroot\js\admin\categories.js" />
+    <_ContentIncludedByDefault Remove="wwwroot\js\admin\categories.min.js" />
+    <_ContentIncludedByDefault Remove="wwwroot\js\admin\productEdit.js" />
+    <_ContentIncludedByDefault Remove="wwwroot\js\admin\productEdit.min.js" />
+    <_ContentIncludedByDefault Remove="wwwroot\js\admin\userEdit.js" />
+    <_ContentIncludedByDefault Remove="wwwroot\js\admin\userEdit.min.js" />
+    <_ContentIncludedByDefault Remove="wwwroot\js\site.js" />
+    <_ContentIncludedByDefault Remove="wwwroot\js\site.min.js" />
+    <_ContentIncludedByDefault Remove="wwwroot\js\validation.js" />
+    <_ContentIncludedByDefault Remove="wwwroot\js\validation.min.js" />
   </ItemGroup>
 
   <PropertyGroup>

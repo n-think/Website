@@ -1,24 +1,21 @@
 ﻿import $ from "jquery";
-import "./enums";
-import "bootstrap"
-import "bootstrap-select"
+import {DtoState} from "./enums";
 import "jquery-validation-unobtrusive"
 
-module productEdit {    
-    
+module productEdit {  
     $("div#admin-content")
         .on("click", "#edit-form-submit", validateAndSubmitJson)
         .on("click", "img.admin-img-thumb", setImage)
         .on("click", "#image-primary-button", setPrimaryImage)
         .on("click", "#image-remove-button", setDeleteImage)
         .on("change", "#file-upload-button", loadImagesFromInput)
-        .on("click", ".category-btn", loadCategoriesDropdown)
+        .on("click", ".category-btn", loadProductCategoriesDropdown)
         .on("click", ".add-cat", addCategory)
         .on("click", ".remove-cat", removeCategory)
-        .on("click", ".desc-group-btn", loadDescGroupDropdown)
+        .on("click", ".desc-group-btn", loadProductDescGroupDropdown)
         .on("click", ".add-desc-group", addDescGroup)
         .on("click", ".remove-desc-group", removeDescGroup)
-        .on("click", ".desc-group-items-btn", loadDescGroupItemsDropdown)
+        .on("click", ".desc-group-items-btn", loadProductDescGroupItemsDropdown)
         .on("click", ".add-desc-group-item", addDescGroupItem)
         .on("click", ".remove-desc-group-item", removeDescGroupItem)
         .on("click", ".edit-desc-group-item", editDescItem)
@@ -95,13 +92,13 @@ module productEdit {
                 Primary: e.hasClass("img-primary")
             };
             if (e.hasClass("img-add")) {
-                images[i].DtoState = enums.DtoState.Added;
+                images[i].DtoState = DtoState.Added;
                 images[i].DataUrl = e.attr("src");
             } else {
                 if (e.hasClass("img-delete")) {
-                    images[i].DtoState = enums.DtoState.Deleted;
+                    images[i].DtoState = DtoState.Deleted;
                 } else {
-                    images[i].DtoState = enums.DtoState.Unchanged;
+                    images[i].DtoState = DtoState.Unchanged;
                 }
                 images[i].Path = e.data("path");
                 images[i].ThumbPath = e.attr("src");
@@ -123,14 +120,14 @@ module productEdit {
                 Id: cat.data("id"),
                 Name: cat.find(".category-name").text(),
                 Description: cat.find(".category-desc").text(),
-                DtoState: enums.DtoState.Unchanged
+                DtoState: DtoState.Unchanged
             };
             catData[i].Description = catData[i].Description.slice(1, catData[i].Description.length - 1);
             if (cat.hasClass("cat-add")) {
-                catData[i].DtoState = enums.DtoState.Added;
+                catData[i].DtoState = DtoState.Added;
             }
             else if (cat.hasClass("cat-delete")) {
-                catData[i].DtoState = enums.DtoState.Deleted;
+                catData[i].DtoState = DtoState.Deleted;
             }
         }
         return catData;
@@ -156,16 +153,16 @@ module productEdit {
                     Name: item.find(".desc-item-name").text(),
                     DescriptionId: item.find(".desc-item-value").data("id"),
                     DescriptionValue: item.find(".desc-item-value").text(),
-                    DtoState: enums.DtoState.Unchanged
+                    DtoState: DtoState.Unchanged
                 };
                 if (item.hasClass("desc-item-add")) {
-                    data[i].Items[x].DtoState = enums.DtoState.Added;
+                    data[i].Items[x].DtoState = DtoState.Added;
                 }
                 else if (item.hasClass("desc-item-modified")) {
-                    data[i].Items[x].DtoState = enums.DtoState.Modified;
+                    data[i].Items[x].DtoState = DtoState.Modified;
                 }
                 if (item.hasClass("desc-item-delete") || group.hasClass("desc-group-delete")) {
-                    data[i].Items[x].DtoState = enums.DtoState.Deleted;
+                    data[i].Items[x].DtoState = DtoState.Deleted;
                 }
             });
         });
@@ -276,7 +273,7 @@ module productEdit {
         }
     }
 
-    function loadCategoriesDropdown() {
+    function loadProductCategoriesDropdown() {
         let loadingBar = $("<div>").attr("id", "cat-loading").addClass("text-center mt-1").text("Загрузка")
             .append($("<span>").addClass("fa fa-spinner fa-spin ml-2"));
         $.ajax({
@@ -338,7 +335,7 @@ module productEdit {
         }
     }
 
-    function loadDescGroupDropdown() {
+    function loadProductDescGroupDropdown() {
         let loadingBar = $("<div>").attr("id", "desc-group-loading").addClass("text-center mt-1").text("Загрузка")
             .append($("<span>").addClass("fa fa-spinner fa-spin ml-2"));
         $.ajax({
@@ -415,7 +412,7 @@ title="Добавить описание" data-live-search-placeholder="Поис
         }
     }
 
-    function loadDescGroupItemsDropdown() {
+    function loadProductDescGroupItemsDropdown() {
         let loadingBar = $("<div>").attr("id", "desc-group-items-loading").addClass("text-center mt-1").text("Загрузка")
             .append($("<span>").addClass("fa fa-spinner fa-spin ml-2"));
         let container = $(this).closest(".desc-group");
