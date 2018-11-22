@@ -10,7 +10,7 @@ import "jquery-validation-unobtrusive";
 // (function ($) {
 // и точка и запятая
 $.validator.methods.range = function (value, element, param) {
-    var globalizedValue = value.replace(",", ".");
+    let globalizedValue = value.replace(",", ".");
     return this.optional(element) || (globalizedValue >= param[0] && globalizedValue <= param[1]);
 };
 $.validator.methods.number = function (value, element) {
@@ -18,7 +18,7 @@ $.validator.methods.number = function (value, element) {
 };
 
 /* bootstrap 4 compatibility classes */
-var defaultOptions = {
+let defaultOptions = {
     validClass: 'is-valid',
     errorClass: 'is-invalid',
     highlight: function (element, errorClass, validClass) {
@@ -34,7 +34,6 @@ var defaultOptions = {
 };
 $.validator.setDefaults(defaultOptions);
 //@ts-ignore
-// ReSharper disable once TsResolvedFromInaccessibleModule
 $.validator.unobtrusive.options = {
     errorClass: defaultOptions.errorClass,
     validClass: defaultOptions.validClass,

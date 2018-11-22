@@ -1,5 +1,4 @@
 ﻿import $ from "jquery";
-import "./enums";
 
 module categories {
 

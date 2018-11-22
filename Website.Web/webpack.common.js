@@ -1,13 +1,16 @@
 var distFolder = __dirname + "/wwwroot/dist";
 var MiniCssExtractPlugin = require("mini-css-extract-plugin");
 var CleanWebpackPlugin = require("clean-webpack-plugin");
+var webpack = require("webpack");
 
 module.exports = {
     entry: {
         site: [
-            "./Scripts/site/_index.ts"
+            "./Scripts/site/_index.ts",
         ],
-        admin: "./Scripts/admin/_index.ts"
+        admin: [
+            "./Scripts/admin/_index.ts",
+            ],
     },
 
     output: {
@@ -71,7 +74,26 @@ module.exports = {
 
     plugins: [
         new CleanWebpackPlugin([distFolder]),
-        new MiniCssExtractPlugin(),        
+        new MiniCssExtractPlugin(),
+        new webpack.ProvidePlugin({
+            $: "jquery",
+            jQuery: "jquery",
+            "window.jQuery": "jquery",
+            Tether: "tether",
+            "window.Tether": "tether",
+            Popper: ['popper.js', 'default'],
+            Alert: "exports-loader?Alert!bootstrap/js/dist/alert",
+            Button: "exports-loader?Button!bootstrap/js/dist/button",
+            Carousel: "exports-loader?Carousel!bootstrap/js/dist/carousel",
+            Collapse: "exports-loader?Collapse!bootstrap/js/dist/collapse",
+            Dropdown: "exports-loader?Dropdown!bootstrap/js/dist/dropdown",
+            Modal: "exports-loader?Modal!bootstrap/js/dist/modal",
+            Popover: "exports-loader?Popover!bootstrap/js/dist/popover",
+            Scrollspy: "exports-loader?Scrollspy!bootstrap/js/dist/scrollspy",
+            Tab: "exports-loader?Tab!bootstrap/js/dist/tab",
+            Tooltip: "exports-loader?Tooltip!bootstrap/js/dist/tooltip",
+            Util: "exports-loader?Util!bootstrap/js/dist/util",
+        })
     ]
 };
 

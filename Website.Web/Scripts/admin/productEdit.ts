@@ -2,7 +2,8 @@
 import {DtoState} from "./enums";
 import "jquery-validation-unobtrusive"
 
-module productEdit {  
+module productEdit {   
+    
     $("div#admin-content")
         .on("click", "#edit-form-submit", validateAndSubmitJson)
         .on("click", "img.admin-img-thumb", setImage)
@@ -299,7 +300,7 @@ module productEdit {
             error: function (jqXHR, textStatus, errorThrown) {
                 $("#cat-loading").html("Ошибка загрузки");
             }
-        });
+        });        
     }
 
     function addCategory() {
