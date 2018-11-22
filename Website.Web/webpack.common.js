@@ -1,7 +1,6 @@
 var distFolder = __dirname + "/wwwroot/dist";
 var MiniCssExtractPlugin = require("mini-css-extract-plugin");
 var CleanWebpackPlugin = require("clean-webpack-plugin");
-var OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin");
 
 module.exports = {
     entry: {
@@ -23,7 +22,6 @@ module.exports = {
             name: "common"
         },
     },
-    devtool: "source-map",
     
     resolve: {
         extensions: [".ts", ".tsx", ".js", ".json"]
@@ -73,8 +71,7 @@ module.exports = {
 
     plugins: [
         new CleanWebpackPlugin([distFolder]),
-        new MiniCssExtractPlugin(),
-        new OptimizeCSSAssetsPlugin(),
+        new MiniCssExtractPlugin(),        
     ]
 };
 
