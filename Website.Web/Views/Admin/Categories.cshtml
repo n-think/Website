@@ -43,7 +43,7 @@
                 <input id="cat-parent-preview" class="form-control cat-input-edit" readonly placeholder="Выберите категорию для отображения информации">
                 <div id="edit-category-select-container" class="d-none">
                     <select id="edit-category-select" class="selectpicker" data-live-search="true" data-live-search-normalize="true" data-live-search-style="contains"
-                            data-style="btn-outline-primary category-btn"  title="Выбрать категорию" data-live-search-placeholder="Поиск">
+                            data-style="btn-outline-primary edit-category-btn"  title="Выбрать категорию" data-live-search-placeholder="Поиск">
                         @foreach (var cat in Model)
                         {
                             foreach (var item in GetNodeAndChildren(cat))
@@ -67,7 +67,7 @@
                 <input id="cat-desc" class="form-control my-2" placeholder="Описание (отображается только администраторам)">
                 <label class="d-block">Родительская категория:</label>
                 <select id="add-category-select" class="selectpicker" data-live-search="true" data-live-search-normalize="true" data-live-search-style="contains"
-                        data-style="btn-outline-primary category-btn" title="Выбрать категорию" data-live-search-placeholder="Поиск">
+                        data-style="btn-outline-primary add-category-btn" title="Выбрать категорию" data-live-search-placeholder="Поиск">
                     @foreach (var cat in Model)
                     {
                         foreach (var item in GetNodeAndChildren(cat))

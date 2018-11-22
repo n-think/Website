@@ -61,6 +61,12 @@
     <Content Update="wwwroot\js\admin\admin.js.map">
       <DependentUpon>admin.js</DependentUpon>
     </Content>
+    <Content Update="wwwroot\dist\admin.css.map">
+      <DependentUpon>admin.css</DependentUpon>
+    </Content>
+    <Content Update="wwwroot\dist\common.css.map">
+      <DependentUpon>common.css</DependentUpon>
+    </Content>
   </ItemGroup>
   
 

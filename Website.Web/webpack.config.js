@@ -1,7 +1,7 @@
-var CleanWebpackPlugin = require('clean-webpack-plugin');
 var distFolder = __dirname + "/wwwroot/dist";
-var webpack = require('webpack');
 var MiniCssExtractPlugin = require("mini-css-extract-plugin");
+var CleanWebpackPlugin = require("clean-webpack-plugin");
+var OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin");
 
 module.exports = {
     entry: {
@@ -21,10 +21,10 @@ module.exports = {
             chunks: "all",
             minSize: 0,
             name: "common"
-        }
+        },
     },
     devtool: "source-map",
-
+    
     resolve: {
         extensions: [".ts", ".tsx", ".js", ".json"]
     },
@@ -40,11 +40,13 @@ module.exports = {
                 loader: "source-map-loader",
                 enforce: "pre",
             },
+            //css in js
             // {
             //     test: /\.css$/,
             //     use: ['style-loader', 'css-loader'],
             // },
-            {
+            //css in file
+            { 
                 test: /\.css$/,
                 use: [
                     {
@@ -72,6 +74,7 @@ module.exports = {
     plugins: [
         new CleanWebpackPlugin([distFolder]),
         new MiniCssExtractPlugin(),
+        new OptimizeCSSAssetsPlugin(),
     ]
 };
 
