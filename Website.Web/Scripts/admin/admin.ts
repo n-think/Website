@@ -1,11 +1,4 @@
 ﻿import $ from "jquery";
-// import "bootstrap";
-// import "bootstrap-select";
-// import "bootstrap-select/dist/js/i18n/defaults-ru_RU"
-//
-// import 'bootstrap/dist/css/bootstrap.css'
-// import 'bootstrap-select/dist/css/bootstrap-select.css'
-
 
 // read client height and submit max items per page
 //first load from anchors

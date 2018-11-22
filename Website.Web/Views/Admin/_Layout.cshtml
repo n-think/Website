@@ -1,6 +1,7 @@
 ﻿@{
     Layout = "/Views/Shared/_Layout.cshtml";
 }
+
 @section Css {
     <link rel="stylesheet" href="~/dist/admin.css" asp-append-version="true"/>
 }
@@ -15,6 +16,6 @@
 </div>
 
 @section Scripts {
-        <script src="~/dist/admin-bundle.js" asp-append-version="true"></script>
+    <script src="~/dist/admin-bundle.js" asp-append-version="true"></script>
     @RenderSection("Scripts", required: false)
 }
