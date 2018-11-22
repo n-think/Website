@@ -106,7 +106,8 @@ namespace Website.Service.Services
             {
                 return OperationResult.Failure(_errorDescriber.InvalidModel());
             }
-
+            //TODO duplicate prod code error message
+            
             bool hasErrors = false;
             foreach (var category in product.Categories)
             {

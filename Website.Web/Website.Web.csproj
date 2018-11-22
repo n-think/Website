@@ -11,14 +11,6 @@
     <ExcludeFoldersFromDeployment>Tests</ExcludeFoldersFromDeployment>
     <TypeScriptToolsVersion>3.0</TypeScriptToolsVersion>
   </PropertyGroup>
-  <ItemGroup>
-    <None Remove="Typescript\tsconfig.json" />
-    <None Remove="Typescript\admin.ts" />
-    <None Remove="Typescript\admin\categories.ts" />
-    <None Remove="Typescript\admin\productEdit.ts" />
-    <None Remove="Typescript\admin\userEdit.ts" />
-    <None Remove="Typescript\site.ts" />
-  </ItemGroup>
 
 
   <ItemGroup>
@@ -70,37 +62,13 @@
       <DependentUpon>admin.js</DependentUpon>
     </Content>
   </ItemGroup>
-
+  
 
   <ItemGroup>
+    <Folder Include="Css" />
     <Folder Include="wwwroot\dist" />
   </ItemGroup>
-
-
-  <ItemGroup>
-    <_ContentIncludedByDefault Remove="wwwroot\lib\jquery-validation-unobtrusive\jquery.validate.unobtrusive.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\jquery-validation-unobtrusive\jquery.validate.unobtrusive.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\popper\popper.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\popper\popper.js.map" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\popper\popper.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\popper\popper.min.js.map" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\popper\umd\popper.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\popper\umd\popper.js.map" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\popper\umd\popper.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\popper\umd\popper.min.js.map" />
-    <_ContentIncludedByDefault Remove="wwwroot\js\admin\admin.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\js\admin\admin.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\js\admin\categories.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\js\admin\categories.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\js\admin\productEdit.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\js\admin\productEdit.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\js\admin\userEdit.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\js\admin\userEdit.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\js\site.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\js\site.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\js\validation.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\js\validation.min.js" />
-  </ItemGroup>
+  
 
   <PropertyGroup>
     <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
