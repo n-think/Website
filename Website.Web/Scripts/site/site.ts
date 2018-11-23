@@ -1,4 +1,5 @@
-﻿
+﻿import Popper from "popper.js"
+import $ from "jquery"
 
 module stickyNavBar {
     window.onscroll = function () {
@@ -15,4 +16,8 @@ module stickyNavBar {
             navbar.classList.remove("fixed-top");
         }
     }
+}
+
+module instantSearch{    
+    //let popper = new Popper(document.querySelector(""),document.querySelector(""))
 }

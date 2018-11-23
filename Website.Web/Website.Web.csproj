@@ -9,7 +9,7 @@
     <TrimUnusedDependencies>true</TrimUnusedDependencies>
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
     <ExcludeFoldersFromDeployment>Tests</ExcludeFoldersFromDeployment>
-    <TypeScriptToolsVersion>3.0</TypeScriptToolsVersion>
+    <TypeScriptToolsVersion>3.0</TypeScriptToolsVersion>    
   </PropertyGroup>
 
 
@@ -79,5 +79,10 @@
   <PropertyGroup>
     <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
   </PropertyGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="npm run webpack-build-dev" Condition=" '$(Configuration)' == 'Debug' "/>
+    <Exec Command="npm run webpack-build-prod" Condition=" '$(Configuration)' == 'Release' "/>
+  </Target>
 
 </Project>
