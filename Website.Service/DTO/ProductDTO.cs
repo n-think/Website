@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations;
 namespace Website.Service.DTO
 {
     public class ProductDto
-    {
+    { //TODO create and move attributes to web's models
         public ProductDto()
         {
             Categories = new List<CategoryDto>();

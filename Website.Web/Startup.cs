@@ -62,7 +62,8 @@ namespace Website.Web
                 options.Password.RequireUppercase = false;
                 options.Lockout.MaxFailedAccessAttempts = 10;
                 //option.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
-            }).AddUserManager<UserManager>()
+            })
+                .AddUserManager<UserManager>()
                 .AddRoleManager<RoleManager>()
                 .AddSignInManager<SignInManager>()
                 .AddDefaultTokenProviders()
