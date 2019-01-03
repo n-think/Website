@@ -2,13 +2,15 @@ using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Moq;
-using Website.Data.EF.Models;
-using Website.Service.DTO;
-using Website.Service.Mapper;
-using Website.Service.Services;
+using Website.Core.DTO;
+using Website.Core.Models;
+using Website.Core.Models.Domain;
+using Website.Data.EF;
+using Website.Services.Mapper;
+using Website.Services.Services;
 using Xunit;
 
-namespace xUnitTests
+namespace Tests
 {
     public class ClientProfileTests
     {
@@ -33,8 +35,7 @@ namespace xUnitTests
 
         private DbContext _testContext;
         //sqlite in-memory context
-        private DbContext GetContext() => SqlLiteMemoryContext();
-        private DbContext SqlLiteMemoryContext()
+        private DbContext GetSqlLiteMemoryContext()
         {
             var options = new DbContextOptionsBuilder<WebsiteDbContext>()
                 .UseSqlite("DataSource=:memory:")
@@ -47,7 +48,7 @@ namespace xUnitTests
         }
         private UserManager GetUserManager()
         {
-            _testContext = SqlLiteMemoryContext();
+            _testContext = GetSqlLiteMemoryContext();
             var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<ServiceProfile>()));
             var userStore = new Mock<IUserStore<UserDto>>();
             var manager = new UserManager(_testContext, userStore.Object, null, null, null, null, null, null, null, null, mapper);

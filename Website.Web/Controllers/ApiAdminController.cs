@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
-using Castle.Core.Internal;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Website.Service.DTO;
-using Website.Service.Interfaces;
+using Website.Core.Interfaces.Services;
 
 namespace Website.Web.Controllers
 {

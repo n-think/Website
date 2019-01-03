@@ -1,8 +1,8 @@
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
-using Website.Service.Interfaces;
+using Website.Core.Interfaces.Services;
 
-namespace Website.Web.Services
+namespace Website.Web.Extensions
 {
     public static class EmailSenderExtensions
     {

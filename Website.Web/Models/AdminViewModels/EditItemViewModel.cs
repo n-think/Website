@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using Website.Service.DTO;
+using Website.Core.DTO;
 
 namespace Website.Web.Models.AdminViewModels
 {

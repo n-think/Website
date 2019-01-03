@@ -6,11 +6,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Website.Service.DTO;
-using Website.Service.Interfaces;
-using Website.Service.Services;
+using Website.Core.DTO;
+using Website.Core.Interfaces.Services;
+using Website.Services.Services;
+using Website.Web.Extensions;
 using Website.Web.Models.AccountViewModels;
-using Website.Web.Services;
 
 namespace Website.Web.Controllers
 {

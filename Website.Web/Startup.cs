@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
@@ -12,17 +11,17 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Website.Data.EF.Models;
-using Website.Service.DTO;
-using Website.Service.Interfaces;
-using Website.Service.Mapper;
-using Website.Service.Services;
+using Website.Services.Mapper;
+using Website.Services.Services;
 using Website.Web.Resources;
-using Website.Service.Stores;
+using Website.Services.Stores;
 using Website.Web.Infrastructure;
 using Website.Web.Infrastructure.Localization;
 using Website.Web.Infrastructure.Mapper;
 using Microsoft.AspNetCore.DataProtection;
+using Website.Core.DTO;
+using Website.Core.Interfaces.Services;
+using Website.Data.EF;
 
 namespace Website.Web
 {
@@ -42,9 +41,8 @@ namespace Website.Web
         {
             services.AddDbContext<WebsiteDbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
-            //.UseLazyLoadingProxies());
-
-            services.AddDbContext<WebsiteDbContext>();
+            services.AddScoped<DbContext, WebsiteDbContext>();
+            
             services.AddAutoMapper(opt =>
             {
                 opt.AddProfile<ServiceProfile>();
@@ -111,8 +109,6 @@ namespace Website.Web
                     return Task.CompletedTask;
                 };
             });
-
-            services.AddScoped<DbContext, WebsiteDbContext>();
 
             services.AddMvc(config =>
                 {

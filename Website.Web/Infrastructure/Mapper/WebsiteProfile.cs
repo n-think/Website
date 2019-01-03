@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using Website.Service.DTO;
+using Website.Core.DTO;
 using Website.Web.Models.AdminViewModels;
 
 namespace Website.Web.Infrastructure.Mapper

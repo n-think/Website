@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Website.Service.DTO;
-using Website.Service.Services;
+using Website.Core.DTO;
+using Website.Services.Services;
 
 namespace Website.Web.Infrastructure.Initializers
 {

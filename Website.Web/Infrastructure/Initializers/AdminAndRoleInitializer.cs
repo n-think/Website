@@ -2,9 +2,9 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
-using Website.Service.DTO;
-using Website.Service.Interfaces;
-using Website.Service.Services;
+using Website.Core.DTO;
+using Website.Core.Interfaces.Services;
+using Website.Services.Services;
 
 namespace Website.Web.Infrastructure.Initializers
 {

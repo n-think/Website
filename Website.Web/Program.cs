@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Website.Service.Interfaces;
-using Website.Service.Services;
+using Website.Core.Interfaces.Services;
+using Website.Services.Services;
 using Website.Web.Infrastructure.Initializers;
 
 namespace Website.Web
@@ -48,7 +47,7 @@ namespace Website.Web
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost
                 .CreateDefaultBuilder(args)
-                .UseKestrel()
+                //.UseKestrel()
                 .UseIISIntegration()
                 .UseStartup<Startup>();
     }

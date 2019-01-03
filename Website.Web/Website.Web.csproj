@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
     <LangVersion>latest</LangVersion>
     <UserSecretsId>aspnet-website-B4F508D3-8844-4B0D-8847-36D7D4572569</UserSecretsId>
     <RootNamespace>Website.Web</RootNamespace>
@@ -16,19 +16,19 @@
   <ItemGroup>
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="6.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="2.1.4">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="2.2.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Packaging.Tools.Trimming" Version="1.1.0-preview1-26619-01" />
-    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.1.6" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.2.0" PrivateAssets="All" />
     <PackageReference Include="System.Drawing.Common" Version="4.5.1" />
   </ItemGroup>
 
 
   <ItemGroup>
     <ProjectReference Include="..\Website.Data\Website.Data.csproj" />
-    <ProjectReference Include="..\Website.Service\Website.Service.csproj" />
+    <ProjectReference Include="..\Website.Services\Website.Services.csproj" />
   </ItemGroup>
 
 
@@ -76,13 +76,18 @@
   </ItemGroup>
   
 
+  <ItemGroup>
+    <None Remove="keys\key-9f4c2bad-21dc-45d7-85bc-87e1a479e971.xml" />
+  </ItemGroup>
+  
+
   <PropertyGroup>
     <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
   </PropertyGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="npm run webpack-build-dev" Condition=" '$(Configuration)' == 'Debug' "/>
-    <Exec Command="npm run webpack-build-prod" Condition=" '$(Configuration)' == 'Release' "/>
+    <Exec Command="npm run webpack-build-dev" Condition=" '$(Configuration)' == 'Debug' " />
+    <Exec Command="npm run webpack-build-prod" Condition=" '$(Configuration)' == 'Release' " />
   </Target>
 
 </Project>

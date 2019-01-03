@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Website.Service.DTO;
+﻿using System.Collections.Generic;
+using Website.Core.DTO;
 
 namespace Website.Web.Models.AdminViewModels
 {

@@ -1,6 +1,7 @@
+using Microsoft.AspNetCore.Mvc;
 using Website.Web.Controllers;
 
-namespace Microsoft.AspNetCore.Mvc
+namespace Website.Web.Extensions
 {
     public static class UrlHelperExtensions
     {
