@@ -18,21 +18,20 @@ using Website.Core.DTO;
 using Website.Core.Enums;
 using Website.Core.Infrastructure;
 using Website.Core.Interfaces.Services;
-using Website.Core.Models;
 using Website.Core.Models.Domain;
 
-namespace Website.Services.Stores
+namespace Website.Data.EF.Repositories
 {
     /// <summary>
     /// Represents a new instance of a persistence store for the specified types.
     /// </summary>
-    public class ShopStore : IShopStore<ProductDto, ProductImageDto, CategoryDto, DescriptionGroupDto, OrderDto>
+    public class ShopRepository : IShopStore<ProductDto, ProductImageDto, CategoryDto, DescriptionGroupDto, OrderDto>
     {
         /// <summary>
         /// Constructs a new instance of CustomProductStoreBase".
         /// </summary>
-        public ShopStore(DbContext dbContext, IMapper mapper, IHostingEnvironment environment,
-            ILogger<ShopStore> logger, OperationErrorDescriber describer = null)
+        public ShopRepository(DbContext dbContext, IMapper mapper, IHostingEnvironment environment,
+            ILogger<ShopRepository> logger, OperationErrorDescriber describer = null)
         {
             ErrorDescriber = describer ?? new OperationErrorDescriber();
             Context = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
@@ -47,7 +46,7 @@ namespace Website.Services.Stores
         private static readonly object _lock = new Object();
         private bool _disposed;
         private readonly IMapper _mapper;
-        private readonly ILogger<ShopStore> _logger;
+        private readonly ILogger<ShopRepository> _logger;
         private readonly IHostingEnvironment _hostingEnvironment;
         private DbSet<Product> ProductsSet => Context.Set<Product>();
         private DbSet<Category> CategoriesSet => Context.Set<Category>();
@@ -308,7 +307,7 @@ namespace Website.Services.Stores
                     return OperationResult.Failure(ErrorDescriber.DbUpdateFailure());
                 }
             }
-
+            
             return OperationResult.Success();
         }
 
@@ -559,7 +558,7 @@ namespace Website.Services.Stores
                 var fileFormat = ImagesSaveFormat.ToString().ToLower();
                 var imagePath = $"{path}\\{name}.{fileFormat}";
                 var imageThumbPath = $"{path}\\{name}_s.{fileFormat}";
-                Bitmap thumbImage = StoreHelpers.ScaleImage(bitmap, 150, 150);
+                Bitmap thumbImage = RepositoryHelpers.ScaleImage(bitmap, 150, 150);
 
                 var encoder = ImageCodecInfo.GetImageEncoders().First(c => c.FormatID == ImageFormat.Jpeg.Guid);
                 var encParams = new EncoderParameters()
@@ -832,11 +831,11 @@ namespace Website.Services.Stores
                 descending = true;
             }
 
-            var check = StoreHelpers.CheckIfPropertyExists(sortPropName, typeof(ProductDto));
+            var check = RepositoryHelpers.CheckIfPropertyExists(sortPropName, typeof(ProductDto));
             if (!check.Result)
                 throw new ArgumentException(nameof(sortPropName)); //or set to default
 
-            Expression<Func<Product, object>> property = p => EF.Property<object>(p, sortPropName);
+            Expression<Func<Product, object>> property = p => Microsoft.EntityFrameworkCore.EF.Property<object>(p, sortPropName);
 
             if (descending)
                 prodQuery = prodQuery.OrderByDescending(property);

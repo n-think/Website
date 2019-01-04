@@ -8,17 +8,16 @@ using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Website.Core.DTO;
-using Website.Core.Models;
 using Website.Core.Models.Domain;
 
-namespace Website.Services.Stores
+namespace Website.Data.EF.Repositories
 {
     /// <summary>
     /// Creates a new instance of a persistence store for roles.
     /// </summary>
-    public class CustomRoleStore : CustomRoleStoreBase<RoleDto, Role, RoleClaim>
+    public class RoleRepository : CustomRoleStoreBase<RoleDto, Role, RoleClaim>
     {
-        public CustomRoleStore(DbContext dbContext, IMapper mapper, IdentityErrorDescriber describer = null) : base(dbContext, mapper, describer)
+        public RoleRepository(DbContext dbContext, IMapper mapper, IdentityErrorDescriber describer = null) : base(dbContext, mapper, describer)
         {
         }
     }
@@ -110,7 +109,7 @@ namespace Website.Services.Stores
 
             var dbRole = _mapper.Map<TDbRole>(role);
 
-            Context.Add(dbRole);
+            Context.Add((object) dbRole);
             await SaveChanges(cancellationToken);
             return IdentityResult.Success;
         }

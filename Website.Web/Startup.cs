@@ -14,7 +14,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Website.Services.Mapper;
 using Website.Services.Services;
 using Website.Web.Resources;
-using Website.Services.Stores;
 using Website.Web.Infrastructure;
 using Website.Web.Infrastructure.Localization;
 using Website.Web.Infrastructure.Mapper;
@@ -22,6 +21,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Website.Core.DTO;
 using Website.Core.Interfaces.Services;
 using Website.Data.EF;
+using Website.Data.EF.Repositories;
 
 namespace Website.Web
 {
@@ -133,9 +133,9 @@ namespace Website.Web
 
         private void AddCustomInterfaces(IServiceCollection services)
         {
-            services.AddTransient<IRoleStore<RoleDto>, CustomRoleStore>();
-            services.AddTransient<IUserStore<UserDto>, CustomUserStore>();
-            services.AddTransient<IShopStore<ProductDto, ProductImageDto, CategoryDto, DescriptionGroupDto, OrderDto>, ShopStore>();
+            services.AddTransient<IRoleStore<RoleDto>, RoleRepository>();
+            services.AddTransient<IUserStore<UserDto>, UserRepository>();
+            services.AddTransient<IShopStore<ProductDto, ProductImageDto, CategoryDto, DescriptionGroupDto, OrderDto>, ShopRepository>();
 
             services.AddScoped<IUserManager, UserManager>();
             services.AddScoped<IShopManager, ShopManager>();

@@ -8,9 +8,7 @@ using Website.Core.Infrastructure;
 
 namespace Website.Core.Interfaces.Services
 {
-    public interface IUserManager : IIdentityUserManager
-    {
-        Task<OperationResult> CreateOrUpdateProfileAsync(UserProfileDto userProfileDto);
+    public interface IUserManager : IIdentityUserManager{
 
         /// <summary>
         /// Skips <paramref name="skipCount"/> and takes next <paramref name="takeCount"/> users in <see cref="RoleSelector"/> roles.
@@ -23,6 +21,6 @@ namespace Website.Core.Interfaces.Services
         Task<SortPageResult<UserDto>> GetSortFilterPageAsync(RoleSelector roleSelector, string searchString, string sortOrder, int page, int count);
         Task LogUserActivity(string userLogin);
         Task<IdentityResult> UpdateUserPasswordClaims(UserDto user, string newPassword, IEnumerable<Claim> claims);
-        Task<UserProfileDto> FindProfileByUserIdAsync(string userId);
+
     }
 }

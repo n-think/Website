@@ -10,20 +10,19 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Website.Core.DTO;
 using Website.Core.Interfaces.Services;
-using Website.Core.Models;
 using Website.Core.Models.Domain;
 
-namespace Website.Services.Stores
+namespace Website.Data.EF.Repositories
 {
     /// <inheritdoc />
     /// <summary>
     /// Represents a new instance of a persistence store for users, using the default implementation
     /// of <see cref="T:Website.Data.EF.Models.User" /> with a string as a primary key.
     /// </summary>
-    public class CustomUserStore : CustomUserStoreBase<UserDto, User, RoleDto, Role, UserClaim,
+    public class UserRepository : CustomUserStoreBase<UserDto, User, RoleDto, Role, UserClaim,
         UserRole, UserLogin, UserToken, RoleClaim, UserProfileDto, UserProfile>
     {
-        public CustomUserStore(DbContext context, IMapper mapper, IdentityErrorDescriber describer = null)
+        public UserRepository(DbContext context, IMapper mapper, IdentityErrorDescriber describer = null)
             : base(context, mapper, describer)
         {
         }
@@ -125,7 +124,7 @@ namespace Website.Services.Stores
             }
 
             var dbUser = Mapper.Map<TDbUser>(user);
-            Context.Add(dbUser);
+            Context.Add((object) dbUser);
             await SaveChanges(cancellationToken);
             return IdentityResult.Success;
         }

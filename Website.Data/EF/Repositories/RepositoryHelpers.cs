@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 
-namespace Website.Services.Stores
+namespace Website.Data.EF.Repositories
 {
-    internal static class StoreHelpers
+    public static class RepositoryHelpers
     {
-        internal static PropertyCheckResult CheckIfPropertyExists(string sortPropName, params Type[] types)
+        public static PropertyCheckResult CheckIfPropertyExists(string sortPropName, params Type[] types)
         {
             foreach (var type in types)
             {
@@ -22,7 +23,7 @@ namespace Website.Services.Stores
             return new PropertyCheckResult(false);
         }
 
-        internal static ChangeResult<TSource> ChangeCompare<TSource, TKey>(IEnumerable<TSource> local, IEnumerable<TSource> remote, Func<TSource, TKey> keySelector)
+        public static ChangeResult<TSource> ChangeCompare<TSource, TKey>(IEnumerable<TSource> local, IEnumerable<TSource> remote, Func<TSource, TKey> keySelector)
         {
             if (local == null)
                 throw new ArgumentNullException(nameof(local));
@@ -66,7 +67,7 @@ namespace Website.Services.Stores
         /// <summary>
         /// Immutable class containing changes
         /// </summary>
-        internal sealed class ChangeResult<T>
+        public sealed class ChangeResult<T>
         {
             public ChangeResult(IList<T> deleted, IList<T> changed, IList<T> inserted)
             {
@@ -80,7 +81,7 @@ namespace Website.Services.Stores
             public IList<T> Inserted { get; private set; }
         }
 
-        internal class PropertyCheckResult
+        public class PropertyCheckResult
         {
             public Type Type;
             public bool Result;
@@ -99,7 +100,7 @@ namespace Website.Services.Stores
         /// <param name="maxWidth"></param>
         /// <param name="maxHeight"></param>
         /// <returns></returns>
-        internal static Bitmap ScaleImage(Bitmap image, int maxWidth, int maxHeight)
+        public static Bitmap ScaleImage(Bitmap image, int maxWidth, int maxHeight)
         {
             // check if image already fits
             if (image.Width < maxWidth && image.Height < maxHeight)
@@ -122,7 +123,7 @@ namespace Website.Services.Stores
             return newImage;
         }
 
-        internal static System.Drawing.Imaging.ImageFormat GetImageFormat(this System.Drawing.Image img)
+        public static ImageFormat GetImageFormat(this System.Drawing.Image img)
         {
             if (img.RawFormat.Equals(System.Drawing.Imaging.ImageFormat.Jpeg))
                 return System.Drawing.Imaging.ImageFormat.Jpeg;

@@ -16,15 +16,14 @@ using Website.Core.DTO;
 using Website.Core.Enums;
 using Website.Core.Infrastructure;
 using Website.Core.Interfaces.Services;
-using Website.Core.Models;
 using Website.Core.Models.Domain;
-using Website.Services.Stores;
+using Website.Data.EF.Repositories;
 
 namespace Website.Services.Services
 {
-    //TODO refactor using store (then remove mapper, dbcontext)
+    //TODO refactor using store (then remove dbcontext)
 
-    public class UserManager : AspNetUserManager<UserDto>, IUserManager
+    public class UserManager : AspNetUserManager<UserDto>, IUserManager, IUserProfileManager
     {
         public UserManager(
             DbContext context,
@@ -169,7 +168,7 @@ namespace Website.Services.Services
 
             // checking property name
             string propClass = "";
-            var check = StoreHelpers.CheckIfPropertyExists(sortPropName, typeof(UserDto), typeof(UserProfileDto));
+            var check = RepositoryHelpers.CheckIfPropertyExists(sortPropName, typeof(UserDto), typeof(UserProfileDto));
             if (check.Result)
             {
                 propClass = check.Type.Name;
@@ -318,7 +317,7 @@ namespace Website.Services.Services
 
                 var roles = newClaims.Where(x => x.Type == ClaimTypes.Role).Select(x => x.Value);
                 var userRoleList = await roleStore.GetRolesAsync(user, CancellationToken);
-                var compResult = StoreHelpers.ChangeCompare(userRoleList, roles, x => x);
+                var compResult = RepositoryHelpers.ChangeCompare(userRoleList, roles, x => x);
                 var rolesToRemove = compResult.Deleted;
                 var rolesToAdd = compResult.Inserted.Distinct();
 
@@ -346,7 +345,7 @@ namespace Website.Services.Services
 
                 var claims = newClaims.Where(x => x.Type != ClaimTypes.Role).ToList();
                 var userClaims = await GetClaimsAsync(user);
-                var claimCompResult = StoreHelpers.ChangeCompare(userClaims, claims, x => x.Type);
+                var claimCompResult = RepositoryHelpers.ChangeCompare(userClaims, claims, x => x.Type);
                 var claimsToRemove = claimCompResult.Deleted;
                 var claimsToAdd = claimCompResult.Inserted.Distinct();
 

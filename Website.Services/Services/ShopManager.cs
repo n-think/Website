@@ -15,7 +15,7 @@ using Website.Core.DTO;
 using Website.Core.Enums;
 using Website.Core.Infrastructure;
 using Website.Core.Interfaces.Services;
-using Website.Services.Stores;
+using Website.Data.EF.Repositories;
 
 namespace Website.Services.Services
 {
@@ -200,7 +200,7 @@ namespace Website.Services.Services
                     if (bitmap == null)
                         return OperationResult.Failure(_errorDescriber.InvalidImageFormat());
                     if (Math.Max(bitmap.Height, bitmap.Width) > 1000)
-                        bitmap = StoreHelpers.ScaleImage(bitmap, 1000, 1000);
+                        bitmap = RepositoryHelpers.ScaleImage(bitmap, 1000, 1000);
                     imageDto.Bitmap = bitmap;
                 }
 
