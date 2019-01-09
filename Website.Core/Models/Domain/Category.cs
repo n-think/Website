@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
-using Website.Core.Interfaces.Models;
 
 namespace Website.Core.Models.Domain
 {
-    public class Category : ICategory
+    public class Category
     {
         public Category()
         {
@@ -13,8 +12,8 @@ namespace Website.Core.Models.Domain
         public virtual int Id { get; set; }
         public virtual string Name { get; set; }
         public virtual string Description { get; set; }
-        public int? ParentId { get; set; }
-        public byte[] Timestamp { get; set; }
+        public virtual int? ParentId { get; set; }
+        public virtual byte[] Timestamp { get; set; }
 
         public virtual Category Parent { get; set; }
         public virtual ICollection<Category> Children { get; set; }

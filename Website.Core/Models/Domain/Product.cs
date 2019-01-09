@@ -1,32 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
-using Website.Core.Interfaces.Models;
 
 namespace Website.Core.Models.Domain
 {
-    public class Product : IProduct
+    public class Product 
     {
         public Product()
         {
             Descriptions = new HashSet<Description>();
-            ProductCategory = new HashSet<ProductToCategory>();
-            Images = new HashSet<ProductImage>();
+            ProductToCategory = new HashSet<ProductToCategory>();
+            Images = new HashSet<Image>();
         }
 
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public int Code { get; set; }
-        public decimal Price { get; set; }
-        public int Stock { get; set; }
-        public int Reserved { get; set; }
-        public bool Available { get; set; }
-        public DateTimeOffset Created { get; set; }
-        public DateTimeOffset Changed { get; set; }
-        public byte[] Timestamp { get; set; }
+        public virtual int Id { get; set; }
+        public virtual string Name { get; set; }
+        public virtual string Description { get; set; }
+        public virtual int Code { get; set; }
+        public virtual decimal Price { get; set; }
+        public virtual int Stock { get; set; }
+        public virtual int Reserved { get; set; }
+        public virtual bool Available { get; set; }
+        public virtual DateTimeOffset Created { get; set; }
+        public virtual DateTimeOffset Changed { get; set; }
+        public virtual byte[] Timestamp { get; set; }
 
         public virtual ICollection<Description> Descriptions { get; set; }
-        public virtual ICollection<ProductToCategory> ProductCategory { get; set; }
-        public virtual ICollection<ProductImage> Images { get; set; }
+        public virtual ICollection<ProductToCategory> ProductToCategory { get; set; }
+        public virtual ICollection<Image> Images { get; set; }
     }
 }

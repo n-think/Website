@@ -2,9 +2,8 @@
     ViewData["Title"] = "Пользователи";
     ViewData.AddActivePage(AdminNavPages.Users);
 }
-
-@using Website.Core.DTO
 @using Website.Core.Enums
+@using Website.Web.Models.DTO
 @model UsersViewModel
 
 <form id="admin-search-form" asp-action="Users" method="get">
@@ -26,21 +25,21 @@
                 <th scope="col">@Html.DisplayNameFor(x => x.Users.First().PhoneNumber)</th>
                 <th scope="col">
                     <sort-header action="Users" search="@Model.CurrentSearch" selector="@Model.Roles" descending="@Model.Descending" current="@Model.CurrentSortOrder"
-                                 property="@nameof(UserProfileDto.LastName)" content="@Html.DisplayNameFor(x => x.Users.First().UserProfile.LastName)" />
+                                 property="@nameof(UserDto.LastName)" content="@Html.DisplayNameFor(x => x.Users.First().LastName)" />
                 </th>
                 <th scope="col">
                     <sort-header action="Users" search="@Model.CurrentSearch" selector="@Model.Roles" descending="@Model.Descending" current="@Model.CurrentSortOrder"
-                                 property="@nameof(UserProfileDto.FirstName)" content="@Html.DisplayNameFor(x => x.Users.First().UserProfile.FirstName)" />
+                                 property="@nameof(UserDto.FirstName)" content="@Html.DisplayNameFor(x => x.Users.First().FirstName)" />
                 </th>
                 <th scope="col">
                     <sort-header action="Users" search="@Model.CurrentSearch" selector="@Model.Roles" descending="@Model.Descending" current="@Model.CurrentSortOrder"
-                                 property="@nameof(UserProfileDto.PatrName)" content="@Html.DisplayNameFor(x => x.Users.First().UserProfile.PatrName)" />
+                                 property="@nameof(UserDto.PatrName)" content="@Html.DisplayNameFor(x => x.Users.First().PatrName)" />
                 </th>
-                <th scope="col">@Html.DisplayNameFor(x => x.Users.First().UserProfile.City)</th>
+                <th scope="col">@Html.DisplayNameFor(x => x.Users.First().City)</th>
                 <th scope="col">Количество заказов</th>
                 <th scope="col">
                     <sort-header action="Users" search="@Model.CurrentSearch" selector="@Model.Roles" descending="@Model.Descending" current="@Model.CurrentSortOrder"
-                                 property="@nameof(UserProfileDto.RegistrationDate)" content="@Html.DisplayNameFor(x => x.Users.First().UserProfile.RegistrationDate)" />
+                                 property="@nameof(UserDto.RegistrationDate)" content="@Html.DisplayNameFor(x => x.Users.First().RegistrationDate)" />
                 </th>
                 <th scope="col">
                     <sort-header action="Users" search="@Model.CurrentSearch" selector="@Model.Roles" descending="@Model.Descending" current="@Model.CurrentSortOrder"
@@ -55,15 +54,15 @@
                 <tr>
                     <td>@Html.DisplayFor(m => user.Email)</td>
                     <td>@Html.DisplayFor(m => user.PhoneNumber)</td>
-                    <td>@Html.DisplayFor(m => user.UserProfile.LastName)</td>
-                    <td>@Html.DisplayFor(m => user.UserProfile.FirstName)</td>
-                    <td>@Html.DisplayFor(m => user.UserProfile.PatrName)</td>
-                    <td>@Html.DisplayFor(m => user.UserProfile.City)</td>
+                    <td>@Html.DisplayFor(m => user.LastName)</td>
+                    <td>@Html.DisplayFor(m => user.FirstName)</td>
+                    <td>@Html.DisplayFor(m => user.PatrName)</td>
+                    <td>@Html.DisplayFor(m => user.City)</td>
                     <td>100500</td>
                     <td>
-                        @if (user.UserProfile.RegistrationDate.HasValue)
+                        @if (user.RegistrationDate.HasValue)
                         {
-                            @Html.DisplayFor(m => user.UserProfile.RegistrationDate.Value.DateTime)
+                            @Html.DisplayFor(m => user.RegistrationDate.Value.DateTime)
                         }
                     </td>
                     <td>

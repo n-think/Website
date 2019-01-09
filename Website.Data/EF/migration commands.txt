@@ -6,3 +6,5 @@ Add-Migration Initial -Project projectName -Output projectName/ProjectFolder
 //rider
 dotnet ef migrations add test322 -s website.web -p website.data -o ef/migrations
 dotnet ef migrations remove -s website.web -p website.data
+
+dotnet ef database update -s website.web -p website.data

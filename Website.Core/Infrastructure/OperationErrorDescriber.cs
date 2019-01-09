@@ -43,7 +43,7 @@
             return new OperationError
             {
                 Code = nameof(InvalidImageFormat),
-                Description = $"Изменения не сохранены. Некорректные одно или несколько изображений. Допустимые форматы: jpg, gif, png, tiff, bmp. Размер не более ~3 МБ"
+                Description = $"Изменения не сохранены. Некорректные одно или несколько изображений. Допустимые форматы: jpg, gif, png, tiff, bmp."
             };
         }
 
@@ -69,6 +69,42 @@
             {
                 Code = nameof(ErrorDeletingProduct),
                 Description = $"Возникла ошибка при удалении товара."
+            };
+        }
+        
+        public virtual OperationError DuplicateProductCode()
+        {
+            return new OperationError
+            {
+                Code = nameof(ErrorDeletingProduct),
+                Description = $"Продукт с таким кодом уже существует."
+            };
+        }
+        
+        public virtual OperationError EmptyProductName()
+        {
+            return new OperationError
+            {
+                Code = nameof(ErrorDeletingProduct),
+                Description = $"Наименование продукта не может быть пустым."
+            };
+        }
+        
+        public virtual OperationError InvalidProductId()
+        {
+            return new OperationError
+            {
+                Code = nameof(ErrorDeletingProduct),
+                Description = $"Некорректный ID продукта."
+            };
+        }
+        
+        public virtual OperationError EntityNotFound(string entityName)
+        {
+            return new OperationError
+            {
+                Code = nameof(EntityNotFound),
+                Description = $"Сущность: \"{entityName}\" не найдена."
             };
         }
     }

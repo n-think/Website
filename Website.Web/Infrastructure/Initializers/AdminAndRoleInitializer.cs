@@ -2,8 +2,8 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
-using Website.Core.DTO;
 using Website.Core.Interfaces.Services;
+using Website.Core.Models.Domain;
 using Website.Services.Services;
 
 namespace Website.Web.Infrastructure.Initializers
@@ -15,17 +15,17 @@ namespace Website.Web.Infrastructure.Initializers
         {
             if (await roleManager.FindByNameAsync("admin") == null)
             {
-                await roleManager.CreateAsync(new RoleDto("admin"));
+                await roleManager.CreateAsync(new Role("admin"));
             }
 
             if (await roleManager.FindByNameAsync("admin_generated") == null)
             {
-                await roleManager.CreateAsync(new RoleDto("admin_generated"));
+                await roleManager.CreateAsync(new Role("admin_generated"));
             }
 
             if (await roleManager.FindByNameAsync("user") == null)
             {
-                await roleManager.CreateAsync(new RoleDto("user"));
+                await roleManager.CreateAsync(new Role("user"));
             }
 
             string login = "admin";
@@ -33,9 +33,9 @@ namespace Website.Web.Infrastructure.Initializers
             string password = configuration.GetSection("AdminAccount").GetValue<string>("Password");
 
             //save and reset validators
-            var origPassValidators = new IPasswordValidator<UserDto>[userManager.PasswordValidators.Count];
+            var origPassValidators = new IPasswordValidator<User>[userManager.PasswordValidators.Count];
             userManager.PasswordValidators.CopyTo(origPassValidators, 0);
-            var origUserValidators = new IUserValidator<UserDto>[userManager.PasswordValidators.Count];
+            var origUserValidators = new IUserValidator<User>[userManager.PasswordValidators.Count];
             userManager.UserValidators.CopyTo(origUserValidators, 0);
             userManager.PasswordValidators.Clear();
             userManager.UserValidators.Clear();
@@ -72,7 +72,7 @@ namespace Website.Web.Infrastructure.Initializers
 
         private static async Task CreateAdmin(IUserManager userManager, string login, string email, string password)
         {
-            var adminUser = new UserDto() { UserName = login, Email = email };
+            var adminUser = new User() { UserName = login, Email = email };
             IdentityResult result = await userManager.CreateAsync(adminUser, password);
             if (result.Succeeded)
             {

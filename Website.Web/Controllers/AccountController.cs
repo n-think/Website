@@ -6,11 +6,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Website.Core.DTO;
 using Website.Core.Interfaces.Services;
+using Website.Core.Models.Domain;
 using Website.Services.Services;
 using Website.Web.Extensions;
 using Website.Web.Models.AccountViewModels;
+using Website.Web.Models.DTO;
 
 namespace Website.Web.Controllers
 {
@@ -219,16 +220,15 @@ namespace Website.Web.Controllers
             ViewData["ReturnUrl"] = returnUrl;
             if (ModelState.IsValid)
             {
-                var userProfile = new UserProfileDto()
+                var user = new User() 
                 {
+                    UserName = model.Email,
+                    Email = model.Email,
                     FirstName = model.FirstName,
                     LastName = model.LastName,
                     PatrName = model.PatrName,
-                    Login = model.Email,
                     RegistrationDate = DateTimeOffset.Now
                 };
-
-                var user = new UserDto() {UserName = model.Email, Email = model.Email, UserProfile = userProfile};
 
                 var result = await _userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
@@ -236,7 +236,7 @@ namespace Website.Web.Controllers
                     _logger.LogInformation("User created a new account with password.");
 
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                    var callbackUrl = Url.EmailConfirmationLink(user.Id, code, Request.Scheme);
+                    var callbackUrl = Url.EmailConfirmationLink(user.Id.ToString(), code, Request.Scheme);
                     await _emailSender.SendEmailConfirmationAsync(model.Email, callbackUrl);
 
                     await _userManager.AddToRoleAsync(user, "user");
@@ -326,7 +326,7 @@ namespace Website.Web.Controllers
                     throw new ApplicationException("Error loading external login information during confirmation.");
                 }
 
-                var user = new UserDto() {UserName = model.Email, Email = model.Email};
+                var user = new User() {UserName = model.Email, Email = model.Email};
                 var result = await _userManager.CreateAsync(user);
                 if (result.Succeeded)
                 {
@@ -389,7 +389,7 @@ namespace Website.Web.Controllers
                 // For more information on how to enable account confirmation and password reset please
                 // visit https://go.microsoft.com/fwlink/?LinkID=532713
                 var code = await _userManager.GeneratePasswordResetTokenAsync(user);
-                var callbackUrl = Url.ResetPasswordCallbackLink(user.Id, code, Request.Scheme);
+                var callbackUrl = Url.ResetPasswordCallbackLink(user.Id.ToString(), code, Request.Scheme);
                 await _emailSender.SendEmailAsync(model.Email, "Reset Password",
                     $"Please reset your password by clicking here: <a href='{callbackUrl}'>link</a>");
                 return RedirectToAction(nameof(ForgotPasswordConfirmation));

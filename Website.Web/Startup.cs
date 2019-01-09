@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
@@ -11,17 +12,20 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Website.Services.Mapper;
 using Website.Services.Services;
 using Website.Web.Resources;
 using Website.Web.Infrastructure;
 using Website.Web.Infrastructure.Localization;
 using Website.Web.Infrastructure.Mapper;
 using Microsoft.AspNetCore.DataProtection;
-using Website.Core.DTO;
+using Website.Core.Enums;
+using Website.Core.Infrastructure;
+using Website.Core.Interfaces.Repositories;
 using Website.Core.Interfaces.Services;
+using Website.Core.Models.Domain;
 using Website.Data.EF;
 using Website.Data.EF.Repositories;
+using Website.Services.Infrastructure;
 
 namespace Website.Web
 {
@@ -42,33 +46,42 @@ namespace Website.Web
             services.AddDbContext<WebsiteDbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
             services.AddScoped<DbContext, WebsiteDbContext>();
-            
-            services.AddAutoMapper(opt =>
+
+            services.AddAutoMapper(opt => { opt.AddProfile<WebsiteProfile>(); });
+
+            //services.AddOptions();//TODO remove if options below work without this
+            services.Configure<ShopManagerOptions>(options =>
             {
-                opt.AddProfile<ServiceProfile>();
-                opt.AddProfile<WebsiteProfile>();
+                options.Image.SaveFormat = ImageFormat.Jpeg;
+                options.Image.EncoderQuality = 80L;
+                options.Image.MaxWidth = 1000;
+                options.Image.MaxWidth = 1000;
+                options.Image.MaxThumbWidth = 150;
+                options.Image.MaxThumbHeight = 150;
             });
 
-            services.AddIdentity<UserDto, RoleDto>(options =>
-            {
-                options.User.RequireUniqueEmail = true;
-                options.Password.RequiredLength = 6;
-                options.Password.RequireDigit = false;
-                options.Password.RequiredUniqueChars = 2;
-                options.Password.RequireLowercase = false;
-                options.Password.RequireNonAlphanumeric = false;
-                options.Password.RequireUppercase = false;
-                options.Lockout.MaxFailedAccessAttempts = 10;
-                //option.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
-            })
+            services.AddIdentity<User, Role>(options =>
+                {
+                    options.User.RequireUniqueEmail = true;
+                    options.Password.RequiredLength = 6;
+                    options.Password.RequireDigit = false;
+                    options.Password.RequiredUniqueChars = 2;
+                    options.Password.RequireLowercase = false;
+                    options.Password.RequireNonAlphanumeric = false;
+                    options.Password.RequireUppercase = false;
+                    options.Lockout.MaxFailedAccessAttempts = 10;
+                    //option.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+                })
                 .AddUserManager<UserManager>()
                 .AddRoleManager<RoleManager>()
                 .AddSignInManager<SignInManager>()
                 .AddDefaultTokenProviders()
-                .AddErrorDescriber<RusIdentityErrorDescriberRes>();
-            AddCustomInterfaces(services);
+                .AddErrorDescriber<RusIdentityErrorDescriberRes>()
+                .AddEntityFrameworkStores<WebsiteDbContext>();
+            
+            AddMyServices(services);
 
-            services.AddScoped<IUserClaimsPrincipalFactory<UserDto>, MyUserClaimsPrincipalFactory>();
+            services.AddScoped<IUserClaimsPrincipalFactory<User>, MyUserClaimsPrincipalFactory>();
 
             services.Configure<SecurityStampValidatorOptions>(options =>
             {
@@ -94,6 +107,7 @@ namespace Website.Web
                     {
                         context.Response.Redirect(context.RedirectUri);
                     }
+
                     return Task.CompletedTask;
                 };
                 option.Events.OnRedirectToAccessDenied = (context) =>
@@ -106,6 +120,7 @@ namespace Website.Web
                     {
                         context.Response.Redirect(context.RedirectUri);
                     }
+
                     return Task.CompletedTask;
                 };
             });
@@ -115,32 +130,46 @@ namespace Website.Web
                     config.ModelBinderProviders.Insert(0, new InvariantDecimalModelBinderProvider());
                 })
                 .AddDataAnnotationsLocalization(options =>
-                    {
-                        options.DataAnnotationLocalizerProvider = (type, factory) =>
-                            factory.Create(typeof(SharedResource));
-                    })
-                    .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+                {
+                    options.DataAnnotationLocalizerProvider = (type, factory) =>
+                        factory.Create(typeof(SharedResource));
+                })
+                .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
             AddPolicies(services);
             services.AddDataProtection()
                 // This helps surviving a restart: a same app will find back its keys.
                 .PersistKeysToFileSystem(new DirectoryInfo(Environment.ContentRootPath + "\\keys"))
                 // This helps surviving a site update: each app has its own store, building the site creates a new app
-                .SetApplicationName("MyWebsite")
-                .ProtectKeysWithDpapi();
-                //.SetDefaultKeyLifetime(TimeSpan.FromDays(90)); //default 90 days
+                .SetApplicationName("MyWebsite");
+            //.ProtectKeysWithDpapi();
+            //.SetDefaultKeyLifetime(TimeSpan.FromDays(90)); //default 90 days
         }
 
-        private void AddCustomInterfaces(IServiceCollection services)
+        private void AddMyServices(IServiceCollection services)
         {
-            services.AddTransient<IRoleStore<RoleDto>, RoleRepository>();
-            services.AddTransient<IUserStore<UserDto>, UserRepository>();
-            services.AddTransient<IShopStore<ProductDto, ProductImageDto, CategoryDto, DescriptionGroupDto, OrderDto>, ShopRepository>();
+            services
+                .AddTransient<
+                    IShopRepository<Product, Image, Category, DescriptionGroup, Description, Order>,
+                    ShopRepository>();
 
+            services.AddScoped<OperationErrorDescriber>();
             services.AddScoped<IUserManager, UserManager>();
             services.AddScoped<IShopManager, ShopManager>();
+            
+            services.AddScoped<IShopValidator<Product>, ProductValidator>();
+            services.AddScoped<IShopValidator<Image>, ImageValidator>();
+            services.AddScoped<IShopValidator<Category>, CategoryValidator>();
+            services.AddScoped<IShopValidator<DescriptionGroup>, DescriptionGroupValidator>();
+            services.AddScoped<IShopValidator<Description>, DescriptionValidator>();
+            services.AddScoped<IShopValidator<Order>, OrderValidator>();
+            services.AddScoped<IShopValidator<Order>, OrderValidator>();
+
+            services.AddScoped<IShopImageTransformer<ImageBinData>, ShopImageTransformer>();
 
             services.AddTransient<IEmailSender, EmailSender>();
+
+            
         }
 
         private void AddPolicies(IServiceCollection services)
@@ -155,7 +184,7 @@ namespace Website.Web
                     //user manage policies
                     options.AddPolicy("ViewUsers",
                         policy => policy.RequireAssertion(context => context.User.HasClaim(c =>
-                                c.Type == "ViewUsers" || c.Type == "EditUsers" || c.Type == "DeleteUsers")));
+                            c.Type == "ViewUsers" || c.Type == "EditUsers" || c.Type == "DeleteUsers")));
                     options.AddPolicy("EditUsers",
                         policy => policy.RequireAssertion(context => context.User.HasClaim(c =>
                             c.Type == "EditUsers" || c.Type == "DeleteUsers")));
@@ -190,7 +219,7 @@ namespace Website.Web
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, IConfiguration configuration)
         {
-            var cultureInfo = new CultureInfo("ru-RU") { NumberFormat = { CurrencySymbol = "₽" } };
+            var cultureInfo = new CultureInfo("ru-RU") {NumberFormat = {CurrencySymbol = "₽"}};
             CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
             CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
 
@@ -218,7 +247,7 @@ namespace Website.Web
             {
                 routes.MapRoute(
                     name: "default",
-                    template: "{controller=Home}/{action=Index}");//{controller=Home}/{action=Index}/{id?}
+                    template: "{controller=Home}/{action=Index}"); //{controller=Home}/{action=Index}/{id?}
             });
         }
     }

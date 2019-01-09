@@ -3,9 +3,8 @@
     ViewData["Title"] = "Товары";
     ViewData.AddActivePage(AdminNavPages.Items);
 }
-
-@using Website.Core.DTO
 @using Website.Core.Enums
+@using Website.Web.Models.DTO
 @model ItemsViewModel
 
 <form id="admin-search-form" asp-action="Items" method="get">

@@ -1,28 +1,28 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Website.Core.DTO;
 using Website.Core.Enums;
 using Website.Core.Infrastructure;
+using Website.Core.Models.Domain;
 
 namespace Website.Core.Interfaces.Services
 {
     public interface IShopManager
     {
-        /// <summary>
-        /// Creates product with images and category in db.
-        /// </summary>
-        /// <param name="product"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        Task<OperationResult> CreateProductAsync(ProductDto product);
-        Task<ProductDto> GetProductByIdAsync(int id, bool loadImages = false, bool loadDescriptions = false, bool loadCategories = false);
-        Task<ProductDto> GetProductByNameAsync(string name, bool loadImages, bool loadDescriptions, bool loadCategories);
-        Task<OperationResult> UpdateProductAsync(ProductDto product);
-        Task<OperationResult> DeleteProductAsync(ProductDto product);
+        //TODO interface
+        ShopManagerOptions Options { get; }
 
-        Task<SortPageResult<ProductDto>> GetSortFilterPageAsync(ItemTypeSelector types, string search, string sortOrder, int currPage, int countPerPage);
-        Task<IEnumerable<CategoryDto>> GetAllCategoriesAsync(bool getProductCount = false);
-        Task<IEnumerable<DescriptionGroupDto>> GetDescriptionGroupsAsync();
-        Task<IEnumerable<DescriptionItemDto>> GetDescriptionItemsAsync(int value);
+        Task<OperationResult> CreateProductAsync(Product product);
+        Task<Product> GetProductByIdAsync(int id, bool loadImages = false, bool loadDescriptions = false, bool loadCategories = false);
+        Task<Product> GetProductByNameAsync(string name, bool loadImages, bool loadDescriptions, bool loadCategories);
+        Task<Product> GetProductByCodeAsync(int code, bool loadImages, bool loadDescriptions, bool loadCategories);
+        Task<OperationResult> UpdateProductAsync(Product product, IEnumerable<Image> imagesToAdd,
+            IEnumerable<Image> imagesToRemove);
+        Task<OperationResult> DeleteProductAsync(Product product);
+
+        Task<SortPageResult<Product>> GetSortFilterPageAsync(ItemTypeSelector types, string search, string sortOrder, int currPage, int countPerPage);
+        Task<IEnumerable<Category>> GetAllCategoriesAsync();
+        Task<IEnumerable<(Category, int)>> GetAllCategoriesWithProductCountAsync();
+        Task<IEnumerable<DescriptionGroup>> GetAllDescriptionGroupsAsync();
+        Task<IEnumerable<DescriptionGroup>> GetDescGroupFirstChildren(int groupId);
     }
 }

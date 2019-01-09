@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Website.Core.DTO;
+using Website.Web.Models.DTO;
 
 namespace Website.Web.Models.AdminViewModels
 {

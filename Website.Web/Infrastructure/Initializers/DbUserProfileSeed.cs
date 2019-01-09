@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Website.Core.DTO;
+using Website.Core.Models.Domain;
 using Website.Services.Services;
 
 namespace Website.Web.Infrastructure.Initializers
@@ -41,34 +41,27 @@ namespace Website.Web.Infrastructure.Initializers
             foreach (var item in names)
             {
                 var name = item.Split();
+                var phone = "+7-" + random.Next(100, 999) + "-" + random.Next(100, 999) + "-" + random.Next(10, 99) +
+                            "-" + random.Next(10, 99);
 
-                var clProf = new UserProfileDto()
+                var cities = new[] {"Москва", "Казань", "Рязань", "Ростов"};
+                
+                var user = new User
                 {
                     FirstName = name[1],
                     LastName = name[0],
                     PatrName = name[2],
-                    City =
-                    ((Cities)random.Next(3)).ToString(),
-                    RegistrationDate = DateTimeOffset.Now
+                    City = cities[random.Next(3)],
+                    RegistrationDate = DateTimeOffset.Now,
+                    Email = i + email, UserName = i + email,
+                    PhoneNumber = phone,
+                    LastActivityDate = DateTimeOffset.Now,
+                    
                 };
-
-                var phone = "+7-" + random.Next(100, 999) + "-" + random.Next(100, 999) + "-" + random.Next(10, 99) + "-" + random.Next(10, 99);
-                UserDto user = new UserDto {Email = i + email, UserName = i + email, UserProfile = clProf, PhoneNumber = phone, LastActivityDate = DateTimeOffset.Now };
                 await userManager.CreateAsync(user, password);
                 await userManager.AddToRoleAsync(user, "user");
                 i++;
             }
         }
-
-        enum Cities
-        {
-            Москва,
-            Казань,
-            Рязань,
-            Ростов
-        }
-
-
     }
 }
-

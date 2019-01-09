@@ -36,7 +36,7 @@ namespace Website.Web.Controllers
         [Authorize(Policy = "ViewItems")]
         public async Task<IActionResult> DescriptionGroups()
         {
-            var descGroups = await _shopManager.GetDescriptionGroupsAsync();
+            var descGroups = await _shopManager.GetAllDescriptionGroupsAsync();
             return Ok(descGroups);
         }
 
@@ -48,7 +48,7 @@ namespace Website.Web.Controllers
             {
                 return BadRequest("");
             }
-            var descItems = (await _shopManager.GetDescriptionItemsAsync(groupId))
+            var descItems = (await _shopManager.GetDescGroupFirstChildren(groupId))
                 .Select(x=>new {x.Id,x.Name});
             return Ok(descItems);
         }

@@ -5,18 +5,9 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
-using Website.Core.DTO;
 
 namespace Website.Core.Interfaces.Services
 {
-    /// <inheritdoc />
-    /// <summary>
-    /// Provides the APIs for managing <see cref="T:Website.Services.DTO.UserDTO" /> in a persistence store.
-    /// </summary>
-    public interface IIdentityUserManager : IIdentityUserManager<UserDto>
-    {
-    }
-
     /// <summary>
     /// Provides the APIs for managing user in a persistence store.
     /// </summary>

@@ -1,374 +1,87 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO;
+using System.Data;
+using System.Data.Common;
 using System.Linq;
-using System.Linq.Expressions;
+using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Castle.Core.Internal;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
-using Website.Core.DTO;
-using Website.Core.Enums;
 using Website.Core.Infrastructure;
+using Website.Core.Interfaces.Repositories;
 using Website.Core.Interfaces.Services;
 using Website.Core.Models.Domain;
 
 namespace Website.Data.EF.Repositories
 {
-    /// <summary>
-    /// Represents a new instance of a persistence store for the specified types.
-    /// </summary>
-    public class ShopRepository : IShopStore<ProductDto, ProductImageDto, CategoryDto, DescriptionGroupDto, OrderDto>
+    public class ShopRepository : IShopRepository<Product, Image, Category, DescriptionGroup,
+        Description, Order>
     {
-        /// <summary>
-        /// Constructs a new instance of CustomProductStoreBase".
-        /// </summary>
-        public ShopRepository(DbContext dbContext, IMapper mapper, IHostingEnvironment environment,
+        public ShopRepository(DbContext dbContext, IHostingEnvironment environment,
             ILogger<ShopRepository> logger, OperationErrorDescriber describer = null)
         {
             ErrorDescriber = describer ?? new OperationErrorDescriber();
             Context = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
-            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _hostingEnvironment = environment ?? throw new ArgumentNullException(nameof(environment));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         private DbContext Context { get; set; }
+
         private OperationErrorDescriber ErrorDescriber { get; set; }
 
-        private static readonly object _lock = new Object();
         private bool _disposed;
-        private readonly IMapper _mapper;
+
         private readonly ILogger<ShopRepository> _logger;
         private readonly IHostingEnvironment _hostingEnvironment;
         private DbSet<Product> ProductsSet => Context.Set<Product>();
+        private DbSet<ProductToCategory> ProdToCatSet => Context.Set<ProductToCategory>();
         private DbSet<Category> CategoriesSet => Context.Set<Category>();
-        private DbSet<ProductImage> ImagesSet => Context.Set<ProductImage>();
+        private DbSet<Image> ImagesSet => Context.Set<Image>();
         private DbSet<DescriptionGroup> DescGroupsSet => Context.Set<DescriptionGroup>();
-        private DbSet<DescriptionGroupItem> DescGroupItemsSet => Context.Set<DescriptionGroupItem>();
         private DbSet<Description> DescriptionsSet => Context.Set<Description>();
+        public IQueryable<Product> ProductsQueryable => ProductsSet.AsQueryable();
+        public IQueryable<Category> CategoriesQueryable => CategoriesSet.AsQueryable();
+        public IQueryable<Image> ImagesQueryable => ImagesSet.AsQueryable();
+        public IQueryable<Description> DescriptionsQueryable => DescriptionsSet.AsQueryable();
+        public IQueryable<DescriptionGroup> DescriptionGroupsQueryable => DescGroupsSet.AsQueryable();
 
-        private const string ImagesSavePath = "images\\items";
-        private const string ImagesSaveFormat = "jpg";
+        public IDbContextTransaction BeginTransaction(IsolationLevel iLevel = IsolationLevel.Serializable) =>
+            Context.Database.BeginTransaction(iLevel);
 
-        /// <summary>
-        /// Gets or sets a flag indicating if changes should be persisted after CreateAsync, UpdateAsync and DeleteAsync are called.
-        /// </summary>
-        /// <value>
-        /// True if changes should be automatically persisted, otherwise false.
-        /// </value>
-        private bool AutoSaveChanges { get; set; } = true;
-
-        /// <summary>Saves the current store.</summary>
-        /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
-        /// <returns>The <see cref="Task"/> that represents the asynchronous operation.</returns>
-        public Task SaveChanges(CancellationToken cancellationToken)
+        public void JoinTransaction(IDbContextTransaction tran)
         {
-            return AutoSaveChanges ? Context.SaveChangesAsync(cancellationToken) : Task.CompletedTask;
+            if (tran == null) throw new ArgumentNullException(nameof(tran));
+            Context.Database.UseTransaction(tran.GetDbTransaction());
+        }
+
+        private async Task<int> SaveChangesAsync(CancellationToken ct)
+        {
+            return await Context.SaveChangesAsync(ct);
         }
 
         #region product
 
-        public async Task<OperationResult> CreateProductAsync(ProductDto product,
-            CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<OperationResult> CreateProductAsync(Product product,
+            CancellationToken ct = default(CancellationToken))
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            ct.ThrowIfCancellationRequested();
             ThrowIfDisposed();
             if (product == null)
                 throw new ArgumentNullException(nameof(product));
 
-            var dbProduct = _mapper.Map<Product>(product);
-            dbProduct.Created = DateTimeOffset.Now;
-            dbProduct.Changed = dbProduct.Created;
-            dbProduct.Id = 0; //reset id to default before adding
-            ProductsSet.Add(dbProduct);
-
-            using (var transaction = Context.Database.BeginTransaction())
-            {
-                try
-                {
-                    AutoSaveChanges = false;
-                    await Context.SaveChangesAsync(cancellationToken); //save gets product id
-                    await UpdateProductCatDescImage(product, dbProduct.Id, cancellationToken);
-                    transaction.Commit();
-                }
-
-                catch (DbUpdateConcurrencyException)
-                {
-                    return OperationResult.Failure(ErrorDescriber.ConcurrencyFailure());
-                }
-                catch (DbUpdateException)
-                {
-                    return OperationResult.Failure(ErrorDescriber.DbUpdateFailure());
-                }
-                catch (IOException)
-                {
-                    return OperationResult.Failure(ErrorDescriber.DiskIOError());
-                }
-                finally
-                {
-                    AutoSaveChanges = true;
-                }
-            }
-
-            return OperationResult.Success();
-        }
-
-        private async Task UpdateProductCatDescImage(ProductDto product, int dbProductId,
-            CancellationToken cancellationToken)
-        {
-            if (product == null)
-                throw new ArgumentNullException(nameof(product));
-            if (!product.Categories.IsNullOrEmpty()) // add cat
-            {
-                await UpdateProductCategories(dbProductId, product.Categories, cancellationToken);
-                await Context.SaveChangesAsync(cancellationToken);
-            }
-
-            if (!product.Descriptions.IsNullOrEmpty()) // add desc
-            {
-                await UpdateProductDescriptions(dbProductId, product.Descriptions, cancellationToken);
-                await Context.SaveChangesAsync(cancellationToken);
-            }
-
-            if (!product.Images.IsNullOrEmpty()) //add images
-            {
-                lock (_lock)
-                {
-                    var imagesToSaveOnDisk = SaveImagesToContext(dbProductId, product.Images, cancellationToken);
-                    Context.SaveChanges();
-                    ProcessImagesOnDisk(imagesToSaveOnDisk);
-                }
-            }
-        }
-
-        public async Task<OperationResult> UpdateProductAsync(ProductDto product,
-            CancellationToken cancellationToken = default(CancellationToken))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            ThrowIfDisposed();
-            if (product == null)
-                throw new ArgumentNullException(nameof(product));
-
-            var dbProduct = _mapper.Map<Product>(product);
-            dbProduct.Changed = DateTimeOffset.Now;
-            //don't need if we find product asNoTracking
-            // 
-            //var local = ProductsSet
-            //    .Local
-            //    .FirstOrDefault(entry => entry.Id.Equals(product.Id));
-            //// check if local is not null 
-            //if (local != null) 
-            //{
-            //    // detach or remap
-            //    Context.Entry(local).State = EntityState.Detached;
-            //}
-            //
-            ProductsSet.Update(dbProduct);
-
-            using (var transaction = Context.Database.BeginTransaction())
-            {
-                try
-                {
-                    AutoSaveChanges = false;
-                    await Context.SaveChangesAsync(cancellationToken); //save gets product id
-                    await UpdateProductCatDescImage(product, dbProduct.Id, cancellationToken);
-                    transaction.Commit();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    return OperationResult.Failure(ErrorDescriber.ConcurrencyFailure());
-                }
-                catch (DbUpdateException)
-                {
-                    return OperationResult.Failure(ErrorDescriber.DbUpdateFailure());
-                }
-                catch (IOException)
-                {
-                    return OperationResult.Failure(ErrorDescriber.DiskIOError());
-                }
-                finally
-                {
-                    AutoSaveChanges = true;
-                }
-            }
-
-            return OperationResult.Success();
-        }
-
-        public async Task<ProductDto> FindProductByIdAsync(int productId, bool loadImages,
-            bool loadDescriptions, bool loadCategories,
-            CancellationToken cancellationToken = default(CancellationToken))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            ThrowIfDisposed();
-
-            var query = ProductsSet
-                .Where(x => x.Id == productId);
-
-            return await GetProductFromQuery(query, loadImages, loadDescriptions, loadCategories, cancellationToken);
-        }
-
-        public async Task<ProductDto> FindProductByNameAsync(string productName, bool loadImages,
-            bool loadDescriptions, bool loadCategories,
-            CancellationToken cancellationToken = default(CancellationToken))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            ThrowIfDisposed();
-
-            var query = ProductsSet
-                .Where(x => String.Equals(x.Name, productName, StringComparison.InvariantCultureIgnoreCase));
-
-            return await GetProductFromQuery(query, loadImages, loadDescriptions, loadCategories, cancellationToken);
-        }
-
-        private async Task<ProductDto> GetProductFromQuery(IQueryable<Product> query, bool loadImages,
-            bool loadDescriptions, bool loadCategories, CancellationToken cancellationToken)
-        {
-            if (query == null)
-                return null;
-
-            if (loadImages)
-            {
-                query = query
-                    .Include(x => x.Images);
-            }
-
-            if (loadCategories)
-            {
-                query = query
-                    .Include(x => x.ProductCategory)
-                    .ThenInclude(x => x.Category);
-            }
-
-            var product = await query
-                .AsNoTracking()
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (product == null)
-            {
-                return null;
-            }
-
-            var dto = _mapper.Map<ProductDto>(product);
-
-            if (loadDescriptions)
-            {
-                dto.Descriptions = await GetProductDescriptions(product.Id, cancellationToken);
-            }
-
-            if (loadImages)
-                dto.Images = ConvertDbImageToDto(product.Images);
-
-            foreach (var productToCategory in product.ProductCategory)
-            {
-                var cat = _mapper.Map<CategoryDto>(productToCategory.Category);
-                dto.Categories.Add(cat);
-            }
-
-            return dto;
-        }
-
-        public async Task<OperationResult> DeleteProductAsync(ProductDto product,
-            CancellationToken cancellationToken = default(CancellationToken))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            ThrowIfDisposed();
-
-            var entry = await ProductsSet.FindAsync(new object[] {product.Id}, cancellationToken);
-
-            if (entry != null)
-            {
-                await Context.Entry(entry).Collection(x => x.Images).LoadAsync(cancellationToken);
-                ProductsSet.Remove(entry);
-                try
-                {
-                    await SaveChanges(cancellationToken);
-                    var imagesToDelete = new ImagesToDisk();
-                    foreach (var productImage in entry.Images)
-                    {
-                        var imagePath = $"/{productImage.Path}/{productImage.Name}.{productImage.Format}";
-                        var imageThumbPath = $"/{productImage.Path}/{productImage.ThumbName}.{productImage.Format}";
-                        var item = (imagePath, imageThumbPath);
-                        imagesToDelete.ImagesAndThumbsToDelete.Add(item);
-                    }
-
-                    ProcessImagesOnDisk(imagesToDelete);
-                }
-                catch (DbUpdateException)
-                {
-                    return OperationResult.Failure(ErrorDescriber.DbUpdateFailure());
-                }
-            }
-            
-            return OperationResult.Success();
-        }
-
-        #endregion
-
-        #region categories
-
-        public async Task<OperationResult> CreateCategoryAsync(CategoryDto category,
-            CancellationToken cancellationToken = default(CancellationToken))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            ThrowIfDisposed();
-            if (category == null)
-                throw new ArgumentNullException(nameof(category));
-
-            var dbCategory = _mapper.Map<Category>(category);
-            CategoriesSet.Add(dbCategory);
+            product.Created = DateTimeOffset.Now;
+            product.Changed = product.Created;
+            product.Id = 0; //reset id to default before adding
+            ProductsSet.Attach(product);
+            Context.Entry(product).State = EntityState.Added;
             try
             {
-                await SaveChanges(cancellationToken);
-            }
-            catch (DbUpdateException)
-            {
-                return OperationResult.Failure(ErrorDescriber.DbUpdateFailure());
-            }
-
-            return OperationResult.Success();
-        }
-
-        public async Task<CategoryDto> FindCategoryByNameAsync(string categoryName,
-            CancellationToken cancellationToken = default(CancellationToken))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            ThrowIfDisposed();
-            if (categoryName.IsNullOrEmpty())
-                throw new ArgumentNullException(nameof(categoryName));
-
-            var category = await CategoriesSet
-                .Where(x => String.Equals(x.Name, categoryName, StringComparison.CurrentCultureIgnoreCase))
-                .FirstOrDefaultAsync(cancellationToken);
-            if (category == null)
-                return null;
-            var dbCategory = _mapper.Map<CategoryDto>(category);
-            return dbCategory;
-        }
-
-        public async Task<OperationResult> UpdateCategoryAsync(CategoryDto category,
-            CancellationToken cancellationToken = default(CancellationToken))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            ThrowIfDisposed();
-            if (category == null)
-            {
-                throw new ArgumentNullException(nameof(category));
-            }
-
-            var dbCategory = _mapper.Map<Category>(category);
-            CategoriesSet.Update(dbCategory);
-            try
-            {
-                await SaveChanges(cancellationToken);
+                await SaveChangesAsync(ct);
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -382,81 +95,305 @@ namespace Website.Data.EF.Repositories
             return OperationResult.Success();
         }
 
-        public async Task<OperationResult> DeleteCategoryAsync(CategoryDto category,
-            CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<OperationResult> UpdateProductAsync(Product product,
+            CancellationToken ct = default(CancellationToken))
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            ct.ThrowIfCancellationRequested();
             ThrowIfDisposed();
-            if (category == null)
-                throw new ArgumentNullException(nameof(category));
+            if (product == null)
+                throw new ArgumentNullException(nameof(product));
 
-            var entry = await CategoriesSet.FindAsync(new[] {category.Id}, cancellationToken);
-            if (entry != null)
+            product.Changed = DateTimeOffset.Now;
+            ProductsSet.Attach(product);
+            Context.Entry(product).State = EntityState.Modified;
+            try
             {
-                CategoriesSet.Remove(entry);
-                try
-                {
-                    await SaveChanges(cancellationToken);
-                }
-                catch (DbUpdateException)
-                {
-                    return OperationResult.Failure(ErrorDescriber.DbUpdateFailure());
-                }
+                await Context.SaveChangesAsync(ct);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return OperationResult.Failure(ErrorDescriber.ConcurrencyFailure());
+            }
+            catch (DbUpdateException)
+            {
+                return OperationResult.Failure(ErrorDescriber.DbUpdateFailure());
             }
 
             return OperationResult.Success();
         }
 
-        public async Task<IEnumerable<CategoryDto>> GetAllCategories(bool getProductCount,
-            CancellationToken cancellationToken)
+        public async Task<Product> FindProductByIdAsync(int productId, bool loadImages,
+            bool loadDescriptions, bool loadCategories,
+            CancellationToken ct = default(CancellationToken))
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            ct.ThrowIfCancellationRequested();
             ThrowIfDisposed();
-            if (getProductCount)
-            {
-                //TODO auto resolve map
-                return await CategoriesSet.Select(x => new CategoryDto
-                {
-                    Description = x.Description,
-                    Id = x.Id,
-                    Name = x.Name,
-                    ParentId = x.ParentId,
-                    ProductCount = x.ProductCategory.Count(),
-                    Timestamp = x.Timestamp
-                }).ToListAsync(cancellationToken);
-            }
 
-            return await CategoriesSet.ProjectTo<CategoryDto>(_mapper.ConfigurationProvider)
-                .ToListAsync(cancellationToken);
+            var query = ProductsSet
+                .Where(x => x.Id == productId);
+
+            return await GetProductFromQuery(query, loadImages, loadDescriptions, loadCategories, ct);
         }
 
-        private async Task<OperationResult> UpdateProductCategories(int productId, IEnumerable<CategoryDto> categories,
-            CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<Product> FindProductByNameAsync(string productName, bool loadImages,
+            bool loadDescriptions, bool loadCategories,
+            CancellationToken ct = default(CancellationToken))
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            ct.ThrowIfCancellationRequested();
             ThrowIfDisposed();
-            if (categories.IsNullOrEmpty())
+
+            var query = ProductsSet
+                .Where(x => String.Equals(x.Name, productName, StringComparison.InvariantCultureIgnoreCase));
+
+            return await GetProductFromQuery(query, loadImages, loadDescriptions, loadCategories, ct);
+        }
+
+        public async Task<Product> FindProductByCodeAsync(int productCode, bool loadImages,
+            bool loadDescriptions, bool loadCategories,
+            CancellationToken ct = default(CancellationToken))
+        {
+            ct.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+
+            var query = ProductsSet
+                .Where(x => x.Code == productCode);
+
+            return await GetProductFromQuery(query, loadImages, loadDescriptions, loadCategories, ct);
+        }
+
+        private async Task<Product> GetProductFromQuery(IQueryable<Product> query, bool loadImages,
+            bool loadDescriptions, bool loadCategories, CancellationToken ct)
+        {
+            if (query == null)
+                return null;
+
+            if (loadImages)
+            {
+                query = query
+                    .Include(x => x.Images);
+            }
+
+            if (loadCategories)
+            {
+                query = query
+                    .Include(x => x.ProductToCategory)
+                    .ThenInclude(x => x.Category);
+            }
+
+            if (loadDescriptions)
+            {
+                query = query
+                    .Include(x => x.Descriptions);
+            }
+
+            var product = await query
+                //.AsNoTracking() //TODO test this
+                .FirstOrDefaultAsync(ct);
+
+            return product;
+        }
+
+        public async Task<OperationResult> DeleteProductAsync(Product product,
+            CancellationToken ct = default(CancellationToken))
+        {
+            ct.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+
+            var entry = await ProductsSet.FindAsync(new object[] {product.Id}, ct);
+
+            if (entry == null)
+            {
+                return OperationResult.Failure(ErrorDescriber.EntityNotFound("Продукт"));
+            }
+
+            ProductsSet.Attach(product);
+            Context.Entry(product).State = EntityState.Deleted;
+            try
+            {
+                await SaveChangesAsync(ct);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return OperationResult.Failure(ErrorDescriber.ConcurrencyFailure());
+            }
+            catch (DbUpdateException)
+            {
+                return OperationResult.Failure(ErrorDescriber.DbUpdateFailure());
+            }
+
+            return OperationResult.Success();
+        }
+
+        #endregion
+
+        #region categories
+
+        public async Task<OperationResult> CreateCategoryAsync(Category category,
+            CancellationToken ct = default(CancellationToken))
+        {
+            ct.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+            if (category == null)
+                throw new ArgumentNullException(nameof(category));
+
+            CategoriesSet.Attach(category);
+            Context.Entry(category).State = EntityState.Added;
+            try
+            {
+                await SaveChangesAsync(ct);
+            }
+            catch (DbUpdateException)
+            {
+                return OperationResult.Failure(ErrorDescriber.DbUpdateFailure());
+            }
+
+            return OperationResult.Success();
+        }
+
+        public async Task<Category> FindCategoryByNameAsync(string categoryName,
+            CancellationToken ct = default(CancellationToken))
+        {
+            ct.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+            if (categoryName.IsNullOrEmpty())
+                throw new ArgumentNullException(nameof(categoryName));
+
+            var category = await CategoriesSet
+                .Where(x => String.Equals(x.Name, categoryName, StringComparison.CurrentCultureIgnoreCase))
+                .FirstOrDefaultAsync(ct);
+
+            return category;
+        }
+
+        public async Task<OperationResult> UpdateCategoryAsync(Category category,
+            CancellationToken ct = default(CancellationToken))
+        {
+            ct.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+            if (category == null)
+            {
+                throw new ArgumentNullException(nameof(category));
+            }
+
+            CategoriesSet.Attach(category);
+            Context.Entry(category).State = EntityState.Modified;
+            try
+            {
+                await SaveChangesAsync(ct);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return OperationResult.Failure(ErrorDescriber.ConcurrencyFailure());
+            }
+            catch (DbUpdateException)
+            {
+                return OperationResult.Failure(ErrorDescriber.DbUpdateFailure());
+            }
+
+            return OperationResult.Success();
+        }
+
+        public async Task<OperationResult> DeleteCategoryAsync(Category category,
+            CancellationToken ct = default(CancellationToken))
+        {
+            ct.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+            if (category == null)
+                throw new ArgumentNullException(nameof(category));
+
+            var entry = await CategoriesSet.FindAsync(new[] {category.Id}, ct);
+            if (entry == null)
+            {
+                return OperationResult.Failure(ErrorDescriber.EntityNotFound("Категория"));
+            }
+
+            CategoriesSet.Attach(category);
+            Context.Entry(category).State = EntityState.Deleted;
+            try
+            {
+                await SaveChangesAsync(ct);
+            }
+            catch (DbUpdateException)
+            {
+                return OperationResult.Failure(ErrorDescriber.DbUpdateFailure());
+            }
+
+            return OperationResult.Success();
+        }
+
+        public async Task<IEnumerable<Category>> GetAllCategoriesAsync(CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+
+            return await CategoriesSet.ToListAsync(ct);
+        }
+
+        public async Task<OperationResult> AddProductCategoriesAsync(int productId,
+            IEnumerable<ProductToCategory> categories,
+            CancellationToken ct = default(CancellationToken))
+        {
+            ct.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+            var productToCategories = categories as ProductToCategory[] ?? categories.ToArray();
+            if (productToCategories.IsNullOrEmpty())
                 throw new ArgumentNullException(nameof(categories));
 
-            foreach (var category in categories)
+            var currentProdCats = await ProdToCatSet
+                .Where(x => productId == x.ProductId)
+                .ToListAsync(ct);
+
+            foreach (var prodToCat in productToCategories)
             {
-                var prodToCat = new ProductToCategory() {ProductId = productId, CategoryId = category.Id};
-                var product = await ProductsSet.FindAsync(new object[] {productId}, cancellationToken);
-                switch (category.DtoState)
+                if (!currentProdCats.Contains(prodToCat))
                 {
-                    case DtoState.Added:
-                        product.ProductCategory.Add(prodToCat);
-                        break;
-                    case DtoState.Deleted:
-                        product.ProductCategory.Add(prodToCat);
-                        Context.Entry(prodToCat).State = EntityState.Deleted;
-                        break;
+                    ProdToCatSet.Attach(prodToCat);
+                    Context.Entry(prodToCat).State = EntityState.Added;
                 }
             }
 
             try
             {
-                await SaveChanges(cancellationToken);
+                await SaveChangesAsync(ct);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return OperationResult.Failure(ErrorDescriber.ConcurrencyFailure());
+            }
+            catch (DbUpdateException)
+            {
+                return OperationResult.Failure(ErrorDescriber.DbUpdateFailure());
+            }
+
+            return OperationResult.Success();
+        }
+
+        public async Task<OperationResult> DeleteProductCategoriesAsync(int productId,
+            IEnumerable<ProductToCategory> categories,
+            CancellationToken ct = default(CancellationToken))
+        {
+            ct.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+            var productToCategories = categories as ProductToCategory[] ?? categories.ToArray();
+            if (productToCategories.IsNullOrEmpty())
+                throw new ArgumentNullException(nameof(categories));
+
+            var currentProdCats = await ProdToCatSet
+                .Where(x => productId == x.ProductId)
+                .ToListAsync(ct);
+
+            foreach (var prodToCat in productToCategories)
+            {
+                if (!currentProdCats.Contains(prodToCat))
+                {
+                    ProdToCatSet.Attach(prodToCat);
+                    Context.Entry(prodToCat).State = EntityState.Deleted;
+                }
+            }
+
+            try
+            {
+                await SaveChangesAsync(ct);
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -474,189 +411,102 @@ namespace Website.Data.EF.Repositories
 
         #region images 
 
-        private ImagesToDisk SaveImagesToContext(int productId, IEnumerable<ProductImageDto> images,
-            CancellationToken cancellationToken)
+        public async Task<OperationResult> CreateImagesAsync(int productId, IEnumerable<Image> images,
+            CancellationToken ct = default(CancellationToken))
         {
-            var imagesToDisk = new ImagesToDisk();
-            foreach (var image in images) //TODO tests 
+            var productImages = images.ToList();
+            foreach (var image in productImages)
             {
-                var dbImage = new ProductImage
+                if (image.BinData == null)
                 {
-                    ProductId = productId,
-                    Path = ImagesSavePath.Replace("\\", "/"),
-                    Primary = image.Primary
-                };
-
-                switch (image.DtoState)
-                {
-                    case DtoState.Added:
-                    {
-                        var fileFormat = ImagesSaveFormat.ToLower();
-                        var imageNames = GetAvailableImageFileName(productId, imagesToDisk.ImagesToSave);
-                        imagesToDisk.ImagesToSave.Add(imageNames.Item1, image.Bitmap);
-                        dbImage.Name = imageNames.Item1;
-                        dbImage.ThumbName = imageNames.Item2;
-                        dbImage.Format = fileFormat;
-                        ImagesSet.Add(dbImage);
-                        break;
-                    }
-                    case DtoState.Deleted:
-                    {
-                        if (!image.Id.HasValue)
-                            break;
-                        dbImage.Id = image.Id.Value;
-                        if (!ImagesSet.Any(x => x.Id == image.Id))
-                            break; //nothing to remove from db due to concurrency or smth
-                        imagesToDisk.ImagesAndThumbsToDelete.Add((image.Path, image.ThumbPath));
-                        ImagesSet.Remove(dbImage);
-                        break;
-                    }
-                    case DtoState.Modified: //not used yet
-                    default:
-                    {
-                        if (!image.Id.HasValue)
-                            break;
-                        dbImage.Id = image.Id.Value;
-                        ImagesSet.Attach(dbImage);
-                        Context.Entry(dbImage).Property(x => x.Primary).IsModified = true;
-                        break;
-                    }
+                    return OperationResult.Failure(ErrorDescriber.InvalidModel());
                 }
             }
 
-            return imagesToDisk;
-        }
-
-        private (string, string) GetAvailableImageFileName(int productId, Dictionary<string, Bitmap> pendingAdditions)
-        {
-            var path = Path.Combine(_hostingEnvironment.WebRootPath, ImagesSavePath);
-            int counter = 0;
-            string imageName;
-            string imageThumbName;
-            var files = Directory.GetFiles(path, productId + "_*");
-            files = files.Select(Path.GetFileNameWithoutExtension).ToArray();
-            do
+            if (await ProductsSet.AnyAsync(x => x.Id == productId, ct))
             {
-                imageName = $"{productId}_{++counter}";
-                imageThumbName = $"{productId}_{counter}_s";
-            } while (files.Contains(imageName) || files.Contains(imageThumbName) ||
-                     pendingAdditions.ContainsKey(imageName));
-
-            return (imageName, imageThumbName);
-        }
-
-        private void ProcessImagesOnDisk(ImagesToDisk images)
-        {
-            if (images == null)
-                throw new ArgumentNullException(nameof(images));
-            //save
-            foreach (var kvp in images.ImagesToSave)
-            {
-                var path = Path.Combine(_hostingEnvironment.WebRootPath, ImagesSavePath);
-                var bitmap = kvp.Value;
-                var name = kvp.Key;
-                var fileFormat = ImagesSaveFormat.ToString().ToLower();
-                var imagePath = $"{path}\\{name}.{fileFormat}";
-                var imageThumbPath = $"{path}\\{name}_s.{fileFormat}";
-                Bitmap thumbImage = RepositoryHelpers.ScaleImage(bitmap, 150, 150);
-
-                var encoder = ImageCodecInfo.GetImageEncoders().First(c => c.FormatID == ImageFormat.Jpeg.Guid);
-                var encParams = new EncoderParameters()
-                {
-                    Param = new[]
-                    {
-                        new EncoderParameter(Encoder.Quality, 70L),
-                        new EncoderParameter(Encoder.ScanMethod, (long) EncoderValue.RenderProgressive),
-                    }
-                };
-
-                bitmap.Save(imagePath, encoder, encParams);
-                thumbImage.Save(imageThumbPath, encoder, encParams);
+                return OperationResult.Failure(ErrorDescriber.EntityNotFound("Продукт"));
             }
 
-            //delete
-            foreach (var imagesTuple in images.ImagesAndThumbsToDelete)
+            foreach (var image in productImages)
             {
-                var path = _hostingEnvironment.WebRootPath;
-                var imagePath = path + imagesTuple.Item1.Replace("/", "\\");
-                var imageThumbPath = path + imagesTuple.Item2.Replace("/", "\\");
-                if (System.IO.File.Exists(imagePath))
+                ImagesSet.Attach(image);
+                Context.Entry(image).State = EntityState.Added;
+                if (image.BinData != null)
                 {
-                    System.IO.File.Delete(imagePath);
-                }
-
-                if (System.IO.File.Exists(imageThumbPath))
-                {
-                    System.IO.File.Delete(imageThumbPath);
+                    Context.Entry(image.BinData).State = EntityState.Added;
                 }
             }
+
+            try
+            {
+                await SaveChangesAsync(ct);
+            }
+            catch (DbUpdateException)
+            {
+                return OperationResult.Failure(ErrorDescriber.DbUpdateFailure());
+            }
+
+            return OperationResult.Success();
         }
 
-        private List<ProductImageDto> ConvertDbImageToDto(ICollection<ProductImage> productImages)
+        public async Task<OperationResult> DeleteImagesAsync(int productId, IEnumerable<Image> images,
+            CancellationToken ct = default(CancellationToken))
         {
-            if (productImages == null)
-                throw new ArgumentNullException(nameof(productImages));
+            var productImages = images.ToList();
 
-            var images = productImages
-                .Select(x => new ProductImageDto()
-                {
-                    Id = x.Id,
-                    Path = $"/{x.Path}/{x.Name}.{x.Format}",
-                    ThumbPath = $"/{x.Path}/{x.ThumbName}.{x.Format}",
-                    Primary = x.Primary
-                })
-                .OrderBy(x => !x.Primary)
-                .ToList();
-            return images;
+            if (!await ProductsSet.AnyAsync(x => x.Id == productId, ct))
+            {
+                return OperationResult.Failure(ErrorDescriber.EntityNotFound("Продукт"));
+            }
+
+            foreach (var image in productImages)
+            {
+                ImagesSet.Attach(image);
+                Context.Entry(image).State = EntityState.Deleted;
+            }
+
+            try
+            {
+                await SaveChangesAsync(ct);
+            }
+            catch (DbUpdateException)
+            {
+                return OperationResult.Failure(ErrorDescriber.DbUpdateFailure());
+            }
+
+            return OperationResult.Success();
         }
 
         #endregion
 
         #region Descriptions
 
-        private async Task<OperationResult> UpdateProductDescriptions(int dbProductId,
-            List<DescriptionGroupDto> productDescriptions, CancellationToken cancellationToken)
+        public async Task<OperationResult> CreateProductDescriptions(int productId,
+            IEnumerable<Description> newDescriptions, CancellationToken ct = default(CancellationToken))
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            ct.ThrowIfCancellationRequested();
             ThrowIfDisposed();
-            if (productDescriptions.IsNullOrEmpty())
-                throw new ArgumentNullException(nameof(productDescriptions));
+            var descriptions = newDescriptions as Description[] ?? newDescriptions.ToArray();
+            if (descriptions.IsNullOrEmpty())
+                throw new ArgumentNullException(nameof(newDescriptions));
 
-            var items = productDescriptions
-                .SelectMany(x => x.Items)
-                .ToList();
-            foreach (var item in items)
+            var oldDescs = await DescriptionsSet
+                .Where(x => x.ProductId == productId)
+                .ToListAsync(ct);
+
+            foreach (var desc in descriptions)
             {
-                switch (item.DtoState)
+                if (!oldDescs.Contains(desc))
                 {
-                    case DtoState.Added:
-                        var newItem = new Description
-                        {
-                            DescriptionGroupItemId = item.Id,
-                            ProductId = dbProductId,
-                            Value = item.DescriptionValue
-                        };
-                        DescriptionsSet.Add(newItem);
-                        break;
-                    case DtoState.Deleted:
-                        if (!item.DescriptionId.HasValue)
-                            break;
-                        var itemToRemove = await DescriptionsSet.FindAsync(item.DescriptionId.Value);
-                        DescriptionsSet.Remove(itemToRemove);
-                        break;
-                    case DtoState.Modified:
-                        if (!item.DescriptionId.HasValue)
-                            break;
-                        var itemToUpdate = await DescriptionsSet.FindAsync(item.DescriptionId.Value);
-                        itemToUpdate.Value = item.DescriptionValue;
-                        DescriptionsSet.Update(itemToUpdate);
-                        break;
+                    DescriptionsSet.Attach(desc);
+                    Context.Entry(desc).State = EntityState.Added;
                 }
             }
 
             try
             {
-                await SaveChanges(cancellationToken);
+                await SaveChangesAsync(ct);
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -670,178 +520,74 @@ namespace Website.Data.EF.Repositories
             return OperationResult.Success();
         }
 
-        public async Task<IEnumerable<DescriptionGroupDto>> GetDescriptionGroupsAsync(
-            CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<OperationResult> DeleteProductDescriptions(int productId,
+            IEnumerable<Description> newDescriptions, CancellationToken ct = default(CancellationToken))
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            ct.ThrowIfCancellationRequested();
             ThrowIfDisposed();
+            var descriptions = newDescriptions as Description[] ?? newDescriptions.ToArray();
+            if (descriptions.IsNullOrEmpty())
+                throw new ArgumentNullException(nameof(newDescriptions));
 
-            return await DescGroupsSet
-                .ProjectTo<DescriptionGroupDto>(_mapper.ConfigurationProvider)
-                .ToListAsync(cancellationToken);
-        }
-
-        public async Task<IEnumerable<DescriptionItemDto>> GetDescriptionItemsAsync(int id,
-            CancellationToken cancellationToken = default(CancellationToken))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            ThrowIfDisposed();
-
-            return await DescGroupsSet
-                .Where(x => x.Id == id)
-                .SelectMany(x => x.DescriptionGroupItems)
-                .ProjectTo<DescriptionItemDto>(_mapper.ConfigurationProvider)
-                .ToListAsync(cancellationToken);
-        }
-
-        private async Task<List<DescriptionGroupDto>> GetProductDescriptions(int productId,
-            CancellationToken cancellationToken = default(CancellationToken))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            ThrowIfDisposed();
-
-            var descs = await DescriptionsSet //get descriptions
+            var oldDescs = await DescriptionsSet
                 .Where(x => x.ProductId == productId)
-                .Include(x => x.DescriptionGroupItem)
-                .ThenInclude(x => x.DescriptionGroup)
-                .ToListAsync(cancellationToken);
+                .ToListAsync(ct);
 
-            if (descs.IsNullOrEmpty())
-                return null;
-
-            descs.ForEach(x =>
+            foreach (var desc in descriptions)
             {
-                if (x.DescriptionGroupItem.DescriptionGroup == null)
-                    x.DescriptionGroupItem.DescriptionGroup = new DescriptionGroup()
-                        {Id = -1, Name = "*группа удалена*"};
-            });
-
-            var descGroups = descs //get flattened description groups from description nav property
-                .Select(x => x.DescriptionGroupItem.DescriptionGroup)
-                .GroupBy(x => x.Id)
-                .Select(g => g.First())
-                .Select(x => new DescriptionGroupDto() //convert description groups to dto
+                if (!oldDescs.Contains(desc))
                 {
-                    Id = x.Id,
-                    Name = x.Name,
-                    Description = x.Description
-                })
-                .OrderBy(x => x.Name != "Общие характеристики") //ordering
-                .ThenBy(x => x.Name)
-                .ToList();
-
-            var descItems = descs //convert descriptions to dto items
-                .OrderBy(x => x.DescriptionGroupItem.Name) //ordering
-                .Select(x =>
-                {
-                    var dto = new DescriptionItemDto()
-                    {
-                        Id = x.DescriptionGroupItem.Id,
-                        Name = x.DescriptionGroupItem.Name,
-                        DescriptionGroupId = x.DescriptionGroupItem.DescriptionGroup.Id,
-                        DescriptionId = x.Id,
-                        DescriptionValue = x.Value
-                    };
-                    if (x.DescriptionGroupItem.DescriptionGroup.Name == "*группа удалена*" ||
-                        x.DescriptionGroupItem.DescriptionGroup.Id == -1)
-                        dto.Id = null;
-                    return dto;
-                })
-                .ToList();
-
-            //add descriptions to their respective groups
-            foreach (var descGroup in descGroups)
-            {
-                foreach (var descItem in descItems)
-                {
-                    if (descItem.DescriptionGroupId == descGroup.Id)
-                    {
-                        descGroup.Items.Add(descItem);
-                    }
+                    DescriptionsSet.Attach(desc);
+                    Context.Entry(desc).State = EntityState.Deleted;
                 }
             }
 
-            return descGroups;
+            try
+            {
+                await SaveChangesAsync(ct);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return OperationResult.Failure(ErrorDescriber.ConcurrencyFailure());
+            }
+            catch (DbUpdateException)
+            {
+                return OperationResult.Failure(ErrorDescriber.DbUpdateFailure());
+            }
+
+            return OperationResult.Success();
+        }
+
+        public async Task<List<Description>> GetProductDescriptions(int productId,
+            CancellationToken ct = default(CancellationToken))
+        {
+            ct.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+
+            if (await ProductsSet.AnyAsync(x => x.Id == productId, ct))
+            {
+                //TODO not sure what to throw here
+                throw new ArgumentException(nameof(productId));
+            }
+
+            var descs = await DescriptionsSet
+                .Where(x => x.ProductId == productId)
+                .Include(x => x.DescriptionGroup)
+                .ToListAsync(ct);
+
+            return descs;
+        }
+
+        public async Task<IEnumerable<DescriptionGroup>> GetAllDescriptionGroupsAsync(
+            CancellationToken ct = default(CancellationToken))
+        {
+            ct.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+
+            return await DescGroupsSet.ToListAsync(ct);
         }
 
         #endregion
-
-
-        public async Task<SortPageResult<ProductDto>> SortFilterPageResultAsync(ItemTypeSelector types,
-            string searchString, string sortPropName, int currPage,
-            int countPerPage, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            ThrowIfDisposed();
-            if (sortPropName == null) throw new ArgumentNullException(nameof(sortPropName));
-            if (countPerPage < 0) throw new ArgumentOutOfRangeException(nameof(countPerPage));
-            if (currPage < 0) throw new ArgumentOutOfRangeException(nameof(currPage));
-            if (!Enum.IsDefined(typeof(ItemTypeSelector), types))
-                throw new InvalidEnumArgumentException(nameof(ItemTypeSelector), (int) types, typeof(ItemTypeSelector));
-
-            IQueryable<Product> prodQuery = ProductsSet.AsQueryable();
-
-            FilterProductsTypeQuery(types, ref prodQuery);
-            SearchProductsQuery(searchString, ref prodQuery);
-            OrderProductsQuery(sortPropName, ref prodQuery);
-            int totalProductsN = await prodQuery.CountAsync(cancellationToken);
-            PaginateProductsQuery(currPage, countPerPage, ref prodQuery);
-
-            var productsDto = await prodQuery.ProjectTo<ProductDto>(_mapper.ConfigurationProvider)
-                .ToListAsync(cancellationToken);
-            return new SortPageResult<ProductDto> {FilteredData = productsDto, TotalN = totalProductsN};
-        }
-
-        private void PaginateProductsQuery(int currPage, int countPerPage, ref IQueryable<Product> prodQuery)
-        {
-            int skip = (currPage - 1) * countPerPage;
-            int take = countPerPage;
-            prodQuery = prodQuery.Skip(skip).Take(take);
-        }
-
-        private void FilterProductsTypeQuery(ItemTypeSelector types, ref IQueryable<Product> productQuery)
-        {
-            switch (types)
-            {
-                case ItemTypeSelector.Enabled:
-                    productQuery = productQuery.Where(x => x.Available);
-                    break;
-                case ItemTypeSelector.Disabled:
-                    productQuery = productQuery.Where(x => !x.Available);
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        private void SearchProductsQuery(string searchString, ref IQueryable<Product> prodQuery)
-        {
-            if (!String.IsNullOrEmpty(searchString))
-            {
-                prodQuery = prodQuery.Where(x =>
-                    x.Name.Contains(searchString) || x.Code.ToString().Contains(searchString));
-            }
-        }
-
-        private void OrderProductsQuery(string sortPropName, ref IQueryable<Product> prodQuery)
-        {
-            bool descending = false;
-            if (sortPropName.EndsWith("_desc"))
-            {
-                sortPropName = sortPropName.Substring(0, sortPropName.Length - 5);
-                descending = true;
-            }
-
-            var check = RepositoryHelpers.CheckIfPropertyExists(sortPropName, typeof(ProductDto));
-            if (!check.Result)
-                throw new ArgumentException(nameof(sortPropName)); //or set to default
-
-            Expression<Func<Product, object>> property = p => Microsoft.EntityFrameworkCore.EF.Property<object>(p, sortPropName);
-
-            if (descending)
-                prodQuery = prodQuery.OrderByDescending(property);
-            else
-                prodQuery = prodQuery.OrderBy(property);
-        }
 
         private void ThrowIfDisposed()
         {
@@ -851,9 +597,6 @@ namespace Website.Data.EF.Repositories
             }
         }
 
-        /// <summary>
-        /// Dispose the store
-        /// </summary>
         public void Dispose()
         {
             _disposed = true;

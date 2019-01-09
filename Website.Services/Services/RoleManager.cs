@@ -1,17 +1,17 @@
 ﻿using System.Collections.Generic;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
-using Website.Core.DTO;
+using Website.Core.Models.Domain;
 
 namespace Website.Services.Services
 {
-    public class RoleManager : RoleManager<RoleDto>
+    public class RoleManager : RoleManager<Role>
     {
-        public RoleManager(IRoleStore<RoleDto> store,
-            IEnumerable<IRoleValidator<RoleDto>> roleValidators,
+        public RoleManager(IRoleStore<Role> store,
+            IEnumerable<IRoleValidator<Role>> roleValidators,
             ILookupNormalizer keyNormalizer,
             IdentityErrorDescriber errors,
-            ILogger<RoleManager<RoleDto>> logger)
+            ILogger<RoleManager<Role>> logger)
             : base(store, roleValidators, keyNormalizer, errors, logger)
         {
         }

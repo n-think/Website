@@ -2,9 +2,8 @@
     ViewData["Title"] = Model.CreateItem ? "Добавить товар" : "Редактирование товара";
     TempData["DeleteToken"] = Guid.NewGuid();
 }
-
-@using Website.Core.DTO
 @using Website.Core.Enums
+@using Website.Web.Models.DTO
 @model EditItemViewModel
 
 <div class="mb-2">

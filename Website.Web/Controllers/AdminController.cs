@@ -5,16 +5,16 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
 using Castle.Core.Internal;
-using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Website.Core.DTO;
 using Website.Core.Enums;
 using Website.Core.Infrastructure;
 using Website.Core.Interfaces.Services;
+using Website.Core.Models.Domain;
 using Website.Services.Services;
 using Website.Web.Models;
 using Website.Web.Models.AdminViewModels;
+using Website.Web.Models.DTO;
 
 namespace Website.Web.Controllers
 {
@@ -31,7 +31,7 @@ namespace Website.Web.Controllers
 
         public AdminController(IUserManager userManager, IShopManager shopManager, RoleManager roleManager,
             SignInManager signInManager,
-            IMapper mapper, IAntiforgery antiForgery)
+            IMapper mapper)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -62,7 +62,7 @@ namespace Website.Web.Controllers
             var currPage = page == null || page < 0 ? 1 : page.Value;
             var countPerPage = pageCount == null || pageCount <= 0 ? 15 : pageCount.Value;
 
-            SortPageResult<UserDto> result =
+            SortPageResult<User> result =
                 await _userManager.GetSortFilterPageAsync(roles, search, sortOrder, currPage, countPerPage);
 
             ViewBag.itemCount = result.TotalN;
@@ -76,14 +76,14 @@ namespace Website.Web.Controllers
                 CountPerPage = countPerPage,
                 Roles = (int) roles,
                 ItemCount = result.TotalN,
-                Users = result.FilteredData
+                Users = _mapper.Map<IEnumerable<UserDto>>(result.FilteredData)
             };
             return View(model);
         }
 
-        [HttpGet("{id:guid}")]
+        [HttpGet("{id:required:int:min(0)}")]
         [Authorize(Policy = "ViewUsers")]
-        public async Task<IActionResult> ViewUser(Guid id)
+        public async Task<IActionResult> ViewUser(int id)
         {
             var user = await _userManager.FindByIdAsync(id.ToString());
             if (user == null)
@@ -98,9 +98,9 @@ namespace Website.Web.Controllers
             return View(modelUser);
         }
 
-        [HttpGet("{id:guid}")]
+        [HttpGet("{id:required:int:min(0)}")]
         [Authorize(Policy = "EditUsers")]
-        public async Task<IActionResult> EditUser(Guid id)
+        public async Task<IActionResult> EditUser(int id)
         {
             var user = await _userManager.FindByIdAsync(id.ToString());
             if (user == null)
@@ -114,7 +114,7 @@ namespace Website.Web.Controllers
             return View(modelUser);
         }
 
-        [HttpPost("{id:guid}")]
+        [HttpPost("{id:required:int:min(0)}")] //TODO remove attribute?
         [ValidateAntiForgeryToken]
         [Authorize(Policy = "EditUsers")]
         public async Task<IActionResult> EditUser(EditUserViewModel editModel)
@@ -126,14 +126,15 @@ namespace Website.Web.Controllers
 
             if (ModelState.IsValid)
             {
-                var dtoUser = await _userManager.FindByIdAsync(editModel.Id);
-                if (dtoUser == null)
+                var user = await _userManager.FindByIdAsync(editModel.Id);
+                
+                if (user == null)
                 {
                     return View("Error", new ErrorViewModel {Message = $"Пользователь с id {editModel.Id} не найден."});
                 }
 
-                var dbConcStamp = dtoUser.ConcurrencyStamp;
-                _mapper.Map(editModel, dtoUser);
+                var dbConcStamp = user.ConcurrencyStamp;
+                _mapper.Map(editModel, user);
 
                 var newClaims = new List<Claim>();
                 if (!editModel.NewClaims.IsNullOrEmpty() && editModel.Role == "admin")
@@ -147,16 +148,16 @@ namespace Website.Web.Controllers
                 }
 
                 //try update
-                var result = await _userManager.UpdateUserPasswordClaims(dtoUser, editModel.Password, newClaims);
+                var result = await _userManager.UpdateUserPasswordClaims(user, editModel.Password, newClaims);
                 if (result.Succeeded)
                 {
-                    if (HttpContext.User.Claims.First(x => x.Type == ClaimTypes.NameIdentifier).Value == dtoUser.Id)
+                    if (HttpContext.User.Claims.First(x => x.Type == ClaimTypes.NameIdentifier).Value == user.Id.ToString())
                     {
-                        await _signInManager.RefreshSignInAsync(dtoUser);
+                        await _signInManager.RefreshSignInAsync(user);
                     }
                     else
                     {
-                        await _userManager.UpdateSecurityStampAsync(dtoUser);
+                        await _userManager.UpdateSecurityStampAsync(user);
                     }
 
                     TempData["Message"] = "Изменения успешно сохранены";
@@ -196,7 +197,7 @@ namespace Website.Web.Controllers
             var currPage = page ?? 1;
             var countPerPage = pageCount == null || pageCount <= 0 ? 15 : pageCount.Value;
 
-            SortPageResult<ProductDto> result =
+            SortPageResult<Product> result =
                 await _shopManager.GetSortFilterPageAsync(types, search, sortOrder, currPage, countPerPage);
             //TODO categories filter // List<CategoryDTO> allCategories = await _shopManager.GetAllCategoriesAsync();
             ViewBag.itemCount = result.TotalN;
@@ -210,7 +211,7 @@ namespace Website.Web.Controllers
                 CountPerPage = countPerPage,
                 Types = (int) types,
                 ItemCount = result.TotalN,
-                Items = result.FilteredData
+                Items = _mapper.Map<IEnumerable<ProductDto>>(result.FilteredData),
                 //,Categories = allCategories
             };
 
@@ -242,7 +243,7 @@ namespace Website.Web.Controllers
             }
 
             var viewModel = _mapper.Map<EditItemViewModel>(prod);
-            viewModel.Descriptions = prod.Descriptions;
+            //viewModel.Descriptions = prod.Descriptions; TODO FIX THIS !!!!!!!!!!!!!!!!!!!!!!
             return View(viewModel);
         }
 
@@ -252,51 +253,51 @@ namespace Website.Web.Controllers
         [Authorize(Policy = "EditItems")]
         public async Task<IActionResult> EditItem([FromBody] EditItemViewModel item) //json input //TODO move to api?
         {
-            if (item?.Id == null || item?.Name == null || item.Timestamp == null)
-            {
-                return BadRequest("Введены некорректные данные.");
-            }
-
-            if (ModelState.IsValid)
-            {
-                OperationResult result;
-                ProductDto updatedProductDto;
-
-                var itemDto = _mapper.Map<ProductDto>(item);
-                if (item.Id.Value == -1)
-                {
-                    result = await _shopManager.CreateProductAsync(itemDto);
-                    updatedProductDto = await _shopManager.GetProductByNameAsync(itemDto.Name, true, true, true);
-                }
-                else
-                {
-                    result = await _shopManager.UpdateProductAsync(itemDto);
-                    updatedProductDto =
-                        await _shopManager.GetProductByIdAsync(itemDto.Id.GetValueOrDefault(), true, true, true);
-                }
-
-                if (result.Succeeded)
-                {
-                    TempData["Message"] = "Изменения успешно сохранены";
-                    var itemViewModel = _mapper.Map<ItemViewModel>(updatedProductDto);
-                    return PartialView("ViewItem", itemViewModel);
-                }
-
-                //add new errors
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError(error.Code, error.Description);
-                    if (error.Code == nameof(OperationErrorDescriber.ConcurrencyFailure) ||
-                        error.Code == nameof(OperationErrorDescriber.InvalidImageFormat))
-                    {
-                        item.Timestamp = updatedProductDto?.Timestamp ?? item.Timestamp;
-                        ; // to enable save after conc error or incomplete updates
-                        ModelState.Remove(
-                            "Timestamp"); // remove from the model state or HTML helpers will use the original value
-                    }
-                }
-            }
-
+//            if (item?.Id == null || item?.Name == null || item.Timestamp == null)
+//            {
+//                return BadRequest("Введены некорректные данные.");
+//            }
+//
+//            if (ModelState.IsValid)
+//            {
+//                OperationResult result;
+//                ProductDto updatedProductDto;
+//
+//                var itemDto = _mapper.Map<ProductDto>(item);
+//                if (item.Id.Value == -1)
+//                {
+//                    result = await _shopManager.CreateProductAsync(itemDto);
+//                    updatedProductDto = await _shopManager.GetProductByNameAsync(itemDto.Name, true, true, true);
+//                }
+//                else
+//                {
+//                    result = await _shopManager.UpdateProductAsync(itemDto);
+//                    updatedProductDto =
+//                        await _shopManager.GetProductByIdAsync(itemDto.Id.GetValueOrDefault(), true, true, true);
+//                }
+//
+//                if (result.Succeeded)
+//                {
+//                    TempData["Message"] = "Изменения успешно сохранены";
+//                    var itemViewModel = _mapper.Map<ItemViewModel>(updatedProductDto);
+//                    return PartialView("ViewItem", itemViewModel);
+//                }
+//
+//                //add new errors
+//                foreach (var error in result.Errors)
+//                {
+//                    ModelState.AddModelError(error.Code, error.Description);
+//                    if (error.Code == nameof(OperationErrorDescriber.ConcurrencyFailure) ||
+//                        error.Code == nameof(OperationErrorDescriber.InvalidImageFormat))
+//                    {
+//                        item.Timestamp = updatedProductDto?.Timestamp ?? item.Timestamp;
+//                        ; // to enable save after conc error or incomplete updates
+//                        ModelState.Remove(
+//                            "Timestamp"); // remove from the model state or HTML helpers will use the original value
+//                    }
+//                }
+//            }
+//
             return PartialView(item);
         }
 
@@ -361,8 +362,8 @@ namespace Website.Web.Controllers
         [Authorize(Policy = "ViewItems")]
         public async Task<IActionResult> Categories()
         {
-            var cats = await _shopManager.GetAllCategoriesAsync(true);
-            return View(cats.ToTree());
+            var cats = await _shopManager.GetAllCategoriesWithProductCountAsync();
+            return View(/*cats.ToTree()*/null);
         }
 
         [HttpPost]

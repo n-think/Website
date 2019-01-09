@@ -1,10 +1,13 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Threading.Tasks.Sources;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Website.Core.Models;
 using Website.Core.Models.Domain;
 
 namespace Website.Data.EF
 {
-    public class WebsiteDbContext : DbContext
+    public class WebsiteDbContext : IdentityDbContext<
+        User, Role, int, UserClaim, UserRole, UserLogin, RoleClaim, UserToken>
     {
         public WebsiteDbContext()
         {
@@ -13,209 +16,180 @@ namespace Website.Data.EF
         public WebsiteDbContext(DbContextOptions options)
             : base(options)
         {
-            ChangeTracker.LazyLoadingEnabled = false; // /* DbContext.ChangeTracker.LazyLoadingEnabled = true чтобы включать там где надо */
+            ChangeTracker.LazyLoadingEnabled = true;
         }
 
-        public virtual DbSet<User> Users { get; set; }
-        public virtual DbSet<UserClaim> UserClaims { get; set; }
-        public virtual DbSet<UserLogin> UserLogins { get; set; }
-        public virtual DbSet<UserToken> UserTokens { get; set; }
-        public virtual DbSet<UserRole> UserRoles { get; set; }
-        public virtual DbSet<Role> Roles { get; set; }
-        public virtual DbSet<RoleClaim> RoleClaims { get; set; }
         public virtual DbSet<Category> Categories { get; set; }
-        public virtual DbSet<UserProfile> UserProfiles { get; set; }
         public virtual DbSet<DescriptionGroup> DescriptionGroups { get; set; }
-        public virtual DbSet<DescriptionGroupItem> DescriptionGroupItems { get; set; }
         public virtual DbSet<Description> Descriptions { get; set; }
         public virtual DbSet<Product> Products { get; set; }
-        public virtual DbSet<ProductImage> ProductImages { get; set; }
+        public virtual DbSet<Image> Images { get; set; }
+        public virtual DbSet<ImageBinData> ImageBinData { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            FromIdentityBuilder(modelBuilder);
+            base.OnModelCreating(modelBuilder);
+            RenameIdentityAndFixNav(modelBuilder);
+
+            modelBuilder.Entity<Product>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+                entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasMaxLength(50);
+                entity.Property(x => x.Timestamp)
+                    .IsRowVersion();
+                entity.HasIndex(e => e.Code)
+                    .IsUnique();
+                entity.Property(e => e.Price)
+                    .HasColumnType("decimal(18,2)");
+                entity.ToTable("Products", "Production");
+            });
+
+            modelBuilder.Entity<Image>(entity =>
+            {
+                entity.HasOne(e => e.Product)
+                    .WithMany(e => e.Images)
+                    .HasForeignKey(e => e.ProductId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasKey(x => x.Id);
+                entity.Property(e => e.Format).HasMaxLength(10);
+                entity.HasIndex(e => e.Name).IsUnique();
+                entity.HasIndex(e => e.ThumbName).IsUnique();
+                entity.ToTable("Images", "Production");
+            });
+
+            modelBuilder.Entity<ImageBinData>(entity =>
+            {
+                entity.HasKey(x => x.ImageId);
+                entity.HasOne(x => x.ImageInfo)
+                    .WithOne(x => x.BinData)
+                    .HasForeignKey<ImageBinData>(x => x.ImageId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.ToTable("ImagesBinData", "Production");
+            });
 
             modelBuilder.Entity<Category>(entity =>
             {
+                entity.HasKey(x => x.Id);
                 entity.Property(e => e.Name).HasMaxLength(50);
                 entity.Property(e => e.Timestamp).IsRowVersion();
                 entity.HasOne(e => e.Parent)
                     .WithMany(e => e.Children)
                     .HasForeignKey(e => e.ParentId);
+                entity.ToTable("Categories", "Production");
             });
-
-            modelBuilder.Entity<ProductImage>(entity =>
-            {
-                entity.Property(e => e.Format).HasMaxLength(10);
-                entity.HasIndex(e => e.Name).IsUnique();
-                entity.HasIndex(e => e.ThumbName).IsUnique();
-            });
-
+            
             modelBuilder.Entity<DescriptionGroup>(entity =>
             {
-                entity.Property(e => e.Description).HasMaxLength(50);
+                entity.HasKey(x => x.Id);
                 entity.Property(e => e.Name)
                     .IsRequired()
                     .HasMaxLength(50);
-            });
-
-            modelBuilder.Entity<DescriptionGroupItem>(entity =>
-            {
-                entity.HasOne(e => e.DescriptionGroup)
-                    .WithMany(e => e.DescriptionGroupItems)
-                    .HasForeignKey(e => e.DescriptionGroupId)
-                    .OnDelete(DeleteBehavior.SetNull)
-                    .HasConstraintName("FK_DescriptionGroupItems_DescriptionGroups");
+                entity.Property(e => e.Timestamp)
+                    .IsRowVersion();
+                entity.HasOne(e => e.Parent)
+                    .WithMany(e => e.Children)
+                    .HasForeignKey(e=>e.ParentId)
+                    .HasConstraintName("FK_DescriptionGroups_DescriptionGroups")
+                    .OnDelete(DeleteBehavior.ClientSetNull);
+                entity.ToTable("DescriptionGroups", "Production");
             });
 
             modelBuilder.Entity<Description>(entity =>
             {
-                entity.HasOne(d => d.DescriptionGroupItem)
+                entity.HasKey(x => x.Id);
+                entity.HasOne(d => d.DescriptionGroup)
                     .WithMany(p => p.Descriptions)
-                    .HasForeignKey(d => d.DescriptionGroupItemId)
-                    .OnDelete(DeleteBehavior.SetNull)
-                    .HasConstraintName("FK_Descriptions_DescriptionGroupItems");
-
+                    .HasForeignKey(d => d.DescriptionGroupId)
+                    .HasConstraintName("FK_Descriptions_DescriptionGroups");
                 entity.HasOne(d => d.Product)
                     .WithMany(p => p.Descriptions)
                     .HasForeignKey(d => d.ProductId)
-                    .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("FK_Descriptions_Products");
-            });
-
-            modelBuilder.Entity<Product>(entity =>
-            {
-                entity.Property(e => e.Name)
-                    .IsRequired()
-                    .HasMaxLength(50);
-
-                entity.Property(x => x.Timestamp)
-                    .IsRowVersion();
-
-                entity.HasMany(e => e.Images)
-                    .WithOne(e => e.Product)
-                    .HasForeignKey(e => e.ProductId)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                entity.HasIndex(e => e.Code)
-                    .IsUnique();
-
-                entity.Property(e => e.Price)
-                    .HasColumnType("decimal(18,2)");
-            });
-
-            modelBuilder.Entity<User>(entity =>
-            {
-                entity.HasOne(x => x.UserProfile)
-                    .WithOne(x => x.User)
-                    .HasForeignKey<UserProfile>(x => x.Id);
-            });
-
-            modelBuilder.Entity<UserProfile>(entity =>
-            {
-                entity.Property(x => x.Timestamp)
-                    .IsRowVersion();
+                entity.ToTable("Descriptions", "Production");
             });
 
             //many to many ef core
             modelBuilder.Entity<ProductToCategory>(entity =>
             {
-                entity.HasKey(pc => new { pc.ProductId, pc.CategoryId });
-
+                entity.HasKey(pc => new {pc.ProductId, pc.CategoryId});
                 entity.HasOne(x => x.Product)
-                    .WithMany(x => x.ProductCategory)
+                    .WithMany(x => x.ProductToCategory)
                     .HasForeignKey(x => x.ProductId);
-
                 entity.HasOne(x => x.Category)
                     .WithMany(x => x.ProductCategory)
                     .HasForeignKey(x => x.CategoryId);
+                entity.ToTable("ProductToCategory", "Production");
             });
         }
 
-        private void FromIdentityBuilder(ModelBuilder modelBuilder)
+        private void RenameIdentityAndFixNav(ModelBuilder modelBuilder)
         {
-            //gutted encryptPersonalData
-
             modelBuilder.Entity<User>(b =>
             {
-                b.HasKey(u => u.Id);
-                b.HasIndex(u => u.NormalizedUserName).HasName("UserNameIndex").IsUnique();
-                b.HasIndex(u => u.NormalizedEmail).HasName("EmailIndex");
-                b.ToTable("Users");
-                b.Property(u => u.ConcurrencyStamp).IsConcurrencyToken();
-
-                b.Property(u => u.UserName).HasMaxLength(256).IsRequired();
-                b.Property(u => u.NormalizedUserName).HasMaxLength(256);
-                b.Property(u => u.Email).HasMaxLength(256).IsRequired(); ;
-                b.Property(u => u.NormalizedEmail).HasMaxLength(256);
-
-                b.HasIndex(u => u.Email).IsUnique();
-                b.HasIndex(u => u.UserName).IsUnique();
-
-                b.HasMany<UserClaim>().WithOne().HasForeignKey(uc => uc.UserId).IsRequired();
-                b.HasMany<UserLogin>().WithOne().HasForeignKey(ul => ul.UserId).IsRequired();
-                b.HasMany<UserToken>().WithOne().HasForeignKey(ut => ut.UserId).IsRequired();
+                b.ToTable("Users", "Auth");
             });
 
             modelBuilder.Entity<UserClaim>(b =>
             {
-                b.HasKey(uc => uc.Id);
-                b.ToTable("UserClaims");
-                b.HasOne(x => x.User).WithMany(x => x.Claims).HasForeignKey(x => x.UserId);
+                b.ToTable("UserClaims", "Auth");
             });
 
-            modelBuilder.Entity<UserLogin>(b =>
-            {
-                b.HasKey(l => new { l.LoginProvider, l.ProviderKey });
-                b.ToTable("UserLogins");
-                b.HasOne(x => x.User).WithMany(x => x.Logins).HasForeignKey(x => x.UserId);
+            modelBuilder.Entity<UserLogin>(b =>{
+               
+                b.ToTable("UserLogins", "Auth");
             });
 
             modelBuilder.Entity<UserToken>(b =>
             {
-                b.HasKey(t => new { t.UserId, t.LoginProvider, t.Name });
-                b.ToTable("UserTokens");
-                b.HasOne(x => x.User).WithMany(x => x.Tokens).HasForeignKey(x => x.UserId);
-            });
-
-            modelBuilder.Entity<User>(b =>
-            {
-                b.HasMany<UserRole>().WithOne().HasForeignKey(ur => ur.UserId).IsRequired();
+                b.ToTable("UserTokens", "Auth");
             });
 
             modelBuilder.Entity<Role>(b =>
             {
-                b.HasKey(r => r.Id);
-                b.HasIndex(r => r.NormalizedName).HasName("RoleNameIndex").IsUnique();
-                b.ToTable("Roles");
-                b.Property(r => r.ConcurrencyStamp).IsConcurrencyToken();
-
-                b.Property(u => u.Name).HasMaxLength(256);
-                b.Property(u => u.NormalizedName).HasMaxLength(256);
-
-                b.HasMany<UserRole>().WithOne().HasForeignKey(ur => ur.RoleId).IsRequired();
-                b.HasMany<RoleClaim>().WithOne().HasForeignKey(rc => rc.RoleId).IsRequired();
+                b.ToTable("Roles", "Auth");
             });
 
             modelBuilder.Entity<RoleClaim>(b =>
             {
-                b.HasKey(rc => rc.Id);
-                b.ToTable("RoleClaims");
+                b.ToTable("RoleClaims", "Auth");
             });
+            
+            modelBuilder.Entity<User>()
+                .HasMany(e => e.Claims)
+                .WithOne(x=>x.User)
+                .HasForeignKey(e => e.UserId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<UserRole>(b =>
+            modelBuilder.Entity<User>()
+                .HasMany(e => e.Logins)
+                .WithOne(x=>x.User)
+                .HasForeignKey(e => e.UserId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<UserRole>(entity =>
             {
-                b.HasKey(r => new { r.UserId, r.RoleId });
-                b.ToTable("UserRoles");
-
-                b.HasOne(x => x.User)
+                entity.HasKey(x => new {x.UserId, x.RoleId});
+                entity.HasOne(x => x.Role)
                     .WithMany(x => x.UserRoles)
-                    .HasForeignKey(x => x.UserId);
-
-                b.HasOne(x => x.Role)
+                    .HasForeignKey(x => x.RoleId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(x => x.User)
                     .WithMany(x => x.UserRoles)
-                    .HasForeignKey(x => x.RoleId);
+                    .HasForeignKey(x => x.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.ToTable("UserRoles", "Auth");
             });
+
+            modelBuilder.Entity<User>()
+                .HasMany(e => e.Tokens)
+                .WithOne(x=>x.User)
+                .HasForeignKey(e => e.UserId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
