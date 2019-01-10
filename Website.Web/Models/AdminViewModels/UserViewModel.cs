@@ -19,8 +19,6 @@ namespace Website.Web.Models.AdminViewModels
         public bool PhoneNumberConfirmed { get; set; }
         [ScaffoldColumn(false)]
         public string ConcurrencyStamp { get; set; }
-        [Display(Name = "Последний логин")]
-        public DateTimeOffset? LastLoginDate { get; set; }
         [Display(Name = "Возможна ли блокировка")]
         public bool LockoutEnabled { get; set; }
         [Display(Name = "Дата конца блокировки")]
@@ -32,6 +30,25 @@ namespace Website.Web.Models.AdminViewModels
         public int AccessFailedCount { get; set; }
         [Display(Name = "Дата последней активности")]
         public DateTimeOffset? LastActivityDate { get; set; }
+        
+        [Display(Name = "Имя")]
+        [DisplayFormat(NullDisplayText = "*Не указано*")]
+        public string FirstName { get; set; }
+        [Display(Name = "Фамилия")]
+        [DisplayFormat(NullDisplayText = "*Не указано*")]
+        public string LastName { get; set; }
+        [Display(Name = "Отчество")]
+        [DisplayFormat(NullDisplayText = "*Не указано*")]
+        public string PatrName { get; set; }
+        [Display(Name = "Адрес")]
+        [DataType(DataType.MultilineText)]
+        [DisplayFormat(NullDisplayText = "*Не указано*")]
+        public string Address { get; set; }
+        [Display(Name = "Город")]
+        [DisplayFormat(NullDisplayText = "*Не указано*")]
+        public string City { get; set; }
+        [Display(Name = "Дата регистрации")]
+        public DateTimeOffset? RegistrationDate { get; set; }
 
         [ScaffoldColumn(false)]
         public string Role { get; set; }
@@ -39,25 +56,6 @@ namespace Website.Web.Models.AdminViewModels
         [ScaffoldColumn(false)]
         public IList<Claim> CurrentClaims { get; set; }
 
-        //Профиль
 
-        [Display(Name = "Имя")]
-        [DisplayFormat(NullDisplayText = "*Не указано*")]
-        public string UserProfileFirstName { get; set; }
-        [Display(Name = "Фамилия")]
-        [DisplayFormat(NullDisplayText = "*Не указано*")]
-        public string UserProfileLastName { get; set; }
-        [Display(Name = "Отчество")]
-        [DisplayFormat(NullDisplayText = "*Не указано*")]
-        public string UserProfilePatrName { get; set; }
-        [Display(Name = "Адрес")]
-        [DataType(DataType.MultilineText)]
-        [DisplayFormat(NullDisplayText = "*Не указано*")]
-        public string UserProfileAddress { get; set; }
-        [Display(Name = "Город")]
-        [DisplayFormat(NullDisplayText = "*Не указано*")]
-        public string UserProfileCity { get; set; }
-        [Display(Name = "Дата регистрации")]
-        public DateTimeOffset? UserProfileRegistrationDate { get; set; }
     }
 }

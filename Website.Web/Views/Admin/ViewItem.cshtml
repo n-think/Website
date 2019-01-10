@@ -3,6 +3,7 @@
 }
 @using Castle.Core.Internal
 @using Website.Web.Models.DTO
+@using Website.Web.Infrastructure.TreeHelper
 @model ItemViewModel
 <div class="mb-2">
     <span class="h2 d-inline-block">Просмотр товара</span>
@@ -17,13 +18,14 @@
     <div class="col-md-7">
         <div>
             <div class="admin-img-box">
-                <img id="admin-image-view" src="@Model.Images?.FirstOrDefault(x => x.Primary)?.PathSrc" alt="Нет изображения"/>
+                <img id="admin-image-view" src="@Url.Action("FullSize", "Images", Model.Images?.FirstOrDefault(x => x.Primary)?.Id)" alt="Нет изображения"/>
                 <span></span>
             </div>
             <div id="image-container" class="admin-img-thumbs">
-                @foreach (var item in Model.Images ?? Enumerable.Empty<ProductImageDto>())
+                @foreach (var item in Model.Images ?? Enumerable.Empty<ImageDto>())
                 {
-                    <img class="admin-img-thumb" data-path="@item.PathSrc" src="@item.ThumbPathSrc"/>
+                    <img class="admin-img-thumb" data-path="@item.DataUrl"
+                         src="@(item.DataUrl ?? Url.Action("Thumb", "Images", item.Id))"/>
                 }
             </div>
         </div>
@@ -49,21 +51,25 @@
     <span class="h3 d-block">Категории</span>
     @foreach (var cat in Model.Categories ?? Enumerable.Empty<CategoryDto>())
     {
-        <span>@cat.Name</span>
+        <span class="font-weight-bold">@cat.Name</span>
         @Html.Raw(" : ")<span>@cat.Description</span>
         <br/>
     }
 </div>
 <div class="admin-item-descriptions">
     <span class="h3">Описания</span>
-    @foreach (var descriptionGroup in Model.Descriptions ?? Enumerable.Empty<DescriptionGroupDto>())
-    {
-        <span class="h6 d-block my-2">@descriptionGroup.Name</span>
-        foreach (var item in descriptionGroup.Items)
+    @{
+        foreach (var descGroup in Model.DescriptionGroups ?? Enumerable.Empty<DescriptionGroupDto>())
         {
-            <span>@item.Name</span>
-            @Html.Raw(" : ")<span>@item.DescriptionValue</span>
-            <br/>
+            <div class="my-2">
+                <span class="h6">@descGroup.Name</span>@Html.Raw(" : ")<span>@descGroup.Descriptions.Single().Value</span>
+            </div>
+            foreach (var child in descGroup.Children ?? Enumerable.Empty<DescriptionGroupDto>())
+            {
+                <span class="">@child.Name</span>
+                @Html.Raw(" : ")<span>@child.Descriptions.Single().Value</span>
+                <br/>
+            }
         }
     }
 </div>

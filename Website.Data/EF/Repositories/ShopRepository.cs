@@ -183,7 +183,8 @@ namespace Website.Data.EF.Repositories
             if (loadDescriptions)
             {
                 query = query
-                    .Include(x => x.Descriptions);
+                    .Include(x => x.Descriptions)
+                    .ThenInclude(x=>x.DescriptionGroup);
             }
 
             var product = await query

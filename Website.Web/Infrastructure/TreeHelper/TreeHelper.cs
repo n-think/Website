@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Website.Web.Models.DTO;
 
-namespace Website.Web.Models.AdminViewModels
+namespace Website.Web.Infrastructure.TreeHelper
 {
-    internal static class CategoryDtoTree
+    public static class TreeHelper
     {
         public static List<CategoryDtoTreeItem> ToTree(this IEnumerable<CategoryDto> categories)
         {
@@ -43,6 +43,42 @@ namespace Website.Web.Models.AdminViewModels
                 }
             }
             return tree;
+        }
+        
+//        public static List<DescriptionGroupDto> ToTree(this IEnumerable<DescriptionGroupDto> descGroups)
+//        {
+//            if (descGroups == null)
+//                throw new ArgumentNullException(nameof(descGroups));
+//
+//            var items = descGroups
+//                .ToDictionary(x => x.Id);
+//            
+//            var tree = new List<DescriptionGroupDto>();
+//            foreach (var descGroup in items.Values)
+//            {
+//                if (descGroup.ParentId.HasValue)
+//                {
+//                    var parentObj = items[descGroup.ParentId.Value];
+//                    parentObj.Children.Add(descGroup);
+//                }
+//                else
+//                {
+//                    tree.Add(descGroup);
+//                }
+//            }
+//            return tree;
+//        }
+        
+        public static IEnumerable<T> GetNodeAndChildren<T>(T node) where T : ITreeItem<T>
+        {
+            yield return node;
+            foreach (var child in node.Children)
+            {
+                foreach (var x in GetNodeAndChildren<T>(child))
+                {
+                    yield return x;
+                }
+            }
         }
     }
 }

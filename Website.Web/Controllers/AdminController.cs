@@ -12,6 +12,7 @@ using Website.Core.Infrastructure;
 using Website.Core.Interfaces.Services;
 using Website.Core.Models.Domain;
 using Website.Services.Services;
+using Website.Web.Infrastructure.TreeHelper;
 using Website.Web.Models;
 using Website.Web.Models.AdminViewModels;
 using Website.Web.Models.DTO;
@@ -85,13 +86,13 @@ namespace Website.Web.Controllers
         [Authorize(Policy = "ViewUsers")]
         public async Task<IActionResult> ViewUser(int id)
         {
-            var user = await _userManager.FindByIdAsync(id.ToString());
+            User user = await _userManager.FindByIdAsync(id.ToString());
             if (user == null)
             {
                 return View("Error", new ErrorViewModel {Message = $"Пользователь с id {id} не найден."});
             }
 
-            var modelUser = _mapper.Map<UserViewModel>(user);
+            UserViewModel modelUser = _mapper.Map<UserViewModel>(user);
 
             modelUser.CurrentClaims = await _userManager.GetClaimsAsync(user);
             modelUser.Role = (await _userManager.GetRolesAsync(user)).FirstOrDefault() ?? "без роли";
@@ -102,19 +103,19 @@ namespace Website.Web.Controllers
         [Authorize(Policy = "EditUsers")]
         public async Task<IActionResult> EditUser(int id)
         {
-            var user = await _userManager.FindByIdAsync(id.ToString());
+            User user = await _userManager.FindByIdAsync(id.ToString());
             if (user == null)
             {
                 return View("Error", new ErrorViewModel {Message = $"Пользователь с id {id} не найден."});
             }
 
-            var modelUser = _mapper.Map<EditUserViewModel>(user);
+            EditUserViewModel modelUser = _mapper.Map<EditUserViewModel>(user);
             modelUser.CurrentClaims = await _userManager.GetClaimsAsync(user);
             modelUser.Role = (await _userManager.GetRolesAsync(user)).FirstOrDefault() ?? "без роли";
             return View(modelUser);
         }
 
-        [HttpPost("{id:required:int:min(0)}")] //TODO remove attribute?
+        [HttpPost("{id:required:int:min(0)}")]
         [ValidateAntiForgeryToken]
         [Authorize(Policy = "EditUsers")]
         public async Task<IActionResult> EditUser(EditUserViewModel editModel)
@@ -199,7 +200,9 @@ namespace Website.Web.Controllers
 
             SortPageResult<Product> result =
                 await _shopManager.GetSortFilterPageAsync(types, search, sortOrder, currPage, countPerPage);
+            
             //TODO categories filter // List<CategoryDTO> allCategories = await _shopManager.GetAllCategoriesAsync();
+            
             ViewBag.itemCount = result.TotalN;
 
             var model = new ItemsViewModel()
@@ -227,8 +230,8 @@ namespace Website.Web.Controllers
             {
                 return View("Error", new ErrorViewModel {Message = $"Товар с id {id} не найден."});
             }
-
-            var viewModel = _mapper.Map<ItemViewModel>(prod);
+            
+            ItemViewModel viewModel = _mapper.Map<ItemViewModel>(prod);
             return View("ViewItem", viewModel);
         }
 
@@ -251,7 +254,7 @@ namespace Website.Web.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Policy = "EditItems")]
-        public async Task<IActionResult> EditItem([FromBody] EditItemViewModel item) //json input //TODO move to api?
+        public async Task<IActionResult> EditItem([FromBody] EditItemViewModel item) //json input //move to api?
         {
 //            if (item?.Id == null || item?.Name == null || item.Timestamp == null)
 //            {
@@ -352,18 +355,19 @@ namespace Website.Web.Controllers
         }
 
         [HttpGet]
-        [Authorize(Policy = "ViewOrders")]
-        public IActionResult Orders()
-        {
-            return View();
-        }
-
-        [HttpGet]
         [Authorize(Policy = "ViewItems")]
         public async Task<IActionResult> Categories()
         {
-            var cats = await _shopManager.GetAllCategoriesWithProductCountAsync();
-            return View(/*cats.ToTree()*/null);
+            var catTuples = await _shopManager.GetAllCategoriesWithProductCountAsync();
+            var cats = new List<CategoryDto>();
+            foreach (var catTuple in catTuples)
+            {
+                var catDto = _mapper.Map<CategoryDto>(catTuple.Item1);
+                catDto.ProductCount = catTuple.Item2;
+                cats.Add(catDto);
+            }
+            
+            return View(cats.ToTree());
         }
 
         [HttpPost]
@@ -374,6 +378,13 @@ namespace Website.Web.Controllers
         }
 
         public IActionResult DescriptionGroups()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        [Authorize(Policy = "ViewOrders")]
+        public IActionResult Orders()
         {
             return View();
         }

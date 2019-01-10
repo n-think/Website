@@ -40,14 +40,10 @@ namespace Website.Web.Controllers
             return Ok(descGroups);
         }
 
-        [HttpGet("{groupId:int}")]
+        [HttpGet("{groupId:int:min(0)}")]
         [Authorize(Policy = "ViewItems")]
         public async Task<IActionResult> DescriptionItems(int groupId)
         {
-            if (groupId < 0)
-            {
-                return BadRequest("");
-            }
             var descItems = (await _shopManager.GetDescGroupFirstChildren(groupId))
                 .Select(x=>new {x.Id,x.Name});
             return Ok(descItems);

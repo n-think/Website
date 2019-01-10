@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Website.Core.Interfaces.Services;
 using Website.Core.Models.Domain;
 using Website.Services.Services;
 
@@ -7,7 +8,7 @@ namespace Website.Web.Infrastructure.Initializers
 {
     public class DbUserProfileSeed
     {
-        public static async Task InitializeAsync(UserManager userManager,
+        public static async Task InitializeAsync(IUserManager userManager,
             RoleManager roleManager)
         {
             string email = "email@example.com";

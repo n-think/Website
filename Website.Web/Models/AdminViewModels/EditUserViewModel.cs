@@ -51,6 +51,18 @@ namespace Website.Web.Models.AdminViewModels
 
         [Display(Name = "Двухфакторный вход")]
         public bool TwoFactorEnabled { get; set; }
+        
+        [Display(Name = "Имя")]
+        public string FirstName { get; set; }
+        [Display(Name = "Фамилия")]
+        public string LastName { get; set; }
+        [Display(Name = "Отчество")]
+        public string PatrName { get; set; }
+        [Display(Name = "Адрес")]
+        [DataType(DataType.MultilineText)]
+        public string Address { get; set; }
+        [Display(Name = "Город")]
+        public string City { get; set; }
 
         [ScaffoldColumn(false)]
         public string Role { get; set; }
@@ -60,18 +72,5 @@ namespace Website.Web.Models.AdminViewModels
 
         [ScaffoldColumn(false)]
         public IList<Claim> CurrentClaims { get; set; }
-
-        // Профиль
-        [Display(Name = "Имя")]
-        public string UserProfileFirstName { get; set; }
-        [Display(Name = "Фамилия")]
-        public string UserProfileLastName { get; set; }
-        [Display(Name = "Отчество")]
-        public string UserProfilePatrName { get; set; }
-        [Display(Name = "Адрес")]
-        [DataType(DataType.MultilineText)]
-        public string UserProfileAddress { get; set; }
-        [Display(Name = "Город")]
-        public string UserProfileCity { get; set; }
     }
 }

@@ -33,9 +33,9 @@ namespace Website.Web.Models.AdminViewModels
         public List<CategoryDto> Categories { get; set; }
         //images
         [ScaffoldColumn(false)]
-        public List<ProductImageDto> Images { get; set; }
+        public List<ImageDto> Images { get; set; }
         //descriptions
         [ScaffoldColumn(false)]
-        public List<DescriptionGroupDto> Descriptions { get; set; }
+        public List<DescriptionGroupDto> DescriptionGroups { get; set; }
     }
 }

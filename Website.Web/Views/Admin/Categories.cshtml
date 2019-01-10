@@ -3,7 +3,8 @@
     ViewData.AddActivePage(AdminNavPages.Categories);
 }
 @using Microsoft.AspNetCore.Html
-@model IEnumerable<CategoryDtoTreeItem>
+@using Website.Web.Infrastructure.TreeHelper
+@model IEnumerable<Website.Web.Infrastructure.TreeHelper.CategoryDtoTreeItem>
 
 <h2>Категории</h2>
 <div class="row">
@@ -46,7 +47,7 @@
                             data-style="btn-outline-primary edit-category-btn"  title="Выбрать категорию" data-live-search-placeholder="Поиск">
                         @foreach (var cat in Model)
                         {
-                            foreach (var item in GetNodeAndChildren(cat))
+                            foreach (var item in TreeHelper.GetNodeAndChildren(cat))
                             {
                                 <option value="@item.Id" data-subtext="@item.Description">@item.Name</option>
                             }
@@ -70,7 +71,7 @@
                         data-style="btn-outline-primary add-category-btn" title="Выбрать категорию" data-live-search-placeholder="Поиск">
                     @foreach (var cat in Model)
                     {
-                        foreach (var item in GetNodeAndChildren(cat))
+                        foreach (var item in TreeHelper.GetNodeAndChildren(cat))
                         {
                             <option value="@item.Id" data-subtext="@item.Description">@item.Name</option>
                         }
@@ -83,19 +84,6 @@
 
 @functions
 {
-
-    private IEnumerable<CategoryDtoTreeItem> GetNodeAndChildren(CategoryDtoTreeItem node)
-    {
-        yield return node;
-        foreach (var child in node.Children)
-        {
-            foreach (var x in GetNodeAndChildren(child))
-            {
-                yield return x;
-            }
-        }
-    }
-
     bool _firstCall = true;
 
     private IHtmlContent GetTreeList(IEnumerable<CategoryDtoTreeItem> categories)

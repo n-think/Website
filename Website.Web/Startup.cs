@@ -99,9 +99,9 @@ namespace Website.Web
                 //option.Cookie.SecurePolicy = CookieSecurePolicy.Always;
                 option.Events.OnRedirectToLogin = (context) =>
                 {
-                    if (context.Request.Path.StartsWithSegments("/AdminApi") && context.Response.StatusCode == 200)
+                    if (context.Request.Path.StartsWithSegments("/api/admin") && context.Response.StatusCode == 200)
                     {
-                        context.Response.StatusCode = 401;
+                        context.Response.StatusCode = 404;
                     }
                     else
                     {
@@ -112,7 +112,7 @@ namespace Website.Web
                 };
                 option.Events.OnRedirectToAccessDenied = (context) =>
                 {
-                    if (context.Request.Path.StartsWithSegments("/AdminApi") && context.Response.StatusCode == 200)
+                    if (context.Request.Path.StartsWithSegments("/api/admin") && context.Response.StatusCode == 200)
                     {
                         context.Response.StatusCode = 403;
                     }
@@ -148,10 +148,10 @@ namespace Website.Web
 
         private void AddMyServices(IServiceCollection services)
         {
-            services
-                .AddTransient<
+            services.AddTransient<
                     IShopRepository<Product, Image, Category, DescriptionGroup, Description, Order>,
                     ShopRepository>();
+            services.AddTransient<IUserStore<User>, UserRepository>();
 
             services.AddScoped<OperationErrorDescriber>();
             services.AddScoped<IUserManager, UserManager>();

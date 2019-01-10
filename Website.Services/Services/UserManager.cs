@@ -85,7 +85,7 @@ namespace Website.Services.Services
 
                 case RoleSelector.Users:
                     query = query
-                            .Where(x => x.UserRoles.Any(z => z.Role.Name == "admin"));
+                            .Where(x => x.UserRoles.Any(z => z.Role.Name == "user"));
                     break;
 
                 default:
@@ -93,9 +93,6 @@ namespace Website.Services.Services
                             .Where(x => x.UserRoles.Any(z => z.Role.Name == "admin" || z.Role.Name == "user"));
                     break;
             }
-
-            query = query
-                .Include(x => x.Claims);
         }
 
         private void SearchUsersQuery(string searchString, ref IQueryable<User> query)
@@ -163,7 +160,7 @@ namespace Website.Services.Services
             //TODO tests?
             if (user == null) throw new ArgumentNullException(nameof(user));
             ThrowIfDisposed();
-
+            
             //update password
             if (!newPassword.IsNullOrEmpty())
             {
