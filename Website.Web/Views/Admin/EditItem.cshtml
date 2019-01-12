@@ -2,177 +2,183 @@
     ViewData["Title"] = Model.CreateItem ? "Добавить товар" : "Редактирование товара";
     TempData["DeleteToken"] = Guid.NewGuid();
 }
+@using Castle.Core.Internal
 @using Website.Core.Enums
 @using Website.Web.Models.DTO
  @model EditItemViewModel
-@* *@
-@* <div class="mb-2"> *@
-@*     <span class="h2 d-inline-block">@(Model.CreateItem ? "Добавить товар" : "Редактирование товара")</span> *@
-@*     <div class="d-inline-block"> *@
-@*         <button class="btn btn-outline-success mx-2" id="edit-form-submit">Сохранить<span id="edit-form-submit-icon" class="fa fa-check ml-2"></span></button> *@
-@*         @if (Model.CreateItem) *@
-@*         { *@
-@*             <a class="btn btn-outline-danger" asp-action="Items" asp-route-id="@Model.Id">Отмена</a> *@
-@*         } *@
-@*         else *@
-@*         { *@
-@*             <a class="btn btn-outline-danger" asp-action="ViewItem" asp-route-id="@Model.Id">Отмена</a> *@
-@*         } *@
-@*         <form class="d-inline-block mx-2" asp-action="DeleteItem" method="get"> *@
-@*             <input class="btn btn-outline-danger mr-2" type="submit" value="Удалить"/> *@
-@*             <input name="Name" value="@Model.Name" hidden/> *@
-@*             <input name="Id" value="@Model.Id" hidden/> *@
-@*             <input name="DeleteToken" value="@TempData.Peek("DeleteToken")" hidden/> *@
-@*         </form> *@
-@*     </div> *@
-@* </div> *@
-@* <div asp-validation-summary="All" class="text-danger"></div> *@
-@* <form asp-action="EditItem" id="edit-form"> *@
-@*     <input asp-for="Timestamp" type="hidden"/> *@
-@*     @if (Model.CreateItem) *@
-@*     { *@
-@*         <input name="id" value="-1" hidden/> *@
-@*         <input name="createItem" value="true" hidden/> *@
-@*     } *@
-@*     <div class="row"> *@
-@*         <div class="col-lg-7"> *@
-@*             <div class="d-inline-block w-100"> *@
-@*                 <div class="row m-0"> *@
-@*                     <div class="admin-img-box m-0 p-1 col-sm"> *@
-@*                         @{ var image = Model.Images?.FirstOrDefault(x => x.Primary); } *@
-@*                         <img id="admin-image-view" class="@(image == null ? "" : "img-primary")" *@
-@*                              data-id="@image?.Id" src="@(image?.PathSrc)" alt="Нет изображения"/> *@
-@*                         <span></span> *@
-@*                     </div> *@
-@*                     <div class="p-1 col-sm-auto"> *@
-@*                         <div class="btn btn-pushy btn-outline-danger my-2 p-1 d-block" id="image-remove-button"> *@
-@*                             <span class="d-block w-100 fa fa-remove fa-bordered fa-3x"></span> *@
-@*                             <span class="d-inline-block text-truncate small">Удалить/<br/>отменить<br>картинку</span> *@
-@*                         </div> *@
-@*                         <div class="btn btn-pushy btn-outline-success my-2 p-1 d-block" id="image-primary-button"> *@
-@*                             <span class="d-block w-100 fa fa-check fa-bordered fa-3x"></span> *@
-@*                             <span class="d-inline-block small">Сделать<br/>основной<br/>картинкой</span> *@
-@*                         </div> *@
-@*                     </div> *@
-@*                 </div> *@
-@*                 <div class="admin-img-thumbs my-2" id="image-container"> *@
-@*                     @foreach (var item in Model.Images ?? Enumerable.Empty<ImageDto>()) *@
-@*                     { *@
-@*                         <img class="admin-img-thumb m-2 border@(item.Primary ? " img-primary" : "")@(item.DtoState == DtoState.Added ? " img-add" : "")@(item.DtoState == DtoState.Deleted ? " img-delete" : "")" *@
-@*                              @(item.DtoState == DtoState.Added ? "" : $"data-path={item.PathSrc}") data-id="@(item.Id ?? Guid.NewGuid().GetHashCode())" src="@(item.ThumbPathSrc)"/> *@
-@*                     } *@
-@*                 </div> *@
-@*             </div> *@
-@*             <div> *@
-@*                 <div class="custom-file my-2"> *@
-@*                     <input class="custom-file-input" id="file-upload-button" lang="" accept="image/*" type="file" multiple/> *@
-@*                     <label class="custom-file-label" for="file-upload-button"><span class="fa fa-picture-o mx-2"></span>Загрузить изображения</label> *@
-@*                 </div> *@
-@*             </div> *@
-@*         </div> *@
-@*         <div class="col-lg-5"> *@
-@*             <h3>@Model.Name</h3> *@
-@*             <div class="table-responsive"> *@
-@*                 <table class="table table-striped border"> *@
-@*                     <thead> *@
-@*                     <tr> *@
-@*                         <th scope="col">Параметр</th> *@
-@*                         <th class="w-75" scope="col">Значение</th> *@
-@*                     </tr> *@
-@*                     </thead> *@
-@*                     <tbody class="tab-content"> *@
-@*                     @if (!Model.CreateItem) *@
-@*                     { *@
-@*                         <tr> *@
-@*                             <th scope="row"> *@
-@*                                 <label asp-for="Id"></label> *@
-@*                             </th> *@
-@*                             <td> *@
-@*                                 @Model.Id<input asp-for="Id" type="hidden"/> *@
-@*                             </td> *@
-@*                         </tr> *@
-@*                     } *@
-@*                     @Html.EditorForModel("TableDataRowEdit", new {htmlAttributes = new {@class = "form-control admin-edit w-auto"}}) *@
-@*                     <tr> *@
-@*                         <th scope="row"> *@
-@*                             <label asp-for="Available"></label> *@
-@*                         </th> *@
-@*                         <td> *@
-@*                             <input class="form-control admin-edit w-auto" id="Available" name="Available" type="checkbox" data-val="true" value="true" @(Model.Available ? " checked=\" checked\"" : "")/> *@
-@*                         </td> *@
-@*                         <td hidden> *@
-@*                             <input id="AvailableHidden" name="Available" type="checkbox" value="false"/> *@
-@*                         </td> *@
-@*                     </tr> *@
-@*                     </tbody> *@
-@*                 </table> *@
-@*             </div> *@
-@*         </div> *@
-@*     </div> *@
-@*     <div> *@
-@*         <div class="admin-item-categories"> *@
-@*             <div> *@
-@*                 <span class="h3">Категории</span> *@
-@*                 <select id="category-select" class="selectpicker" data-live-search="true" data-live-search-normalize="true" data-live-search-style="contains" *@
-@*                         data-style="btn-outline-primary product-category-btn" data-width="auto" title="Добавить категорию" data-live-search-placeholder="Поиск"> *@
-@*                 </select> *@
-@*                 <span class="add-cat btn-pushy btn btn-outline-success fa fa-check"></span> *@
-@*             </div> *@
-@*             <div id="categories"> *@
-@*                 @foreach (var cat in Model.Categories ?? Enumerable.Empty<CategoryDto>()) *@
-@*                 { *@
-@*                     <div class="category @(cat.DtoState == DtoState.Added ? "cat-add" : "")@(cat.DtoState == DtoState.Deleted ? "cat-delete d-none" : "")" data-id="@cat.Id"> *@
-@*                         <span class="category-name">@cat.Name</span> *@
-@*                         <span class="category-desc text-muted">(@cat.Description)</span> *@
-@*                         <span class="remove-cat btn-pushy btn btn-outline-danger btn-sm fa fa-close"></span> *@
-@*                     </div> *@
-@*                 } *@
-@*             </div> *@
-@*         </div> *@
-@*         <div class="admin-item-descriptions"> *@
-@*             <div> *@
-@*                 <span class="h3">Описания</span> *@
-@*                 <select id="desc-group-select" class="selectpicker" hidden data-live-search="true" data-live-search-normalize="true" data-live-search-style="contains" *@
-@*                         data-style="btn-outline-primary product-desc-group-btn" data-width="auto" title="Добавить группу описаний" data-live-search-placeholder="Поиск"> *@
-@*                 </select> *@
-@*                 <span class="add-desc-group btn-pushy btn btn-outline-success fa fa-check"></span> *@
-@*             </div> *@
-@*             <div id="desc-groups"> *@
-@*                 @foreach (var descriptionGroup in Model.Descriptions ?? Enumerable.Empty<DescriptionGroupDto>()) *@
-@*                 { *@
-@*                     <div class="desc-group my-2" data-id="@descriptionGroup.Id"> *@
-@*                         <div> *@
-@*                             <span class="desc-group-name h6">@descriptionGroup.Name</span> *@
-@*                             <span class="desc-group-desc text-muted">(@descriptionGroup.Description)</span> *@
-@*                             <span class="remove-desc-group btn-pushy btn btn-outline-danger btn-sm fa fa-close mb-1"></span> *@
-@*                             <div> *@
-@*                                 <select id="desc-group-items-select" class="selectpicker" hidden data-live-search="true" data-live-search-normalize="true" data-live-search-style="contains" *@
-@*                                         data-style="btn-outline-primary product-desc-group-items-btn p-1" data-width="fit" title="Добавить описание" data-live-search-placeholder="Поиск"> *@
-@*                                 </select> *@
-@*                                 <span class="add-desc-group-item btn-pushy btn btn-outline-success fa fa-check"></span> *@
-@*                             </div> *@
-@*                         </div> *@
-@*                         <div class="desc-group-items"> *@
-@*                             @foreach (var item in descriptionGroup.Items ?? Enumerable.Empty<DescriptionDto>()) *@
-@*                             { *@
-@*                                 <div class="desc-item @(item.DtoState == DtoState.Added ? "desc-item-add" : "")@(item.DtoState == DtoState.Modified ? "desc-item-modified" : "")@(item.DtoState == DtoState.Deleted ? "desc-item-delete d-none" : "")" *@
-@*                                      data-id="@item.Id"> *@
-@*                                     <span class="desc-item-name">@item.Name</span>@Html.Raw(" : ")<span class="desc-item-value" data-id="@item.DescriptionId">@item.DescriptionValue</span> *@
-@*                                     <textarea rows="3" class="form-control d-none desc-item-input"></textarea> *@
-@*                                     <div class="desc-item-save d-none"> *@
-@*                                         <span class="btn btn-sm btn-pushy btn-outline-success fa fa-check save-desc-group-item"></span> *@
-@*                                         <span class="btn btn-sm btn-pushy btn-outline-danger fa fa-undo cancel-desc-group-item"></span> *@
-@*                                     </div> *@
-@*                                     <div class="desc-item-edit-delete d-inline-block"> *@
-@*                                         <span class="btn btn-sm btn-pushy btn-outline-primary fa fa-edit edit-desc-group-item"></span> *@
-@*                                         <span class="btn btn-sm btn-pushy btn-outline-danger fa fa-close remove-desc-group-item"></span> *@
-@*                                     </div> *@
-@*                                 </div> *@
-@*                             } *@
-@*                         </div> *@
-@*                     </div> *@
-@*                 } *@
-@*             </div> *@
-@*         </div> *@
-@*     </div> *@
-@* </form> *@
+
+<div class="mb-2">
+    <span class="h2 d-inline-block">@(Model.CreateItem ? "Добавить товар" : "Редактирование товара")</span>
+    <div class="d-inline-block">
+        <button class="btn btn-outline-success mx-2" id="edit-form-submit">Сохранить<span id="edit-form-submit-icon" class="fa fa-check ml-2"></span></button>
+        @if (Model.CreateItem)
+        {
+            <a class="btn btn-outline-danger" asp-action="Items" asp-route-id="@Model.Id">Отмена</a>
+        }
+        else
+        {
+            <a class="btn btn-outline-danger" asp-action="ViewItem" asp-route-id="@Model.Id">Отмена</a>
+        }
+        <form class="d-inline-block mx-2" asp-action="DeleteItem" method="get">
+        @if (!Model.CreateItem)
+        {
+            <input class="btn btn-outline-danger mr-2" type="submit" value="Удалить"/>
+        }
+            <input name="Name" value="@Model.Name" hidden/>
+            <input name="Id" value="@Model.Id" hidden/>
+            <input name="DeleteToken" value="@TempData.Peek("DeleteToken")" hidden/>
+        </form>
+    </div>
+</div>
+<div asp-validation-summary="All" class="text-danger"></div>
+<form asp-action="EditItem" id="edit-form">
+    <input asp-for="Timestamp" type="hidden"/>
+    @if (Model.CreateItem)
+    {
+        <input name="id" value="-1" hidden/>
+        <input name="createItem" value="true" hidden/>
+     }
+     <div class="row">
+         <div class="col-lg-7">
+             <div class="d-inline-block w-100">
+                 <div class="row m-0">
+                     <div class="admin-img-box m-0 p-1 col-sm">
+                         @{ var image = Model.Images?.FirstOrDefault(x => x.Primary); }
+                         <img id="admin-image-view" class="@(image == null ? "" : "img-primary")"
+                              data-id="@image?.Id" src="@(image?.DataUrlOrPath)" alt="Нет изображения"/>
+                         <span></span>
+                     </div>
+                     <div class="p-1 col-sm-auto">
+                         <div class="btn btn-pushy btn-outline-danger my-2 p-1 d-block" id="image-remove-button">
+                             <span class="d-block w-100 fa fa-remove fa-bordered fa-3x"></span>
+                             <span class="d-inline-block text-truncate small">Удалить/<br/>отменить<br>картинку</span>
+                         </div>
+                         <div class="btn btn-pushy btn-outline-success my-2 p-1 d-block" id="image-primary-button">
+                             <span class="d-block w-100 fa fa-check fa-bordered fa-3x"></span>
+                             <span class="d-inline-block small">Сделать<br/>основной<br/>картинкой</span>
+                         </div>
+                     </div>
+                 </div>
+                 <div class="admin-img-thumbs my-2" id="image-container">
+                     @foreach (var item in Model.Images ?? Enumerable.Empty<ImageDto>())
+                     {
+                         <img class="admin-img-thumb m-2 border@(item.Primary ? " img-primary" : "")"
+                              data-path="@item.DataUrlOrPath" data-id="@(item.Id ?? new Random().Next(-322322,-1))" src="@(item.DataUrlOrThumbPath)"/>
+                     }
+                 </div>
+             </div>
+             <div>
+                 <div class="custom-file my-2">
+                     <input class="custom-file-input" id="file-upload-button" lang="" accept="image/*" type="file" multiple/>
+                     <label class="custom-file-label" for="file-upload-button"><span class="fa fa-picture-o mx-2"></span>Загрузить изображения</label>
+                 </div>
+             </div>
+         </div>
+         <div class="col-lg-5">
+             <h3>@Model.Name</h3>
+             <div class="table-responsive">
+                 <table class="table table-striped border">
+                     <thead>
+                     <tr>
+                         <th scope="col">Параметр</th>
+                         <th class="w-75" scope="col">Значение</th>
+                     </tr>
+                     </thead>
+                     <tbody class="tab-content">
+                     @if (!Model.CreateItem)
+                     {
+                         <tr>
+                             <th scope="row">
+                                 <label asp-for="Id"></label>
+                             </th>
+                             <td>
+                                 @Model.Id<input asp-for="Id" type="hidden"/>
+                             </td>
+                         </tr>
+                     }
+                     @Html.EditorForModel("TableDataRowEdit", new {htmlAttributes = new {@class = "form-control admin-edit w-auto"}})
+                     <tr>
+                         <th scope="row">
+                             <label asp-for="Available"></label>
+                         </th>
+                         <td>
+                             <input class="form-control admin-edit w-auto" id="Available" name="Available" type="checkbox" data-val="true" value="true" @(Model.Available ? " checked=\" checked\"" : "")/>
+                         </td>
+                         <td hidden>
+                             <input id="AvailableHidden" name="Available" type="checkbox" value="false"/>
+                         </td>
+                     </tr>
+                     </tbody>
+                 </table>
+             </div>
+         </div>
+     </div>
+     <div>
+         <div class="admin-item-categories">
+             <div>
+                 <span class="h3">Категории</span>
+                 <select id="category-select" class="selectpicker" data-live-search="true" data-live-search-normalize="true" data-live-search-style="contains"
+                         data-style="btn-outline-primary product-category-btn" data-width="auto" title="Добавить категорию" data-live-search-placeholder="Поиск">
+                 </select>
+                 <span class="add-cat btn-pushy btn btn-outline-success fa fa-check"></span>
+             </div>
+             <div id="categories">
+                 @foreach (var cat in Model.Categories ?? Enumerable.Empty<CategoryDto>())
+                 {
+                     <div class="category" data-id="@cat.Id">
+                         <span class="category-name">@cat.Name</span>
+                         <span class="category-desc text-muted">(@cat.Description)</span>
+                         <span class="remove-cat btn-pushy btn btn-outline-danger btn-sm fa fa-close"></span>
+                     </div>
+                 }
+             </div>
+         </div>
+         <div class="admin-item-descriptions">
+             <div>
+                 <span class="h3">Описания</span>
+                 <select id="desc-group-select" class="selectpicker" hidden data-live-search="true" data-live-search-normalize="true" data-live-search-style="contains"
+                         data-style="btn-outline-primary product-desc-group-btn" data-width="auto" title="Добавить группу описаний" data-live-search-placeholder="Поиск">
+                 </select>
+                 <span class="add-desc-group btn-pushy btn btn-outline-success fa fa-check"></span>
+             </div>
+             <div id="desc-groups">
+                 @foreach (var descriptionGroup in Model.DescriptionGroups ?? Enumerable.Empty<DescriptionGroupDto>())
+                 {
+                     <div class="desc-group my-2" data-id="@descriptionGroup.Id">
+                         <div>
+                             <span class="desc-group-name h6">@descriptionGroup.Name</span>
+                             @if (!descriptionGroup.Description.IsNullOrEmpty()){
+                             <span class="desc-group-desc text-muted">(@descriptionGroup.Description)</span>
+                             }
+                             <span class="remove-desc-group btn-pushy btn btn-outline-danger btn-sm fa fa-close mb-1"></span>
+                             <div>
+                                 <select id="desc-group-items-select" class="selectpicker" hidden data-live-search="true" data-live-search-normalize="true" data-live-search-style="contains"
+                                         data-style="btn-outline-primary product-desc-group-items-btn p-1" data-width="fit" title="Добавить описание" data-live-search-placeholder="Поиск">
+                                 </select>
+                                 <span class="add-desc-group-item btn-pushy btn btn-outline-success fa fa-check"></span>
+                             </div>
+                        </div>
+                        <div class="desc-group-items">
+                            @foreach (var item in descriptionGroup.DescriptionItems ?? Enumerable.Empty<DescriptionGroupItemDto>())
+                            {
+                                <div class="desc-item"
+                                     data-id="@item.Id">
+                                    <span class="desc-item-name">@item.Name</span>@Html.Raw(" : ")<span class="desc-item-value" data-id="@item.DescriptionId">@item.DescriptionValue</span>
+                                    <textarea rows="3" class="form-control d-none desc-item-input"></textarea>
+                                    <div class="desc-item-save d-none">
+                                        <span class="btn btn-sm btn-pushy btn-outline-success fa fa-check save-desc-group-item"></span>
+                                        <span class="btn btn-sm btn-pushy btn-outline-danger fa fa-undo cancel-desc-group-item"></span>
+                                    </div>
+                                    <div class="desc-item-edit-delete d-inline-block">
+                                        <span class="btn btn-sm btn-pushy btn-outline-primary fa fa-edit edit-desc-group-item"></span>
+                                        <span class="btn btn-sm btn-pushy btn-outline-danger fa fa-close remove-desc-group-item"></span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</form>

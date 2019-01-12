@@ -1,22 +1,31 @@
 ﻿import $ from "jquery";
 
 module userEdit {
-    $("#role-selector").change(function () {
+    if (window.location.pathname.lastIndexOf("/Admin/EditUser")==0){
+        loadUserEditEventHandlers()
+    }
+    function loadUserEditEventHandlers() {
+        $("#role-selector").on("change",switchRoleSelector);
+        $(".admin-options label").on("click", func1);
+        $(".admin-options input:checkbox, .admin-options label").on("click", func2);
+    }
+    
+    function switchRoleSelector() {
         if ($(this).val() === "admin") {
             $(".admin-options").removeClass("d-none");
         } else {
             $(".admin-options").addClass("d-none");
         }
-    });
+    }
 
-    $(".admin-options label").click(function () {
+    function func1 () {
         let classes = this.className.split(" ");
         let action = classes[0];
         let group = classes[1];
-        $("." + action + "." + group + ":checkbox").click();
-    });
+        $("." + action + "." + group + ":checkbox").trigger("click");
+    }
 
-    $(".admin-options input:checkbox, .admin-options label").click(function () {
+    function func2 () {
         let checkbox = $(this);
         let classes = checkbox.attr("class").split(" ");
         let action = classes[0];
@@ -30,5 +39,5 @@ module userEdit {
             let flag: boolean = checkbox.prop("checked");
             $(`.view.${group}:checkbox`).prop("checked", flag).prop("disabled", flag);
         }
-    });
+    }
 }

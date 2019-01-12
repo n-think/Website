@@ -21,7 +21,8 @@ namespace Website.Services.Services
 {
     public class ShopManager : IShopManager, IDisposable
     {
-        public ShopManager(IShopRepository<Product, Image, Category, DescriptionGroup,
+        public ShopManager(
+            IShopRepository<Product, Image, ImageBinData, Category, DescriptionGroup, DescriptionGroupItem,
                 Description, Order> repository,
             ILogger<ShopManager> logger,
             IHttpContextAccessor context,
@@ -32,14 +33,16 @@ namespace Website.Services.Services
             IEnumerable<IShopValidator<DescriptionGroup>> descGroupValidators,
             IEnumerable<IShopValidator<Description>> descValidators,
             IEnumerable<IShopValidator<Order>> orderValidators,
-            IShopImageTransformer<ImageBinData> imgTransformer,
+            IShopImageTransformer<Image> imgTransformer,
             OperationErrorDescriber errorDescriber = null)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _errorDescriber = errorDescriber ?? new OperationErrorDescriber();
+            ErrorDescriber = errorDescriber ?? new OperationErrorDescriber();
             Options = optionsAccessor.Value ?? new ShopManagerOptions();
             CancellationToken = context?.HttpContext?.RequestAborted ?? CancellationToken.None;
+
+            //TODO create single validator class
             foreach (var validator in prodValidators)
             {
                 ProductValidators.Add(validator);
@@ -74,15 +77,21 @@ namespace Website.Services.Services
                                new ShopImageTransformer(optionsAccessor);
         }
 
-        private readonly IShopRepository<Product, Image, Category, DescriptionGroup,
+        private readonly IShopRepository<Product, Image, ImageBinData, Category, DescriptionGroup, DescriptionGroupItem,
             Description, Order> _repository;
 
-        private readonly OperationErrorDescriber _errorDescriber;
+        public OperationErrorDescriber ErrorDescriber { get; }
         private readonly ILogger<ShopManager> _logger;
         public ShopManagerOptions Options { get; }
-        public IList<IShopValidator<Product>> ProductValidators { get; } = new List<IShopValidator<Product>>();
-        public IList<IShopValidator<Image>> ImageValidators { get; } = new List<IShopValidator<Image>>();
-        public IList<IShopValidator<Category>> CategoryValidators { get; } = new List<IShopValidator<Category>>();
+
+        public IList<IShopValidator<Product>> ProductValidators { get; } =
+            new List<IShopValidator<Product>>();
+
+        public IList<IShopValidator<Image>> ImageValidators { get; } =
+            new List<IShopValidator<Image>>();
+
+        public IList<IShopValidator<Category>> CategoryValidators { get; } =
+            new List<IShopValidator<Category>>();
 
         public IList<IShopValidator<DescriptionGroup>> DescriptionGroupValidators { get; } =
             new List<IShopValidator<DescriptionGroup>>();
@@ -90,31 +99,46 @@ namespace Website.Services.Services
         public IList<IShopValidator<Description>> DescriptionValidators { get; } =
             new List<IShopValidator<Description>>();
 
-        public IList<IShopValidator<Order>> OrderValidators { get; } = new List<IShopValidator<Order>>();
-        public IShopImageTransformer<ImageBinData> ImageTransformer { get; }
+        public IList<IShopValidator<Order>> OrderValidators { get; } =
+            new List<IShopValidator<Order>>();
+
+        public IShopImageTransformer<Image> ImageTransformer { get; }
         protected CancellationToken CancellationToken { get; }
 
-        public async Task<OperationResult> CreateProductAsync(Product product)
+        public async Task<OperationResult> CreateProductAsync(
+            Product product,
+            IEnumerable<Image> images,
+            IEnumerable<int> categoryIds,
+            IEnumerable<Description> descriptions)
         {
             ThrowIfDisposed();
-            if (product == null)
-            {
-                throw new ArgumentNullException(nameof(product));
-            }
+            if (product == null) throw new ArgumentNullException(nameof(product));
+            if (images == null) images = Enumerable.Empty<Image>();
+            if (categoryIds == null) categoryIds = Enumerable.Empty<int>();
+            if (descriptions == null) descriptions = Enumerable.Empty<Description>();
 
-            var result = await ValidateProduct(product);
+
+            var result = await Validate(new[] {product}, ProductValidators);
             if (!result.Succeeded)
             {
                 return result;
             }
 
-            result = await ValidateProductImages(product.Images);
+            var imagesArray = images as Image[] ?? images.ToArray();
+            result = await Validate(imagesArray, ImageValidators);
             if (!result.Succeeded)
             {
                 return result;
             }
 
-            TransformImages(product.Images);
+            var descsArray = descriptions as Description[] ?? descriptions.ToArray();
+            result = await Validate(descsArray, DescriptionValidators);
+            if (!result.Succeeded)
+            {
+                return result;
+            }
+
+            TransformImages(imagesArray);
 
             using (var tran = _repository.BeginTransaction())
             {
@@ -124,11 +148,32 @@ namespace Website.Services.Services
                     return result;
                 }
 
-                result =
-                    await _repository.CreateImagesAsync(product.Id, product.Images, CancellationToken);
-                if (!result.Succeeded)
+                if (!categoryIds.IsNullOrEmpty())
                 {
-                    return result;
+                    result = await _repository.AddProductCategoriesAsync(product.Id, categoryIds,
+                        CancellationToken);
+                    if (!result.Succeeded)
+                    {
+                        return result;
+                    }
+                }
+
+                if (!descsArray.IsNullOrEmpty())
+                {
+                    result = await _repository.CreateProductDescriptions(product.Id, descsArray, CancellationToken);
+                    if (!result.Succeeded)
+                    {
+                        return result;
+                    }
+                }
+                
+                if (!imagesArray.IsNullOrEmpty())
+                {
+                    result = await _repository.CreateImagesAsync(product.Id, imagesArray, CancellationToken);
+                    if (!result.Succeeded)
+                    {
+                        return result;
+                    }
                 }
 
                 tran.Commit();
@@ -137,35 +182,46 @@ namespace Website.Services.Services
             return OperationResult.Success();
         }
 
-        public async Task<OperationResult> UpdateProductAsync(Product product, IEnumerable<Image> imagesToAdd,
-            IEnumerable<Image> imagesToRemove)
+        public async Task<OperationResult> UpdateProductAsync(
+            Product product,
+            IEnumerable<Description> descriptionsToUpdate,
+            IEnumerable<int> categoriesToUpdate,
+            IEnumerable<Image> imgToUpdate)
         {
             ThrowIfDisposed();
-            if (product == null)
-            {
-                throw new ArgumentNullException(nameof(product));
-            }
+            if (product == null) throw new ArgumentNullException(nameof(product));
+            if (descriptionsToUpdate == null) descriptionsToUpdate = Enumerable.Empty<Description>();
+            if (categoriesToUpdate == null) categoriesToUpdate = Enumerable.Empty<int>();
+            if (imgToUpdate == null) imgToUpdate = Enumerable.Empty<Image>();
 
             if (product.Id == 0)
             {
-                return OperationResult.Failure(_errorDescriber.InvalidProductId());
+                return OperationResult.Failure(ErrorDescriber.InvalidProductId());
             }
 
-            var result = await ValidateProduct(product);
+            var result = await Validate(new[] {product}, ProductValidators);
 
             if (!result.Succeeded)
             {
                 return result;
             }
 
-            var imgArrayToAdd = imagesToAdd as Image[] ?? imagesToAdd.ToArray();
-            result = await ValidateProductImages(imgArrayToAdd);
+            var descsToUpdateArray = descriptionsToUpdate as Description[] ?? descriptionsToUpdate.ToArray();
+            result = await Validate(descsToUpdateArray, DescriptionValidators);
+
             if (!result.Succeeded)
             {
                 return result;
             }
 
-            TransformImages(imgArrayToAdd);
+            var imgArray = imgToUpdate as Image[] ?? imgToUpdate.ToArray();
+            result = await Validate(imgArray, ImageValidators, x => x.Id <= 0);
+            if (!result.Succeeded)
+            {
+                return result;
+            }
+
+            TransformImages(imgArray);
 
             using (var tran = _repository.BeginTransaction())
             {
@@ -175,40 +231,64 @@ namespace Website.Services.Services
                     return result;
                 }
 
-                result = await _repository.CreateImagesAsync(product.Id, imgArrayToAdd, CancellationToken);
-                if (!result.Succeeded)
+                if (!descsToUpdateArray.IsNullOrEmpty())
                 {
-                    return result;
+                    result = await _repository.UpdateProductDescriptions(product.Id, descsToUpdateArray,
+                        CancellationToken);
+                    if (!result.Succeeded)
+                    {
+                        return result;
+                    }
                 }
 
-                result = await _repository.DeleteImagesAsync(product.Id, imagesToRemove, CancellationToken);
-                if (!result.Succeeded)
+                if (!categoriesToUpdate.IsNullOrEmpty())
                 {
-                    return result;
+                    result = await _repository.UpdateProductCategoriesAsync(product.Id, categoriesToUpdate,
+                        CancellationToken);
+                    if (!result.Succeeded)
+                    {
+                        return result;
+                    }
+                }
+
+                if (!imgArray.IsNullOrEmpty())
+                {
+                    result = await _repository.UpdateImagesAsync(product.Id, imgArray, CancellationToken);
+                    if (!result.Succeeded)
+                    {
+                        return result;
+                    }
                 }
 
                 tran.Commit();
             }
 
-
             return OperationResult.Success();
         }
 
-        public async Task<OperationResult> DeleteProductAsync(Product product)
+        public async Task<OperationResult> DeleteProductAsync(int productId)
         {
             ThrowIfDisposed();
-            if (product?.Id == null)
-                throw new ArgumentException(nameof(product));
+            if (productId <= 0)
+                return OperationResult.Failure(ErrorDescriber.InvalidProductId());
+
+
+            var product = await _repository.FindProductByIdAsync(productId,
+                false, false, false, CancellationToken);
+            if (product == null)
+            {
+                return OperationResult.Failure(ErrorDescriber.CannotDeleteActiveProduct());
+            }
 
             if (product.Available)
             {
-                return OperationResult.Failure(_errorDescriber.CannotDeleteActiveProduct());
+                return OperationResult.Failure(ErrorDescriber.CannotDeleteActiveProduct());
             }
 
-            var result = await _repository.DeleteProductAsync(product, CancellationToken);
+            var result = await _repository.DeleteProductAsync(product.Id, CancellationToken);
             if (!result.Succeeded)
             {
-                return OperationResult.Failure(_errorDescriber.ErrorDeletingProduct());
+                return OperationResult.Failure(ErrorDescriber.ErrorDeletingProduct());
             }
 
             return OperationResult.Success();
@@ -335,18 +415,37 @@ namespace Website.Services.Services
         public async Task<IEnumerable<DescriptionGroup>> GetAllDescriptionGroupsAsync()
         {
             ThrowIfDisposed();
-            return await _repository.GetAllDescriptionGroupsAsync(CancellationToken);
+            return await _repository.GetDescriptionGroupsAsync(CancellationToken);
         }
 
-        public async Task<IEnumerable<DescriptionGroup>> GetDescGroupFirstChildren(int groupId)
+        public async Task<IEnumerable<DescriptionGroupItem>> GetDescriptionItemsAsync(int groupId)
         {
             ThrowIfDisposed();
-            if (groupId < 0)
-                throw new ArgumentException(nameof(groupId));
-            
-            return await _repository.DescriptionGroupsQueryable
-                .Where(x => x.ParentId == groupId)
-                .ToListAsync(CancellationToken);
+            return await _repository.GetDescriptionGroupItemsAsync(groupId, CancellationToken);
+        }
+
+        public async Task<(byte[], string)> GetImageDataMimeAsync(int imageId, bool thumb = false)
+        {
+            ThrowIfDisposed();
+            if (!thumb)
+            {
+                return (await _repository.ImageDataQueryable
+                        .Where(x => x.ImageId == imageId)
+                        .Select(x => new {x.FullData, x.ImageInfo.Mime})
+                        .ToListAsync(CancellationToken))
+                    .Select(x => (x.FullData, x.Mime))
+                    .FirstOrDefault();
+            }
+            else
+            {
+                return (await _repository.ImageDataQueryable
+                        .Where(x => x.ImageId == imageId)
+                        .Select(x => new {x.ThumbData, x.ImageInfo.Mime})
+                        .ToListAsync(CancellationToken))
+                    .Select(x => (x.ThumbData, x.Mime))
+                    .FirstOrDefault();
+                ;
+            }
         }
 
         private void TransformImages(IEnumerable<Image> images)
@@ -358,22 +457,31 @@ namespace Website.Services.Services
             {
                 if (image.BinData == null)
                 {
-                    throw new ArgumentException(nameof(image.BinData));
+                    continue;
                 }
 
-                ImageTransformer.ProcessImage(image.BinData);
+                ImageTransformer.ProcessImage(image);
             }
         }
 
-        private async Task<OperationResult> ValidateProduct(Product product)
+        private async Task<OperationResult> Validate<T>(
+            IEnumerable<T> items, IEnumerable<IShopValidator<T>> validators,
+            Func<T, bool> predicateBeforeValidation = null) where T : class
         {
             var errors = new List<OperationError>();
-            foreach (var validator in ProductValidators)
+            var itemArray = items as T[] ?? items.ToArray();
+            foreach (var validator in validators)
             {
-                var result = await validator.ValidateAsync(this, product);
-                if (!result.Succeeded)
+                foreach (var item in itemArray)
                 {
-                    errors.AddRange(result.Errors);
+                    if (predicateBeforeValidation?.Invoke(item) ?? true)
+                    {
+                        var result = await validator.ValidateAsync(this, item);
+                        if (!result.Succeeded)
+                        {
+                            errors.AddRange(result.Errors);
+                        }
+                    }
                 }
             }
 
@@ -385,44 +493,9 @@ namespace Website.Services.Services
             return OperationResult.Success();
         }
 
-        private async Task<OperationResult> ValidateProductImages(IEnumerable<Image> images)
+        public static IEnumerable<T> Concatenate<T>(params IEnumerable<T>[] lists)
         {
-            var errors = new List<OperationError>();
-            var imgArray = images as Image[] ?? images.ToArray();
-            foreach (var validator in ImageValidators)
-            {
-                foreach (var image in imgArray)
-                {
-                    var result = await validator.ValidateAsync(this, image);
-                }
-            }
-
-            if (errors.Count > 0)
-            {
-                return OperationResult.Failure(errors.ToArray());
-            }
-
-            return OperationResult.Success();
-        }
-
-        private async Task<OperationResult> ValidateCategories(IEnumerable<Category> categories)
-        {
-            throw new NotImplementedException();
-        }
-
-        private async Task<OperationResult> ValidateDescriptionGroups(IEnumerable<DescriptionGroup> descriptionGroups)
-        {
-            throw new NotImplementedException();
-        }
-
-        private async Task<OperationResult> ValidateDescriptions(IEnumerable<Description> descriptions)
-        {
-            throw new NotImplementedException();
-        }
-
-        private async Task<OperationResult> ValidateOrder(Order order)
-        {
-            throw new NotImplementedException();
+            return lists.SelectMany(x => x);
         }
 
         private void ThrowIfDisposed()
@@ -439,7 +512,6 @@ namespace Website.Services.Services
         {
             if (this._disposed)
                 return;
-
             this._repository?.Dispose();
             _disposed = true;
         }

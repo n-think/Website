@@ -3,11 +3,11 @@ using Website.Core.Infrastructure;
 using Website.Core.Interfaces.Services;
 using Website.Core.Models.Domain;
 
-namespace Website.Services.Infrastructure
+namespace Website.Services.Infrastructure.Validators
 {
-    public class OrderValidator : IShopValidator<Order>
+    public class CategoryValidator : IShopValidator<Category>
     {
-        public async Task<OperationResult> ValidateAsync(IShopManager manager, Order entity)
+        public async Task<OperationResult> ValidateAsync(IShopManager manager, Category entity)
         {
             throw new System.NotImplementedException();
         }

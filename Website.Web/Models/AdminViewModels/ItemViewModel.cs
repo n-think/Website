@@ -28,13 +28,10 @@ namespace Website.Web.Models.AdminViewModels
         public DateTimeOffset Changed { get; set; }
         public byte[] Timestamp { get; set; }
 
-        //categories
         [ScaffoldColumn(false)]
         public List<CategoryDto> Categories { get; set; }
-        //images
         [ScaffoldColumn(false)]
         public List<ImageDto> Images { get; set; }
-        //descriptions
         [ScaffoldColumn(false)]
         public List<DescriptionGroupDto> DescriptionGroups { get; set; }
     }

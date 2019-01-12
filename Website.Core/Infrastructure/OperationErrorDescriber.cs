@@ -76,8 +76,8 @@
         {
             return new OperationError
             {
-                Code = nameof(ErrorDeletingProduct),
-                Description = $"Продукт с таким кодом уже существует."
+                Code = nameof(DuplicateProductCode),
+                Description = $"Продукт с таким артикулом уже существует."
             };
         }
         
@@ -85,7 +85,7 @@
         {
             return new OperationError
             {
-                Code = nameof(ErrorDeletingProduct),
+                Code = nameof(EmptyProductName),
                 Description = $"Наименование продукта не может быть пустым."
             };
         }
@@ -94,8 +94,26 @@
         {
             return new OperationError
             {
-                Code = nameof(ErrorDeletingProduct),
+                Code = nameof(InvalidProductId),
                 Description = $"Некорректный ID продукта."
+            };
+        }
+        
+        public virtual OperationError EmptyProductCode()
+        {
+            return new OperationError
+            {
+                Code = nameof(EmptyProductCode),
+                Description = $"Необходимо указать артикул продукта."
+            };
+        }
+        
+        public virtual OperationError EmptyProductDescriptionItem()
+        {
+            return new OperationError
+            {
+                Code = nameof(EmptyProductDescriptionItem),
+                Description = $"Пункт описания не может быть пустым."
             };
         }
         

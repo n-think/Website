@@ -11,15 +11,15 @@ using Website.Core.Models.Domain;
 namespace Website.Core.Interfaces.Repositories
 {
     public interface
-        IShopRepository<TProduct, TProductImage, TCategory, TDescriptionGroup, TDescription, TOrder> : IDisposable
+        IShopRepository<TProduct, TImage,TImageData, TCategory, TDescriptionGroup, TDescriptionGroupItem, TDescription, TOrder> : IDisposable
         where TProduct : class
-        where TProductImage : class
+        where TImage : class
+        where TImageData : class
         where TCategory : class
         where TDescriptionGroup : class
         where TDescription : class
         where TOrder : class
     {
-
         IDbContextTransaction BeginTransaction(IsolationLevel iLevel = IsolationLevel.Serializable);
         void JoinTransaction(IDbContextTransaction tran);
         
@@ -41,7 +41,7 @@ namespace Website.Core.Interfaces.Repositories
             CancellationToken cancellationToken);
 
         Task<OperationResult> UpdateProductAsync(TProduct product, CancellationToken cancellationToken);
-        Task<OperationResult> DeleteProductAsync(TProduct product, CancellationToken cancellationToken);
+        Task<OperationResult> DeleteProductAsync(int productId, CancellationToken cancellationToken);
 
         #endregion
 
@@ -54,22 +54,30 @@ namespace Website.Core.Interfaces.Repositories
         Task<OperationResult> DeleteCategoryAsync(TCategory category, CancellationToken cancellationToken);
         Task<IEnumerable<Category>> GetAllCategoriesAsync(CancellationToken cancellationToken);
 
-        Task<OperationResult> AddProductCategoriesAsync(int productId, IEnumerable<ProductToCategory> categories,
+        Task<OperationResult> AddProductCategoriesAsync(int productId, IEnumerable<int> categoryIds,
             CancellationToken cancellationToken);
 
-        Task<OperationResult> DeleteProductCategoriesAsync(int productId, IEnumerable<ProductToCategory> categories,
+        Task<OperationResult> DeleteProductCategoriesAsync(int productId, IEnumerable<int> categoryIds,
+            CancellationToken cancellationToken);
+
+        Task<OperationResult> UpdateProductCategoriesAsync(int productId,
+            IEnumerable<int> categoryIds,
             CancellationToken cancellationToken);
 
         #endregion
 
         #region images
 
-        IQueryable<TProductImage> ImagesQueryable { get; }
+        IQueryable<TImage> ImagesQueryable { get; }
+        IQueryable<TImageData> ImageDataQueryable { get; }
 
-        Task<OperationResult> CreateImagesAsync(int productId, IEnumerable<TProductImage> images,
+        Task<OperationResult> CreateImagesAsync(int productId, IEnumerable<TImage> images,
             CancellationToken cancellationToken);
 
-        Task<OperationResult> DeleteImagesAsync(int productId, IEnumerable<TProductImage> images,
+        Task<OperationResult> DeleteImagesAsync(int productId, IEnumerable<TImage> images,
+            CancellationToken cancellationToken);
+
+        Task<OperationResult> UpdateImagesAsync(int productId, IEnumerable<Image> newImages,
             CancellationToken cancellationToken);
 
         #endregion
@@ -78,15 +86,21 @@ namespace Website.Core.Interfaces.Repositories
 
         IQueryable<TDescription> DescriptionsQueryable { get; }
         IQueryable<TDescriptionGroup> DescriptionGroupsQueryable { get; }
+        IQueryable<TDescriptionGroupItem> DescriptionGroupItemsQueryable { get; }
 
+        Task<List<Description>> GetProductDescriptions(int productId,
+            CancellationToken cancellationToken);
         Task<OperationResult> CreateProductDescriptions(int productId,
             IEnumerable<Description> newDescriptions, CancellationToken cancellationToken);
 
+        Task<OperationResult> UpdateProductDescriptions(int productId,
+            IEnumerable<Description> descriptionsToUpdate, CancellationToken cancellationToken);
+        
         Task<OperationResult> DeleteProductDescriptions(int productId,
             IEnumerable<Description> newDescriptions, CancellationToken cancellationToken);
-
-        Task<List<TDescription>> GetProductDescriptions(int productId, CancellationToken cancellationToken);
-        Task<IEnumerable<TDescriptionGroup>> GetAllDescriptionGroupsAsync(CancellationToken cancellationToken);
+        
+        Task<IEnumerable<DescriptionGroup>> GetDescriptionGroupsAsync(CancellationToken cancellationToken);
+        Task<IEnumerable<DescriptionGroupItem>> GetDescriptionGroupItemsAsync(int groupId, CancellationToken cancellationToken);
         #endregion
     }
 }

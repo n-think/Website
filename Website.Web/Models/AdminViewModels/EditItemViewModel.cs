@@ -46,6 +46,6 @@ namespace Website.Web.Models.AdminViewModels
         [ScaffoldColumn(false)]
         public List<ImageDto> Images { get; set; }
         [ScaffoldColumn(false)]
-        public List<DescriptionGroupDto> Descriptions { get; set; }
+        public List<DescriptionGroupDto> DescriptionGroups { get; set; }
     }
 }

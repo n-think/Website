@@ -28,9 +28,6 @@ namespace Website.Web
                     var rolesManager = services.GetRequiredService<RoleManager>();
                     var configManager = services.GetRequiredService<IConfiguration>();
                     await AdminAndRoleInitializer.InitializeAsync(userManager, rolesManager, configManager);
-                    //TODO УБРАТЬ
-                    // seed test users
-                    //await DbUserProfileSeed.InitializeAsync(userManager, rolesManager);
                 }
                 catch (Exception ex)
                 {

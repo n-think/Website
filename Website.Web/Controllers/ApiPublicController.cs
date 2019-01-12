@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Website.Core.Interfaces.Services;
@@ -21,7 +22,7 @@ namespace Website.Web.Controllers
         public async Task<IActionResult> InstantSearch(string searchString)
         {
             var categories = await _shopManager.GetAllCategoriesAsync();
-            return Ok(categories);
+            return Ok(categories.Select(x=>new {x.Id,x.Name,x.Description}));
         }
 
         

@@ -1,25 +1,15 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO;
 using System.Threading.Tasks;
 using Castle.Core.Internal;
 using Website.Core.Infrastructure;
 using Website.Core.Interfaces.Services;
 using Website.Core.Models.Domain;
 
-namespace Website.Services.Infrastructure
+namespace Website.Services.Infrastructure.Validators
 {
     public class ProductValidator : IShopValidator<Product>
     {
-        public ProductValidator(OperationErrorDescriber errorDescriber)
-        {
-            ErrorDescriber = errorDescriber ?? new OperationErrorDescriber();
-        }
-
-        private OperationErrorDescriber ErrorDescriber { get; set; }
-
         public async Task<OperationResult> ValidateAsync(IShopManager manager, Product product)
         {
             if (manager == null) throw new ArgumentNullException(nameof(manager));
@@ -40,17 +30,18 @@ namespace Website.Services.Infrastructure
         {
             if (product.Name.IsNullOrEmpty())
             {
-                errors.Add(ErrorDescriber.EmptyProductName());
-            }
-            
-            if (product.Name.IsNullOrEmpty())
-            {
-                errors.Add(ErrorDescriber.EmptyProductName());
+                errors.Add(manager.ErrorDescriber.EmptyProductName());
             }
 
-            if (await manager.GetProductByCodeAsync(product.Code, false, false, false) != null)
+            if (product.Code <= 0)
             {
-                errors.Add(ErrorDescriber.DuplicateProductCode());
+                errors.Add(manager.ErrorDescriber.EmptyProductCode());
+            }
+
+            var prod = await manager.GetProductByCodeAsync(product.Code, false, false, false);
+            if (prod != null && prod.Id != product.Id)
+            {
+                errors.Add(manager.ErrorDescriber.DuplicateProductCode());
             }
         }
     }

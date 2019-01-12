@@ -11,8 +11,7 @@ using Xunit;
 namespace Tests
 {
     public class ClientProfileTests
-    {
-//        //TODO test all cases with messages
+    {//        
 //        [Fact]
 //        public void CreateOrUpdateProfileTest()
 //        {

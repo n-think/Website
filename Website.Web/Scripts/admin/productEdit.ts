@@ -2,26 +2,42 @@
 import {DtoState} from "./enums";
 import "jquery-validation-unobtrusive"
 
-module productEdit {   
-    
-    $("div#admin-content")
-        .on("click", "#edit-form-submit", validateAndSubmitJson)
-        .on("click", "img.admin-img-thumb", setImage)
-        .on("click", "#image-primary-button", setPrimaryImage)
-        .on("click", "#image-remove-button", setDeleteImage)
-        .on("change", "#file-upload-button", loadImagesFromInput)
-        .on("click", ".product-category-btn", loadProductCategoriesDropdown)
-        .on("click", ".add-cat", addCategory)
-        .on("click", ".remove-cat", removeCategory)
-        .on("click", ".product-desc-group-btn", loadProductDescGroupDropdown)
-        .on("click", ".add-desc-group", addDescGroup)
-        .on("click", ".remove-desc-group", removeDescGroup)
-        .on("click", ".product-desc-group-items-btn", loadProductDescGroupItemsDropdown)
-        .on("click", ".add-desc-group-item", addDescGroupItem)
-        .on("click", ".remove-desc-group-item", removeDescGroupItem)
-        .on("click", ".edit-desc-group-item", editDescItem)
-        .on("click", ".save-desc-group-item", saveEditDescItem)
-        .on("click", ".cancel-desc-group-item", cancelEditDescItem);   
+module productEdit {
+
+    if (window.location.pathname.lastIndexOf("/Admin/EditItem") == 0 ||
+        window.location.pathname.lastIndexOf("/Admin/AddItem") == 0) {
+        loadProductEditEventHandlers()
+    }
+
+    if (window.location.pathname.lastIndexOf("/Admin/ViewItem") == 0) {
+        loadProductViewEventHandlers()
+    }
+
+    function loadProductEditEventHandlers() {
+        $("div#admin-content")
+            .on("click", "#edit-form-submit", validateAndSubmitJson)
+            .on("click", "img.admin-img-thumb", setImage)
+            .on("click", "#image-primary-button", setPrimaryImage)
+            .on("click", "#image-remove-button", setDeleteImage)
+            .on("change", "#file-upload-button", loadImagesFromInput)
+            .on("click", ".product-category-btn", loadProductCategoriesDropdown)
+            .on("click", ".add-cat", addCategory)
+            .on("click", ".remove-cat", removeCategory)
+            .on("click", ".product-desc-group-btn", loadProductDescGroupDropdown)
+            .on("click", ".add-desc-group", addDescGroup)
+            .on("click", ".remove-desc-group", removeDescGroup)
+            .on("click", ".product-desc-group-items-btn", loadProductDescGroupItemsDropdown)
+            .on("click", ".add-desc-group-item", addDescGroupItem)
+            .on("click", ".remove-desc-group-item", removeDescGroupItem)
+            .on("click", ".edit-desc-group-item", editDescItem)
+            .on("click", ".save-desc-group-item", saveEditDescItem)
+            .on("click", ".cancel-desc-group-item", cancelEditDescItem);
+    }
+
+    function loadProductViewEventHandlers() {
+        $("div#admin-content")            
+            .on("click", "img.admin-img-thumb", setImage)
+    }
 
     function validateAndSubmitJson() {
         let editForm = $("#edit-form");
@@ -38,7 +54,7 @@ module productEdit {
         dataToJson.Price = (dataToJson.Price as string).replace(",", ".");
         dataToJson.Images = getImagesData();
         dataToJson.Categories = getCategoriesData();
-        dataToJson.Descriptions = getDescriptionsData();
+        dataToJson.DescriptionGroups = getDescriptionsData();
         //console.log(dataToJson);
         let json = JSON.stringify(dataToJson);
         //console.log(json);
@@ -51,14 +67,13 @@ module productEdit {
                 "Content-Type": "application/json"
             },
             data: json,
+            //timeout: 15000,
             beforeSend: function (jqXHR) {
                 $("button#edit-form-submit").prop("disabled", true);
                 $("span#edit-form-submit-icon").removeClass("fa-check").addClass("fa-spinner fa-spin");
             },
             success: function (response) {
-                $("div#admin-content").html(response);
-                $.validator.unobtrusive.parse("form#edit-form");
-                $("select.selectpicker").selectpicker("refresh");
+                window.location.replace(response);
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 //debug
@@ -67,14 +82,27 @@ module productEdit {
                 // document.write(jqXHR.responseText);
                 // document.close();
 
-                //release
-                let errorListItem = $("div.validation-summary-valid>ul>li").first();
-                errorListItem.removeAttr("style");
+                let errorList = $("div.validation-summary-valid>ul");
+                errorList.empty();
+                $.validator.unobtrusive.parse("form#edit-form");                
                 if (jqXHR.status === 400) {
-                    errorListItem.text(jqXHR.responseText);
-                } else {
-                    errorListItem.text("Возникла ошибка при отправке запроса серверу.");
+                    var responseJson = JSON.parse(jqXHR.responseText);
+                    if (Array.isArray(responseJson)) {                        
+                        for (let i = 0; i < responseJson.length; i++) {
+                            errorList.append("<li>").text(responseJson[i]);
+                        }
+                    } else {
+                        errorList.append("<li>").text(jqXHR.responseText);
+                    }
                 }
+                else if (jqXHR.status === 500) {
+                    errorList.append("<li>").text("Ошибка сервера при обработке запроса.");
+                }
+                else {
+                    errorList.append("<li>").text("Возникла ошибка при отправке запроса серверу.");
+                }
+                $("button#edit-form-submit").removeAttr("disabled");
+                $("span#edit-form-submit-icon").addClass("fa-check").removeClass("fa-spinner fa-spin");
             }
         });
     }
@@ -126,8 +154,7 @@ module productEdit {
             catData[i].Description = catData[i].Description.slice(1, catData[i].Description.length - 1);
             if (cat.hasClass("cat-add")) {
                 catData[i].DtoState = DtoState.Added;
-            }
-            else if (cat.hasClass("cat-delete")) {
+            } else if (cat.hasClass("cat-delete")) {
                 catData[i].DtoState = DtoState.Deleted;
             }
         }
@@ -137,33 +164,35 @@ module productEdit {
     function getDescriptionsData() {
         let data = [];
         let descGroups = $(".desc-group");
+        let productId = $("#edit-form").find("#Id").val();
         descGroups.each(function (i, e) {
             let group = $(e);
             data[i] = {
                 Id: group.data("id"),
                 Name: group.find(".desc-group-name").text(),
                 Description: group.find(".desc-group-desc").text(),
-                Items: []
+                DescriptionItems: []
             };
             data[i].Description = data[i].Description.slice(1, data[i].Description.length - 1);
             let items = group.find(".desc-item");
             items.each(function (x, el) {
                 let item = $(el);
-                data[i].Items[x] = {
+                data[i].DescriptionItems[x] = {
                     Id: item.data("id"),
                     Name: item.find(".desc-item-name").text(),
                     DescriptionId: item.find(".desc-item-value").data("id"),
                     DescriptionValue: item.find(".desc-item-value").text(),
+                    ProductId: productId,
+                    DescriptionGroupId: data[i].Id,
                     DtoState: DtoState.Unchanged
                 };
                 if (item.hasClass("desc-item-add")) {
-                    data[i].Items[x].DtoState = DtoState.Added;
-                }
-                else if (item.hasClass("desc-item-modified")) {
-                    data[i].Items[x].DtoState = DtoState.Modified;
+                    data[i].DescriptionItems[x].DtoState = DtoState.Added;
+                } else if (item.hasClass("desc-item-modified")) {
+                    data[i].DescriptionItems[x].DtoState = DtoState.Modified;
                 }
                 if (item.hasClass("desc-item-delete") || group.hasClass("desc-group-delete")) {
-                    data[i].Items[x].DtoState = DtoState.Deleted;
+                    data[i].DescriptionItems[x].DtoState = DtoState.Deleted;
                 }
             });
         });
@@ -300,7 +329,7 @@ module productEdit {
             error: function (jqXHR, textStatus, errorThrown) {
                 $("#cat-loading").html("Ошибка загрузки");
             }
-        });        
+        });
     }
 
     function addCategory() {
@@ -320,7 +349,7 @@ module productEdit {
         let desc = select.find("option:selected").data().subtext;
         let nameSpan = $("<span>").addClass("category-name").text(name);
         let descSpan = $("<span>").addClass("category-desc text-muted").text(`(${desc})`);
-        let buttonSpan = $("<span>").addClass("remove-cat btn-pushy btn btn-outline-danger fa fa-close");
+        let buttonSpan = $("<span>").addClass("remove-cat btn-pushy btn btn-sm btn-outline-danger fa fa-close");
         let category = $("<div>").addClass("category cat-add").data("id", id).append([nameSpan, descSpan, buttonSpan]);
         category.children().after(" ");
         $("#categories").append(category);
@@ -376,7 +405,12 @@ module productEdit {
                 descGroups.append(existing);
                 return;
             }
-            $("#desc-group-select+.dropdown-toggle").fadeIn(100).fadeOut(100).fadeIn(100).fadeOut(100).fadeIn(100);
+            $("#desc-group-select+.dropdown-toggle")
+                .fadeIn(100)
+                .fadeOut(100)
+                .fadeIn(100)
+                .fadeOut(100)
+                .fadeIn(100);
             return;
         }
         let name = select.find("option:selected").text();
@@ -385,8 +419,11 @@ module productEdit {
         let strVar = `
 <div class="desc-group my-2 desc-group-add" data-id="${id}">
 <div>
-<span class="desc-group-name h6">${name}</span>
-<span class="desc-group-desc text-muted">(${desc})</span>
+<span class="desc-group-name h6">${name}</span>`;
+        if (desc != "" || desc != undefined) {
+            strVar += `<span class="desc-group-desc text-muted">(${desc})</span>`
+        }
+        strVar += `
 <span class="remove-desc-group btn-pushy btn btn-outline-danger btn-sm fa fa-close mb-1"></span>
 <div>
 <select id="desc-group-items-select" class="selectpicker" hidden data-live-search="true" data-live-search-normalize="true"
@@ -448,7 +485,7 @@ title="Добавить описание" data-live-search-placeholder="Поис
         let select = container.find("#desc-group-items-select");
         let id = select.val() === "" ? -1 : select.val();
         let existing = $(".desc-item[data-id=" + id + "]");
-        if ($("#desc-group-items-select").val() === "" || existing.length) {
+        if (select.val() === "" || existing.length) {
             if (existing.hasClass("desc-item-delete")) {
                 existing.removeClass("d-none desc-item-delete");
                 return;
@@ -533,7 +570,7 @@ title="Добавить описание" data-live-search-placeholder="Поис
                             {
                                 "class": imgClass,
                                 "click": setImage,
-                                "data-id": Math.floor(Math.random() * 10000000 + 10000000), //getImgId() //need only unique int id
+                                "data-id": Math.floor(Math.random() * 10000000 + 10000000) * -1, //getImgId() //need only unique int id
                                 "src": e.target.result
                             }).appendTo(imageContainer);
                         if (flag) {

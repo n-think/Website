@@ -1,16 +1,22 @@
 ﻿import $ from "jquery";
 
 module categories {
+    if (window.location.pathname.lastIndexOf("/Admin/Categories")==0){
+        loadCategoriesEventHandlers()
+    }
 
-    $(".category-expander").on("click", categoryExpanderToggle);
-    $(".list-group-item.list-group-item-action.category").on("click", viewCategory);
-    $("#cat-parent-preview").on("click", viewParentCategory);
+    function loadCategoriesEventHandlers() {
+        $(".category-expander").on("click", categoryExpanderToggle);
+        $(".list-group-item.list-group-item-action.category").on("click", viewCategory);
+        $("#cat-parent-preview").on("click", viewParentCategory);
 
-    //edit buttons
-    $("#edit-cat").on("click", categoryEdit);
-    $("#remove-cat").on("click", categoryRemove);
-    $("#save-edit-cat").on("click", categorySaveEdit);
-    $("#cancel-edit-cat").on("click", categoryCancelEdit);
+        //edit buttons
+        $("#edit-cat").on("click", categoryEdit);
+        $("#remove-cat").on("click", categoryRemove);
+        $("#save-edit-cat").on("click", categorySaveEdit);
+        $("#cancel-edit-cat").on("click", categoryCancelEdit);
+    }
+
 
     let currCatViewId = "";
     let catViewControls = $("#cat-view-controls");

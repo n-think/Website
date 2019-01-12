@@ -30,8 +30,6 @@ namespace Website.Web.TagHelpers
 
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
-            //TODO разбить
-
             string linkProp = Property;
 
             if (Descending)

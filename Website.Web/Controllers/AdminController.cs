@@ -7,6 +7,7 @@ using AutoMapper;
 using Castle.Core.Internal;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Website.Core.Enums;
 using Website.Core.Infrastructure;
 using Website.Core.Interfaces.Services;
@@ -68,6 +69,7 @@ namespace Website.Web.Controllers
 
             ViewBag.itemCount = result.TotalN;
 
+            //TODO use mapper
             var model = new UsersViewModel()
             {
                 CurrentSearch = search,
@@ -128,7 +130,7 @@ namespace Website.Web.Controllers
             if (ModelState.IsValid)
             {
                 var user = await _userManager.FindByIdAsync(editModel.Id);
-                
+
                 if (user == null)
                 {
                     return View("Error", new ErrorViewModel {Message = $"Пользователь с id {editModel.Id} не найден."});
@@ -152,7 +154,8 @@ namespace Website.Web.Controllers
                 var result = await _userManager.UpdateUserPasswordClaims(user, editModel.Password, newClaims);
                 if (result.Succeeded)
                 {
-                    if (HttpContext.User.Claims.First(x => x.Type == ClaimTypes.NameIdentifier).Value == user.Id.ToString())
+                    if (HttpContext.User.Claims.First(x => x.Type == ClaimTypes.NameIdentifier).Value ==
+                        user.Id.ToString())
                     {
                         await _signInManager.RefreshSignInAsync(user);
                     }
@@ -200,11 +203,12 @@ namespace Website.Web.Controllers
 
             SortPageResult<Product> result =
                 await _shopManager.GetSortFilterPageAsync(types, search, sortOrder, currPage, countPerPage);
-            
+
             //TODO categories filter // List<CategoryDTO> allCategories = await _shopManager.GetAllCategoriesAsync();
-            
+
             ViewBag.itemCount = result.TotalN;
 
+            //TODO mapper
             var model = new ItemsViewModel()
             {
                 CurrentSearch = search,
@@ -230,7 +234,7 @@ namespace Website.Web.Controllers
             {
                 return View("Error", new ErrorViewModel {Message = $"Товар с id {id} не найден."});
             }
-            
+
             ItemViewModel viewModel = _mapper.Map<ItemViewModel>(prod);
             return View("ViewItem", viewModel);
         }
@@ -246,7 +250,6 @@ namespace Website.Web.Controllers
             }
 
             var viewModel = _mapper.Map<EditItemViewModel>(prod);
-            //viewModel.Descriptions = prod.Descriptions; TODO FIX THIS !!!!!!!!!!!!!!!!!!!!!!
             return View(viewModel);
         }
 
@@ -254,54 +257,65 @@ namespace Website.Web.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Policy = "EditItems")]
-        public async Task<IActionResult> EditItem([FromBody] EditItemViewModel item) //json input //move to api?
+        public async Task<IActionResult> EditItem([FromBody] EditItemViewModel viewModel) //json input //move to api?
         {
-//            if (item?.Id == null || item?.Name == null || item.Timestamp == null)
-//            {
-//                return BadRequest("Введены некорректные данные.");
-//            }
-//
-//            if (ModelState.IsValid)
-//            {
-//                OperationResult result;
-//                ProductDto updatedProductDto;
-//
-//                var itemDto = _mapper.Map<ProductDto>(item);
-//                if (item.Id.Value == -1)
-//                {
-//                    result = await _shopManager.CreateProductAsync(itemDto);
-//                    updatedProductDto = await _shopManager.GetProductByNameAsync(itemDto.Name, true, true, true);
-//                }
-//                else
-//                {
-//                    result = await _shopManager.UpdateProductAsync(itemDto);
-//                    updatedProductDto =
-//                        await _shopManager.GetProductByIdAsync(itemDto.Id.GetValueOrDefault(), true, true, true);
-//                }
-//
-//                if (result.Succeeded)
-//                {
-//                    TempData["Message"] = "Изменения успешно сохранены";
-//                    var itemViewModel = _mapper.Map<ItemViewModel>(updatedProductDto);
-//                    return PartialView("ViewItem", itemViewModel);
-//                }
-//
-//                //add new errors
-//                foreach (var error in result.Errors)
-//                {
-//                    ModelState.AddModelError(error.Code, error.Description);
-//                    if (error.Code == nameof(OperationErrorDescriber.ConcurrencyFailure) ||
-//                        error.Code == nameof(OperationErrorDescriber.InvalidImageFormat))
-//                    {
-//                        item.Timestamp = updatedProductDto?.Timestamp ?? item.Timestamp;
-//                        ; // to enable save after conc error or incomplete updates
-//                        ModelState.Remove(
-//                            "Timestamp"); // remove from the model state or HTML helpers will use the original value
-//                    }
-//                }
-//            }
-//
-            return PartialView(item);
+            if (viewModel?.Id == null || viewModel?.Name == null || viewModel.Timestamp == null)
+            {
+                return BadRequest("Введены некорректные данные.");
+            }
+
+            if (ModelState.IsValid)
+            {
+                OperationResult result;
+
+                var product = _mapper.Map<Product>(viewModel);
+
+                var catsIds = Enumerable.Empty<int>();
+                if (viewModel.Categories != null)
+                {
+                    catsIds = viewModel.Categories
+                        .Where(x=>x.DtoState != DtoState.Deleted)
+                        .Select(x=> x.Id);
+                }
+                
+                var descs = Enumerable.Empty<Description>();
+                if (viewModel.Categories != null)
+                {
+                    descs = _mapper.Map<IEnumerable<Description>>(viewModel.DescriptionGroups
+                        .SelectMany(x => x.DescriptionItems?.Where(i=>i.DtoState != DtoState.Deleted)));
+                }
+                                
+                var images = Enumerable.Empty<Image>();
+                if (viewModel.Categories != null)
+                {
+                    images = _mapper.Map<IEnumerable<Image>>(viewModel.Images?
+                        .Where(x => x.DtoState != DtoState.Deleted));
+                }
+                
+                if (viewModel.CreateItem)
+                {
+                    result = await _shopManager.CreateProductAsync(product, images, catsIds, descs);
+                }
+                else
+                {
+                    result = await _shopManager.UpdateProductAsync(product, descs, catsIds, images);
+                }
+
+                if (result.Succeeded)
+                {
+                    TempData["Message"] = "Изменения успешно сохранены";
+                    //provide relative address for redirect on ajax
+                    return Ok($"/{nameof(AdminController).Substring(0, 5)}/{nameof(ViewItem)}/{product.Id}");
+                }
+
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(error.Code, error.Description);
+                }
+            }
+
+            var errors = ModelState.Values.SelectMany(v => v.Errors.Select(x => x.ErrorMessage));
+            return BadRequest(errors);
         }
 
         [HttpGet]
@@ -335,13 +349,7 @@ namespace Website.Web.Controllers
                 return View("Error", new ErrorViewModel {Message = $"Получены некорректные данные."});
             }
 
-            var itemToDelete = await _shopManager.GetProductByIdAsync(id.Value);
-            if (itemToDelete == null)
-            {
-                ViewData["message"] = "Товар с таким ID не найден или уже удален.";
-            }
-
-            var result = await _shopManager.DeleteProductAsync(itemToDelete);
+            var result = await _shopManager.DeleteProductAsync(id.GetValueOrDefault());
             if (!result.Succeeded)
             {
                 ViewData["message"] = result.Errors?.FirstOrDefault()?.Description;
@@ -366,7 +374,7 @@ namespace Website.Web.Controllers
                 catDto.ProductCount = catTuple.Item2;
                 cats.Add(catDto);
             }
-            
+
             return View(cats.ToTree());
         }
 

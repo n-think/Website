@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using AutoMapper;
 using Website.Core.Models.Domain;
 using Website.Web.Infrastructure.TreeHelper;
@@ -15,20 +16,32 @@ namespace Website.Web.Infrastructure.Mapper
             CreateMap<User, EditUserViewModel>().ReverseMap();
 
             CreateMap<Product, ProductDto>().ReverseMap();
+
             CreateMap<Product, ItemViewModel>()
                 .ForMember(dest => dest.DescriptionGroups,
-                    opt => opt.MapFrom(x => x.Descriptions.Select(y => y.DescriptionGroup).ToList()))
+                    opt => opt.MapFrom<ProductDescGroupDtoResolver>())
                 .ForMember(dest => dest.Categories,
-                    opt => opt.MapFrom(x => x.ProductToCategory.Select(y => y.Category)))
-                //.AfterMap((src, dest) => dest.DescriptionGroups = dest.DescriptionGroups.ToTree()) дерево уже собрано ef'ом
-                .AfterMap((src, dest) => dest.DescriptionGroups = dest.DescriptionGroups
-                    .Where(x => x.ParentId == null)
-                    .ToList());// взять только корни
+                    opt => opt.MapFrom(x => x.ProductToCategory.Select(y => y.Category)));
+            CreateMap<ItemViewModel, Product>();
 
-            CreateMap<Product, EditItemViewModel>();
+            CreateMap<Product, EditItemViewModel>()
+                .ForMember(dest => dest.DescriptionGroups,
+                    opt => opt.MapFrom<ProductDescGroupDtoResolver>())
+                .ForMember(dest => dest.Categories,
+                    opt => opt.MapFrom(x => x.ProductToCategory.Select(y => y.Category)));
 
-            CreateMap<Description, DescriptionDto>();
             CreateMap<Category, CategoryDto>();
+            CreateMap<EditItemViewModel, Product>()
+                .ForMember(x => x.Images, opt => opt.Ignore())
+                .ForMember(x => x.ProductToCategory, opt => opt.Ignore())
+                .ForMember(x => x.Descriptions, opt => opt.Ignore());
+
+            CreateMap<Image, ImageDto>();
+            CreateMap<ImageDto, Image>()
+                .ConvertUsing<ImageDtoToImageConverter>();
+
+            CreateMap<DescriptionGroupItemDto, Description>()
+                .ConvertUsing<DescGroupItemDtoToDescConverter>();
         }
     }
 }

@@ -10,19 +10,25 @@ namespace Website.Core.Interfaces.Services
     {
         //TODO interface
         ShopManagerOptions Options { get; }
+        OperationErrorDescriber ErrorDescriber { get; }
 
-        Task<OperationResult> CreateProductAsync(Product product);
+        Task<OperationResult> CreateProductAsync(Product product, IEnumerable<Image> images,
+            IEnumerable<int> categoryIdsToAdd, IEnumerable<Description> descriptions);
         Task<Product> GetProductByIdAsync(int id, bool loadImages = false, bool loadDescriptions = false, bool loadCategories = false);
         Task<Product> GetProductByNameAsync(string name, bool loadImages, bool loadDescriptions, bool loadCategories);
         Task<Product> GetProductByCodeAsync(int code, bool loadImages, bool loadDescriptions, bool loadCategories);
-        Task<OperationResult> UpdateProductAsync(Product product, IEnumerable<Image> imagesToAdd,
-            IEnumerable<Image> imagesToRemove);
-        Task<OperationResult> DeleteProductAsync(Product product);
+        Task<OperationResult> UpdateProductAsync(Product product,
+            IEnumerable<Description> descriptionsToUpdate,
+            IEnumerable<int> categoryIdsToUpdate,
+            IEnumerable<Image> imagesToUpdate);
+        Task<OperationResult> DeleteProductAsync(int productId);
 
         Task<SortPageResult<Product>> GetSortFilterPageAsync(ItemTypeSelector types, string search, string sortOrder, int currPage, int countPerPage);
         Task<IEnumerable<Category>> GetAllCategoriesAsync();
         Task<IEnumerable<(Category, int)>> GetAllCategoriesWithProductCountAsync();
         Task<IEnumerable<DescriptionGroup>> GetAllDescriptionGroupsAsync();
-        Task<IEnumerable<DescriptionGroup>> GetDescGroupFirstChildren(int groupId);
+        Task<IEnumerable<DescriptionGroupItem>> GetDescriptionItemsAsync(int groupId);
+        
+       Task<(byte[], string)> GetImageDataMimeAsync(int imageId, bool thumb = false);
     }
 }

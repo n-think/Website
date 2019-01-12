@@ -53,9 +53,7 @@ namespace Website.Data.EF
                     .HasForeignKey(e => e.ProductId)
                     .OnDelete(DeleteBehavior.Cascade);
                 entity.HasKey(x => x.Id);
-                entity.Property(e => e.Format).HasMaxLength(10);
-                entity.HasIndex(e => e.Name).IsUnique();
-                entity.HasIndex(e => e.ThumbName).IsUnique();
+                entity.Property(e => e.Mime).HasMaxLength(10);
                 entity.ToTable("Images", "Production");
             });
 
@@ -82,31 +80,37 @@ namespace Website.Data.EF
             
             modelBuilder.Entity<DescriptionGroup>(entity =>
             {
-                entity.HasKey(x => x.Id);
+                entity.Property(e => e.Description).HasMaxLength(50);
                 entity.Property(e => e.Name)
                     .IsRequired()
                     .HasMaxLength(50);
-                entity.Property(e => e.Timestamp)
-                    .IsRowVersion();
-                entity.HasOne(e => e.Parent)
-                    .WithMany(e => e.Children)
-                    .HasForeignKey(e=>e.ParentId)
-                    .HasConstraintName("FK_DescriptionGroups_DescriptionGroups")
-                    .OnDelete(DeleteBehavior.ClientSetNull);
                 entity.ToTable("DescriptionGroups", "Production");
+            });
+
+            modelBuilder.Entity<DescriptionGroupItem>(entity =>
+            {
+                entity.HasOne(e => e.DescriptionGroup)
+                    .WithMany(e => e.DescriptionGroupItems)
+                    .HasForeignKey(e => e.DescriptionGroupId)
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .HasConstraintName("FK_DescriptionGroupItems_DescriptionGroups");
+                entity.ToTable("DescriptionGroupItems", "Production");
             });
 
             modelBuilder.Entity<Description>(entity =>
             {
-                entity.HasKey(x => x.Id);
-                entity.HasOne(d => d.DescriptionGroup)
+                entity.HasOne(d => d.DescriptionGroupItem)
                     .WithMany(p => p.Descriptions)
-                    .HasForeignKey(d => d.DescriptionGroupId)
-                    .HasConstraintName("FK_Descriptions_DescriptionGroups");
+                    .HasForeignKey(d => d.DescriptionGroupItemId)
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .HasConstraintName("FK_Descriptions_DescriptionGroupItems");
+
                 entity.HasOne(d => d.Product)
                     .WithMany(p => p.Descriptions)
                     .HasForeignKey(d => d.ProductId)
+                    .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("FK_Descriptions_Products");
+                
                 entity.ToTable("Descriptions", "Production");
             });
 

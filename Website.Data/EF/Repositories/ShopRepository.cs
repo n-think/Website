@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Castle.Core.Internal;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -18,7 +19,8 @@ using Website.Core.Models.Domain;
 
 namespace Website.Data.EF.Repositories
 {
-    public class ShopRepository : IShopRepository<Product, Image, Category, DescriptionGroup,
+    public class ShopRepository : IShopRepository<Product, Image, ImageBinData, Category, DescriptionGroup,
+        DescriptionGroupItem,
         Description, Order>
     {
         public ShopRepository(DbContext dbContext, IHostingEnvironment environment,
@@ -43,12 +45,15 @@ namespace Website.Data.EF.Repositories
         private DbSet<Category> CategoriesSet => Context.Set<Category>();
         private DbSet<Image> ImagesSet => Context.Set<Image>();
         private DbSet<DescriptionGroup> DescGroupsSet => Context.Set<DescriptionGroup>();
+        private DbSet<DescriptionGroupItem> DescGroupItemsSet => Context.Set<DescriptionGroupItem>();
         private DbSet<Description> DescriptionsSet => Context.Set<Description>();
         public IQueryable<Product> ProductsQueryable => ProductsSet.AsQueryable();
         public IQueryable<Category> CategoriesQueryable => CategoriesSet.AsQueryable();
         public IQueryable<Image> ImagesQueryable => ImagesSet.AsQueryable();
+        public IQueryable<ImageBinData> ImageDataQueryable => Context.Set<ImageBinData>().AsQueryable();
         public IQueryable<Description> DescriptionsQueryable => DescriptionsSet.AsQueryable();
         public IQueryable<DescriptionGroup> DescriptionGroupsQueryable => DescGroupsSet.AsQueryable();
+        public IQueryable<DescriptionGroupItem> DescriptionGroupItemsQueryable => DescGroupItemsSet.AsQueryable();
 
         public IDbContextTransaction BeginTransaction(IsolationLevel iLevel = IsolationLevel.Serializable) =>
             Context.Database.BeginTransaction(iLevel);
@@ -184,31 +189,38 @@ namespace Website.Data.EF.Repositories
             {
                 query = query
                     .Include(x => x.Descriptions)
-                    .ThenInclude(x=>x.DescriptionGroup);
+                    .ThenInclude(x => x.DescriptionGroupItem)
+                    .ThenInclude(x => x.DescriptionGroup);
             }
 
             var product = await query
-                //.AsNoTracking() //TODO test this
+                .AsNoTracking()
                 .FirstOrDefaultAsync(ct);
+
+            if (product != null)
+            {//primary image first
+                product.Images = product.Images
+                    .OrderBy(i => !i.Primary)
+                    .ToArray();
+            }
 
             return product;
         }
 
-        public async Task<OperationResult> DeleteProductAsync(Product product,
+        public async Task<OperationResult> DeleteProductAsync(int productId,
             CancellationToken ct = default(CancellationToken))
         {
             ct.ThrowIfCancellationRequested();
             ThrowIfDisposed();
 
-            var entry = await ProductsSet.FindAsync(new object[] {product.Id}, ct);
+            var entry = await ProductsSet.FindAsync(new object[] {productId}, ct);
 
             if (entry == null)
             {
                 return OperationResult.Failure(ErrorDescriber.EntityNotFound("Продукт"));
             }
 
-            ProductsSet.Attach(product);
-            Context.Entry(product).State = EntityState.Deleted;
+            Context.Entry(entry).State = EntityState.Deleted;
             try
             {
                 await SaveChangesAsync(ct);
@@ -331,21 +343,25 @@ namespace Website.Data.EF.Repositories
         }
 
         public async Task<OperationResult> AddProductCategoriesAsync(int productId,
-            IEnumerable<ProductToCategory> categories,
+            IEnumerable<int> categoryIds,
             CancellationToken ct = default(CancellationToken))
         {
             ct.ThrowIfCancellationRequested();
             ThrowIfDisposed();
-            var productToCategories = categories as ProductToCategory[] ?? categories.ToArray();
-            if (productToCategories.IsNullOrEmpty())
-                throw new ArgumentNullException(nameof(categories));
+            if (categoryIds == null) throw new ArgumentNullException(nameof(categoryIds));
+            var categoryIdsArray = categoryIds as int[] ?? categoryIds.ToArray();
 
             var currentProdCats = await ProdToCatSet
                 .Where(x => productId == x.ProductId)
                 .ToListAsync(ct);
 
-            foreach (var prodToCat in productToCategories)
+            foreach (var cat in categoryIdsArray)
             {
+                var prodToCat = new ProductToCategory()
+                {
+                    ProductId = productId,
+                    CategoryId = cat
+                };
                 if (!currentProdCats.Contains(prodToCat))
                 {
                     ProdToCatSet.Attach(prodToCat);
@@ -370,27 +386,89 @@ namespace Website.Data.EF.Repositories
         }
 
         public async Task<OperationResult> DeleteProductCategoriesAsync(int productId,
-            IEnumerable<ProductToCategory> categories,
+            IEnumerable<int> categoryIds,
             CancellationToken ct = default(CancellationToken))
         {
             ct.ThrowIfCancellationRequested();
             ThrowIfDisposed();
-            var productToCategories = categories as ProductToCategory[] ?? categories.ToArray();
-            if (productToCategories.IsNullOrEmpty())
-                throw new ArgumentNullException(nameof(categories));
+            if (categoryIds == null) throw new ArgumentNullException(nameof(categoryIds));
+
+            var categoryIdsArray = categoryIds as int[] ?? categoryIds.ToArray();
+
 
             var currentProdCats = await ProdToCatSet
                 .Where(x => productId == x.ProductId)
                 .ToListAsync(ct);
 
-            foreach (var prodToCat in productToCategories)
+            foreach (var cat in categoryIdsArray)
             {
+                var prodToCat = new ProductToCategory()
+                {
+                    ProductId = productId,
+                    CategoryId = cat
+                };
                 if (!currentProdCats.Contains(prodToCat))
                 {
                     ProdToCatSet.Attach(prodToCat);
                     Context.Entry(prodToCat).State = EntityState.Deleted;
                 }
             }
+
+            try
+            {
+                await SaveChangesAsync(ct);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return OperationResult.Failure(ErrorDescriber.ConcurrencyFailure());
+            }
+            catch (DbUpdateException)
+            {
+                return OperationResult.Failure(ErrorDescriber.DbUpdateFailure());
+            }
+
+            return OperationResult.Success();
+        }
+
+        public async Task<OperationResult> UpdateProductCategoriesAsync(int productId,
+            IEnumerable<int> categoryIds,
+            CancellationToken ct = default(CancellationToken))
+        {
+            ct.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+            if (categoryIds == null) throw new ArgumentNullException(nameof(categoryIds));
+
+            var categoryIdsArray = categoryIds as int[] ?? categoryIds.ToArray();
+
+            if (!(await ProductsSet.AnyAsync(x => x.Id == productId, ct)))
+            {
+                return OperationResult.Failure(ErrorDescriber.EntityNotFound("Продукт"));
+            }
+
+            var currentCatsDict = await ProdToCatSet
+                .Where(x => x.ProductId == productId)
+                .ToDictionaryAsync(x => x.CategoryId, ct);
+
+            foreach (var catId in categoryIdsArray)
+            {
+                if (currentCatsDict.ContainsKey(catId)) continue;
+
+                //add
+                var newProdToCat = new ProductToCategory()
+                {
+                    ProductId = productId,
+                    CategoryId = catId
+                };
+                ProdToCatSet.Attach(newProdToCat);
+                Context.Entry(newProdToCat).State = EntityState.Added;
+            }
+
+            var catIdsToDelete = currentCatsDict.Keys.Except(categoryIdsArray);
+            var prodToCatsToDelete = catIdsToDelete
+                .Where(x => currentCatsDict.ContainsKey(x))
+                .Select(x => currentCatsDict[x]);
+
+            Context.RemoveRange(prodToCatsToDelete);
 
             try
             {
@@ -415,6 +493,10 @@ namespace Website.Data.EF.Repositories
         public async Task<OperationResult> CreateImagesAsync(int productId, IEnumerable<Image> images,
             CancellationToken ct = default(CancellationToken))
         {
+            ct.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+            if (images == null) throw new ArgumentNullException(nameof(images));
+
             var productImages = images.ToList();
             foreach (var image in productImages)
             {
@@ -424,13 +506,16 @@ namespace Website.Data.EF.Repositories
                 }
             }
 
-            if (await ProductsSet.AnyAsync(x => x.Id == productId, ct))
+            if (!(await ProductsSet.AnyAsync(x => x.Id == productId, ct)))
             {
                 return OperationResult.Failure(ErrorDescriber.EntityNotFound("Продукт"));
             }
 
+
             foreach (var image in productImages)
             {
+                image.Id = 0;
+                image.ProductId = productId;
                 ImagesSet.Attach(image);
                 Context.Entry(image).State = EntityState.Added;
                 if (image.BinData != null)
@@ -454,6 +539,10 @@ namespace Website.Data.EF.Repositories
         public async Task<OperationResult> DeleteImagesAsync(int productId, IEnumerable<Image> images,
             CancellationToken ct = default(CancellationToken))
         {
+            ct.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+            if (images == null) throw new ArgumentNullException(nameof(images));
+
             var productImages = images.ToList();
 
             if (!await ProductsSet.AnyAsync(x => x.Id == productId, ct))
@@ -466,6 +555,81 @@ namespace Website.Data.EF.Repositories
                 ImagesSet.Attach(image);
                 Context.Entry(image).State = EntityState.Deleted;
             }
+
+            try
+            {
+                await SaveChangesAsync(ct);
+            }
+            catch (DbUpdateException)
+            {
+                return OperationResult.Failure(ErrorDescriber.DbUpdateFailure());
+            }
+
+            return OperationResult.Success();
+        }
+
+        public async Task<OperationResult> UpdateImagesAsync(int productId, IEnumerable<Image> newImages,
+            CancellationToken ct = default(CancellationToken))
+        {
+            ct.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+            if (newImages == null) throw new ArgumentNullException(nameof(newImages));
+
+            var newImagesArray = newImages as Image[] ?? newImages.ToArray();
+            foreach (var image in newImagesArray)
+            {
+                if (image.BinData == null)
+                {
+                    if (!ImagesSet.Any(x=> x.Id == image.Id))
+                    {
+                        return OperationResult.Failure(ErrorDescriber.InvalidModel());
+                    }
+                }
+            }
+
+            if (!(await ProductsSet.AnyAsync(x => x.Id == productId, ct)))
+            {
+                return OperationResult.Failure(ErrorDescriber.EntityNotFound("Продукт"));
+            }
+
+            var currentImagesDict = await ImagesSet
+                .Where(x => x.ProductId == productId)
+                .ToDictionaryAsync(x => x.Id, ct);
+
+            foreach (var image in newImagesArray)
+            {
+                image.ProductId = productId;
+
+                if (currentImagesDict.ContainsKey(image.Id))
+                {
+                    //update
+                    var imgToUpdate = currentImagesDict[image.Id];
+                    imgToUpdate.Primary = image.Primary;
+                    if (image.BinData != null)
+                    {
+                        imgToUpdate.BinData = image.BinData;
+                    }
+                }
+                else
+                {
+                    //add
+                    image.Id = 0;
+                    ImagesSet.Attach(image);
+                    Context.Entry(image).State = EntityState.Added;
+                    if (image.BinData != null)
+                    {
+                        Context.Entry(image.BinData).State = EntityState.Added;
+                    }
+                }
+            }
+
+            var imgIdsToDelete = currentImagesDict.Keys.Except(newImagesArray.Select(x => x.Id));
+            var imagesToDelete = imgIdsToDelete
+                .Where(x => currentImagesDict.ContainsKey(x))
+                .Select(x => currentImagesDict[x]);
+
+            Context.RemoveRange(imagesToDelete);
+
 
             try
             {
@@ -492,18 +656,70 @@ namespace Website.Data.EF.Repositories
             if (descriptions.IsNullOrEmpty())
                 throw new ArgumentNullException(nameof(newDescriptions));
 
-            var oldDescs = await DescriptionsSet
-                .Where(x => x.ProductId == productId)
-                .ToListAsync(ct);
-
             foreach (var desc in descriptions)
             {
-                if (!oldDescs.Contains(desc))
+                desc.Id = 0;
+                DescriptionsSet.Attach(desc);
+                Context.Entry(desc).State = EntityState.Added;
+            }
+
+            try
+            {
+                await SaveChangesAsync(ct);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return OperationResult.Failure(ErrorDescriber.ConcurrencyFailure());
+            }
+            catch (DbUpdateException)
+            {
+                return OperationResult.Failure(ErrorDescriber.DbUpdateFailure());
+            }
+
+            return OperationResult.Success();
+        }
+
+        public async Task<OperationResult> UpdateProductDescriptions(int productId,
+            IEnumerable<Description> descriptionsToUpdate, CancellationToken ct = default(CancellationToken))
+        {
+            ct.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+            if (descriptionsToUpdate == null) throw new ArgumentNullException(nameof(descriptionsToUpdate));
+
+            var newDescsArray = descriptionsToUpdate as Description[] ?? descriptionsToUpdate.ToArray();
+
+            if (!(await ProductsSet.AnyAsync(x => x.Id == productId, ct)))
+            {
+                return OperationResult.Failure(ErrorDescriber.EntityNotFound("Продукт"));
+            }
+
+            var currentDescsDict = (await DescriptionsSet
+                .Where(x => x.ProductId == productId)
+                .ToDictionaryAsync(x => x.Id, ct));
+
+            foreach (var description in newDescsArray)
+            {
+                if (currentDescsDict.ContainsKey(description.Id))
                 {
-                    DescriptionsSet.Attach(desc);
-                    Context.Entry(desc).State = EntityState.Added;
+                    //update
+                    var descToUpdate = currentDescsDict[description.Id];
+                    descToUpdate.Value = description.Value;
+                }
+                else
+                {
+                    //add
+                    description.Id = 0;
+                    DescriptionsSet.Attach(description);
+                    Context.Entry(description).State = EntityState.Added;
                 }
             }
+
+            var descsIdToDelete = currentDescsDict.Keys.Except(newDescsArray.Select(x => x.Id));
+            var descsToDelete = descsIdToDelete
+                .Where(x => currentDescsDict.ContainsKey(x))
+                .Select(x => currentDescsDict[x]);
+
+            Context.RemoveRange(descsToDelete);
 
             try
             {
@@ -559,6 +775,25 @@ namespace Website.Data.EF.Repositories
             return OperationResult.Success();
         }
 
+        public async Task<IEnumerable<DescriptionGroup>> GetDescriptionGroupsAsync(CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+
+            return await DescGroupsSet.ToListAsync(cancellationToken);
+        }
+
+        public async Task<IEnumerable<DescriptionGroupItem>> GetDescriptionGroupItemsAsync(int groupId,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+
+            return await DescGroupItemsSet
+                .Where(x => x.DescriptionGroupId == groupId)
+                .ToListAsync(cancellationToken);
+        }
+
         public async Task<List<Description>> GetProductDescriptions(int productId,
             CancellationToken ct = default(CancellationToken))
         {
@@ -571,12 +806,13 @@ namespace Website.Data.EF.Repositories
                 throw new ArgumentException(nameof(productId));
             }
 
-            var descs = await DescriptionsSet
+            var descriptions = await DescriptionsSet
                 .Where(x => x.ProductId == productId)
-                .Include(x => x.DescriptionGroup)
+                .Include(x => x.DescriptionGroupItem)
+                .ThenInclude(x => x.DescriptionGroup)
                 .ToListAsync(ct);
 
-            return descs;
+            return descriptions;
         }
 
         public async Task<IEnumerable<DescriptionGroup>> GetAllDescriptionGroupsAsync(
@@ -585,7 +821,10 @@ namespace Website.Data.EF.Repositories
             ct.ThrowIfCancellationRequested();
             ThrowIfDisposed();
 
-            return await DescGroupsSet.ToListAsync(ct);
+            return await DescGroupsSet
+                .OrderBy(x => x.Name != "Общие характеристики")
+                .ThenBy(x => x.Name)
+                .ToListAsync(ct);
         }
 
         #endregion

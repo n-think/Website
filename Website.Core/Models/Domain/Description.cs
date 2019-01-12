@@ -4,12 +4,13 @@ namespace Website.Core.Models.Domain
 {
     public class Description : IEquatable<Description>
     {
-        public virtual int Id { get; set; }
-        public virtual string Value { get; set; }
-        public virtual int? ProductId { get; set; }
-        public virtual int? DescriptionGroupId { get; set; }
+        public int Id { get; set; }
+        public string Value { get; set; }
+        public int? ProductId { get; set; }
+        public int? DescriptionGroupItemId { get; set; }
+
+        public virtual DescriptionGroupItem DescriptionGroupItem { get; set; }
         public virtual Product Product { get; set; }
-        public virtual DescriptionGroup DescriptionGroup { get; set; }
 
         public override bool Equals(object obj)
         {
@@ -24,7 +25,7 @@ namespace Website.Core.Models.Domain
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
             return Id == other.Id && string.Equals(Value, other.Value) && ProductId == other.ProductId &&
-                   DescriptionGroupId == other.DescriptionGroupId;
+                   DescriptionGroupItemId == other.DescriptionGroupItemId;
         }
 
         public override int GetHashCode()
@@ -34,7 +35,7 @@ namespace Website.Core.Models.Domain
                 var hashCode = Id;
                 hashCode = (hashCode * 397) ^ (Value != null ? Value.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ ProductId.GetHashCode();
-                hashCode = (hashCode * 397) ^ DescriptionGroupId.GetHashCode();
+                hashCode = (hashCode * 397) ^ DescriptionGroupItemId.GetHashCode();
                 return hashCode;
             }
         }

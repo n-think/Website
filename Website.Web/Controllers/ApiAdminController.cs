@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Website.Core.Interfaces.Services;
@@ -36,7 +37,8 @@ namespace Website.Web.Controllers
         [Authorize(Policy = "ViewItems")]
         public async Task<IActionResult> DescriptionGroups()
         {
-            var descGroups = await _shopManager.GetAllDescriptionGroupsAsync();
+            var descGroups = (await _shopManager.GetAllDescriptionGroupsAsync())
+                .Select(x=>new {Id = x.Id,Name = x.Name, Description= x.Description});
             return Ok(descGroups);
         }
 
@@ -44,7 +46,7 @@ namespace Website.Web.Controllers
         [Authorize(Policy = "ViewItems")]
         public async Task<IActionResult> DescriptionItems(int groupId)
         {
-            var descItems = (await _shopManager.GetDescGroupFirstChildren(groupId))
+            var descItems = (await _shopManager.GetDescriptionItemsAsync(groupId))
                 .Select(x=>new {x.Id,x.Name});
             return Ok(descItems);
         }

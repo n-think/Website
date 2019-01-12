@@ -26,6 +26,7 @@ using Website.Core.Models.Domain;
 using Website.Data.EF;
 using Website.Data.EF.Repositories;
 using Website.Services.Infrastructure;
+using Website.Services.Infrastructure.Validators;
 
 namespace Website.Web
 {
@@ -49,7 +50,7 @@ namespace Website.Web
 
             services.AddAutoMapper(opt => { opt.AddProfile<WebsiteProfile>(); });
 
-            //services.AddOptions();//TODO remove if options below work without this
+            services.AddOptions();
             services.Configure<ShopManagerOptions>(options =>
             {
                 options.Image.SaveFormat = ImageFormat.Jpeg;
@@ -78,7 +79,7 @@ namespace Website.Web
                 .AddDefaultTokenProviders()
                 .AddErrorDescriber<RusIdentityErrorDescriberRes>()
                 .AddEntityFrameworkStores<WebsiteDbContext>();
-            
+
             AddMyServices(services);
 
             services.AddScoped<IUserClaimsPrincipalFactory<User>, MyUserClaimsPrincipalFactory>();
@@ -149,14 +150,14 @@ namespace Website.Web
         private void AddMyServices(IServiceCollection services)
         {
             services.AddTransient<
-                    IShopRepository<Product, Image, Category, DescriptionGroup, Description, Order>,
-                    ShopRepository>();
+                IShopRepository<Product, Image, ImageBinData, Category, DescriptionGroup, DescriptionGroupItem,
+                    Description, Order>, ShopRepository>();
             services.AddTransient<IUserStore<User>, UserRepository>();
 
             services.AddScoped<OperationErrorDescriber>();
             services.AddScoped<IUserManager, UserManager>();
             services.AddScoped<IShopManager, ShopManager>();
-            
+
             services.AddScoped<IShopValidator<Product>, ProductValidator>();
             services.AddScoped<IShopValidator<Image>, ImageValidator>();
             services.AddScoped<IShopValidator<Category>, CategoryValidator>();
@@ -165,11 +166,9 @@ namespace Website.Web
             services.AddScoped<IShopValidator<Order>, OrderValidator>();
             services.AddScoped<IShopValidator<Order>, OrderValidator>();
 
-            services.AddScoped<IShopImageTransformer<ImageBinData>, ShopImageTransformer>();
+            services.AddScoped<IShopImageTransformer<Image>, ShopImageTransformer>();
 
             services.AddTransient<IEmailSender, EmailSender>();
-
-            
         }
 
         private void AddPolicies(IServiceCollection services)

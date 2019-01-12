@@ -1,33 +1,22 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Threading.Tasks;
-using Castle.Core.Internal;
 using Website.Core.Infrastructure;
 using Website.Core.Interfaces.Services;
-using Website.Core.Models.Domain;
 using Image = Website.Core.Models.Domain.Image;
 
-namespace Website.Services.Infrastructure
+namespace Website.Services.Infrastructure.Validators
 {
     public class ImageValidator : IShopValidator<Image>
     {
-        public ImageValidator(OperationErrorDescriber errorDescriber)
-        {
-            ErrorDescriber = errorDescriber ?? new OperationErrorDescriber();
-        }
-
-        private OperationErrorDescriber ErrorDescriber { get; set; }
-
         public async Task<OperationResult> ValidateAsync(IShopManager manager, Image img)
         {
             if (manager == null) throw new ArgumentNullException(nameof(manager));
             if (img?.BinData == null) throw new ArgumentNullException(nameof(img));
 
             var errors = new List<OperationError>();
-            await Task.Run(() => ValidateProductImages(manager.Options.Image, img, errors));
+            await Task.Run(() => ValidateImage(manager.Options.Image, img, manager, errors));
 
             if (errors.Count > 0)
             {
@@ -37,28 +26,29 @@ namespace Website.Services.Infrastructure
             return OperationResult.Success();
         }
 
-        private void ValidateProductImages(ImageOptions options, Image img, ICollection<OperationError> errors)
+        private void ValidateImage(ImageOptions options, Image img, IShopManager manager,
+            ICollection<OperationError> errors)
         {
-
-            if (!IsValidImage(img.BinData.FullData, options.SaveFormat) ||
-                !IsValidImage(img.BinData.FullData, options.SaveFormat))
+            if (img.ProductId <= 0)
             {
-                errors.Add(ErrorDescriber.InvalidImageFormat());
+                errors.Add(manager.ErrorDescriber.InvalidModel());
+                return;
+            }
+            
+            if (!IsValidImage(img.BinData.FullData))
+            {
+                errors.Add(manager.ErrorDescriber.InvalidImageFormat());
                 return;
             }
         }
 
-        public bool IsValidImage(byte[] bytes, ImageFormat format)
+        public bool IsValidImage(byte[] bytes)
         {
             try
             {
                 using (var ms = new MemoryStream(bytes))
                 {
                     var img = System.Drawing.Image.FromStream(ms);
-                    if (!img.RawFormat.Equals(format))
-                    {
-                        return false;
-                    }
                 }
             }
             catch (ArgumentException)
