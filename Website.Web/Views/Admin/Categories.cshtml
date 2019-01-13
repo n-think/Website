@@ -2,11 +2,21 @@
     ViewData["Title"] = "Категории";
     ViewData.AddActivePage(AdminNavPages.Categories);
 }
+@using Castle.Core.Internal
 @using Microsoft.AspNetCore.Html
 @using Website.Web.Infrastructure.TreeHelper
 @model IEnumerable<Website.Web.Infrastructure.TreeHelper.CategoryDtoTreeItem>
 
 <h2>Категории</h2>
+@if (!(TempData["Message"] as string).IsNullOrEmpty())
+{
+    <div class="alert alert-warning alert-dismissible">
+        @TempData["Message"]
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+}
 <div class="row">
     <div class="col-lg-6" style="overflow-y: scroll; max-height: 35rem;">
         <div class="tree m-1">
@@ -15,59 +25,71 @@
     </div>
     <div class="col-lg-6">
         <div class="mb-2">
-            <div>
-                <span class="h3">Информация о категории</span>
-                <span id="cat-view-controls" class="d-none" style="vertical-align: top">
-                    <span id="edit-cat" class="btn-pushy btn btn-outline-primary fa fa-pencil" style="vertical-align: top"></span>
-                    <span id="remove-cat" class="btn-pushy btn btn-outline-danger fa fa-remove" style="vertical-align: top"></span>
-                </span>
-                <span id="cat-edit-controls" class="d-none">
-                    <span id="save-edit-cat" class="btn-pushy btn btn-outline-success fa fa-check" style="vertical-align: top"></span>
-                    <span id="cancel-edit-cat" class="btn-pushy btn btn-outline-primary fa fa-undo" style="vertical-align: top"></span>
-                </span>
-            </div>
-            <div id="view-edit-message" class="d-none"></div>
-            <div class="mb-2">
-                <label for="cat-id-preview">Id:</label>
-                <input id="cat-id-preview" class="form-control" readonly placeholder="Выберите категорию для отображения информации">
-            </div>
-            <div class="mb-2">
-                <label for="cat-name-preview">Имя:</label>
-                <input id="cat-name-preview" class="form-control cat-input-edit" readonly placeholder="Выберите категорию для отображения информации">
-            </div>
-            <div class="mb-2">
-                <label for="cat-desc-preview">Описание (отображается только администраторам):</label>
-                <input id="cat-desc-preview" class="form-control cat-input-edit" readonly placeholder="Выберите категорию для отображения информации">
-            </div>
-            <div class="mb-2">
-                <label for="cat-parent-preview">Родительская категория:</label>
-                <input id="cat-parent-preview" class="form-control cat-input-edit" readonly placeholder="Выберите категорию для отображения информации">
-                <div id="edit-category-select-container" class="d-none">
-                    <select id="edit-category-select" class="selectpicker" data-live-search="true" data-live-search-normalize="true" data-live-search-style="contains"
-                            data-style="btn-outline-primary edit-category-btn"  title="Выбрать категорию" data-live-search-placeholder="Поиск">
-                        @foreach (var cat in Model)
-                        {
-                            foreach (var item in TreeHelper.GetNodeAndChildren(cat))
-                            {
-                                <option value="@item.Id" data-subtext="@item.Description">@item.Name</option>
-                            }
-                        }
-                    </select>
+            <form class="" asp-controller="Admin" asp-action="EditCategory">
+                <div>
+                    <span class="h3">Информация о категории</span>
+                    <span id="cat-view-controls" class="d-none" style="vertical-align: top">
+                        <span id="edit-cat" class="btn-pushy btn btn-outline-primary fa fa-pencil" style="vertical-align: top"></span>
+                        <a id="remove-cat-anchor">
+                            <span id="remove-cat" class="btn-pushy btn btn-outline-danger fa fa-remove" style="vertical-align: top"></span>
+                        </a>
+                    </span>
+                    <span id="cat-edit-controls" class="d-none">
+                        @* <span id="save-edit-cat" class="btn-pushy btn btn-outline-success fa fa-check" style="vertical-align: top"></span> *@
+                        <button type="submit" class="btn-pushy btn btn-outline-success btn-sm" style="vertical-align: top">
+                            <span id="save-edit-cat" class="mx-1 fa fa-check"></span>
+                        </button>
+                        <span id="cancel-edit-cat" class="btn-pushy btn btn-outline-primary fa fa-undo" style="vertical-align: top"></span>
+                    </span>
                 </div>
-            </div>
+                <div id="view-edit-message" class="d-none"></div>
+                <div class="mb-2">
+                    <label for="cat-id-preview">Id:</label>
+                    <input id="cat-id-preview" name="Id" class="form-control" readonly placeholder="Выберите категорию для отображения информации">
+                </div>
+                <div class="mb-2">
+                    <label for="cat-name-preview">Имя:</label>
+                    <input id="cat-name-preview" name="Name" class="form-control cat-input-edit" readonly placeholder="Выберите категорию для отображения информации"
+                           required data-val-required="Необходимо ввести имя категории." data-val="true">
+                    <span class="field-validation-valid text-danger" data-valmsg-for="Name" data-valmsg-replace="true"></span>
+                </div>
+                <div class="mb-2">
+                    <label for="cat-desc-preview">Описание (отображается только администраторам):</label>
+                    <input id="cat-desc-preview" name="Description" class="form-control cat-input-edit" readonly placeholder="Выберите категорию для отображения информации">
+                </div>
+                <div class="mb-2">
+                    <label for="cat-parent-preview">Родительская категория:</label>
+                    <input id="cat-parent-preview" class="form-control cat-input-edit" readonly placeholder="Выберите категорию для отображения информации">
+                    <div id="edit-category-select-container" class="d-none">
+                        <select id="edit-category-select" name="ParentId" class="selectpicker" data-live-search="true" data-live-search-normalize="true" data-live-search-style="contains"
+                                data-style="btn-outline-primary edit-category-btn" title="Выбрать категорию" data-live-search-placeholder="Поиск">
+                            <option value="">*отсутствует*</option>
+                            @foreach (var cat in Model)
+                            {
+                                foreach (var item in TreeHelper.GetNodeAndChildren(cat))
+                                {
+                                    <option value="@item.Id" data-subtext="@item.Description">@item.Name</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+            </form>
         </div>
         <div>
-            <div>
-                <span class="h3">Добавить категорию</span>
-                <span id="add-cat" class="btn-pushy btn btn-outline-success fa fa-check"></span>
-                <span id="reset-cat" class="btn-pushy btn btn-outline-primary fa fa-undo"></span>
-            </div>
-            <div id="add-message" class="d-none"></div>
-            <form class="">
-                <input id="cat-name" class="form-control my-2" placeholder="Имя">
-                <input id="cat-desc" class="form-control my-2" placeholder="Описание (отображается только администраторам)">
+            <form class="" asp-controller="Admin" asp-action="AddCategory">
+                <div>
+                    <span class="h3">Добавить категорию</span>
+                    <button type="submit" class="btn-pushy btn btn-outline-success btn-sm">
+                        <span id="add-cat" class=" fa fa-check"></span>
+                    </button>
+                    @* <span id="reset-cat" class="btn-pushy btn btn-outline-primary fa fa-undo"></span> *@
+                </div>
+                <input id="cat-name" name="Name" class="form-control my-2" placeholder="Имя" required data-val-required="Необходимо ввести имя категории." data-val="true">
+                <span class="field-validation-valid text-danger" data-valmsg-for="Name" data-valmsg-replace="true"></span>
+                <input id="cat-desc" name="Description" class="form-control my-2" placeholder="Описание (отображается только администраторам)">
                 <label class="d-block">Родительская категория:</label>
-                <select id="add-category-select" class="selectpicker" data-live-search="true" data-live-search-normalize="true" data-live-search-style="contains"
+                <select id="add-category-select" name="ParentId" class="selectpicker" data-live-search="true" data-live-search-normalize="true" data-live-search-style="contains"
                         data-style="btn-outline-primary add-category-btn" title="Выбрать категорию" data-live-search-placeholder="Поиск">
                     @foreach (var cat in Model)
                     {

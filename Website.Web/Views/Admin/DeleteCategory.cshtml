@@ -1,0 +1,27 @@
+@model Website.Web.Models.DTO.CategoryDto
+
+@{
+    ViewBag.Title = "Подтвердить удаление категории";
+}
+<div>
+    <form asp-controller="Admin" asp-action="DeleteCategoryConfirm" method="post">
+        <span class="h3">Подтвердите удаление категории</span>
+        <span id="controls" class="">
+            <button class="btn btn-outline-danger" type="submit">Удалить<span class="fa fa-check ml-2"></span></button>
+            <a asp-action="Categories" class="btn btn-outline-success">Отмена<span class="fa fa-remove ml-2"></span></a>
+        </span>
+        <div asp-validation-summary="All" class="text-danger"></div>
+        <div class="mb-2">
+            <label for="Name">Id:</label>
+            <input id="Id" name="Id" class="form-control" readonly value="@Model.Id">
+        </div>
+        <div class="mb-2">
+            <label for="Name">Имя:</label>
+            <input id="Name" name="Name" class="form-control" readonly value="@Model.Name">
+        </div>
+        <div class="mb-2">
+            <label for="Description">Описание (отображается только администраторам):</label>
+            <input id="Description" name="Description" class="form-control" readonly value="@Model.Description">
+        </div>
+    </form>
+</div>

@@ -19,7 +19,7 @@ using Website.Core.Models.Domain;
 
 namespace Website.Data.EF.Repositories
 {
-    public class ShopRepository : IShopRepository<Product, Image, ImageBinData, Category, DescriptionGroup,
+    public class ShopRepository : IShopRepository<Product, Image, ImageBinData, Category, ProductToCategory, DescriptionGroup,
         DescriptionGroupItem,
         Description, Order>
     {
@@ -49,6 +49,7 @@ namespace Website.Data.EF.Repositories
         private DbSet<Description> DescriptionsSet => Context.Set<Description>();
         public IQueryable<Product> ProductsQueryable => ProductsSet.AsQueryable();
         public IQueryable<Category> CategoriesQueryable => CategoriesSet.AsQueryable();
+        public IQueryable<ProductToCategory> ProductCategoriesQueryable => Context.Set<ProductToCategory>().AsQueryable();
         public IQueryable<Image> ImagesQueryable => ImagesSet.AsQueryable();
         public IQueryable<ImageBinData> ImageDataQueryable => Context.Set<ImageBinData>().AsQueryable();
         public IQueryable<Description> DescriptionsQueryable => DescriptionsSet.AsQueryable();
@@ -263,6 +264,14 @@ namespace Website.Data.EF.Repositories
             return OperationResult.Success();
         }
 
+        public async Task<Category> FindCategoryByIdAsync(int categoryId, CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+
+            return await CategoriesSet.FindAsync(new object[] {categoryId}, ct);
+        }
+
         public async Task<Category> FindCategoryByNameAsync(string categoryName,
             CancellationToken ct = default(CancellationToken))
         {
@@ -288,8 +297,19 @@ namespace Website.Data.EF.Repositories
                 throw new ArgumentNullException(nameof(category));
             }
 
-            CategoriesSet.Attach(category);
-            Context.Entry(category).State = EntityState.Modified;
+            var existing = await CategoriesSet.FindAsync(new object[] {category.Id}, ct);
+            if (existing == null)
+            {
+                CategoriesSet.Attach(category);
+                Context.Entry(category).State = EntityState.Modified;
+            }
+            else
+            {
+                existing.Name = category.Name;
+                existing.Description = category.Description;
+                existing.ParentId = category.ParentId;
+            }
+            
             try
             {
                 await SaveChangesAsync(ct);
@@ -306,22 +326,19 @@ namespace Website.Data.EF.Repositories
             return OperationResult.Success();
         }
 
-        public async Task<OperationResult> DeleteCategoryAsync(Category category,
+        public async Task<OperationResult> DeleteCategoryAsync(int categoryId,
             CancellationToken ct = default(CancellationToken))
         {
             ct.ThrowIfCancellationRequested();
             ThrowIfDisposed();
-            if (category == null)
-                throw new ArgumentNullException(nameof(category));
 
-            var entry = await CategoriesSet.FindAsync(new[] {category.Id}, ct);
+            var entry = await CategoriesSet.FindAsync(new Object[] {categoryId}, ct);
             if (entry == null)
             {
                 return OperationResult.Failure(ErrorDescriber.EntityNotFound("Категория"));
             }
-
-            CategoriesSet.Attach(category);
-            Context.Entry(category).State = EntityState.Deleted;
+            
+            Context.Entry(entry).State = EntityState.Deleted;
             try
             {
                 await SaveChangesAsync(ct);

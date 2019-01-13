@@ -22,7 +22,8 @@ namespace Website.Services.Services
     public class ShopManager : IShopManager, IDisposable
     {
         public ShopManager(
-            IShopRepository<Product, Image, ImageBinData, Category, DescriptionGroup, DescriptionGroupItem,
+            IShopRepository<Product, Image, ImageBinData, Category, ProductToCategory, DescriptionGroup,
+                DescriptionGroupItem,
                 Description, Order> repository,
             ILogger<ShopManager> logger,
             IHttpContextAccessor context,
@@ -77,8 +78,8 @@ namespace Website.Services.Services
                                new ShopImageTransformer(optionsAccessor);
         }
 
-        private readonly IShopRepository<Product, Image, ImageBinData, Category, DescriptionGroup, DescriptionGroupItem,
-            Description, Order> _repository;
+        private readonly IShopRepository<Product, Image, ImageBinData, Category, ProductToCategory, DescriptionGroup,
+            DescriptionGroupItem, Description, Order> _repository;
 
         public OperationErrorDescriber ErrorDescriber { get; }
         private readonly ILogger<ShopManager> _logger;
@@ -166,7 +167,7 @@ namespace Website.Services.Services
                         return result;
                     }
                 }
-                
+
                 if (!imagesArray.IsNullOrEmpty())
                 {
                     result = await _repository.CreateImagesAsync(product.Id, imagesArray, CancellationToken);
@@ -412,6 +413,100 @@ namespace Website.Services.Services
                 .Select(x => (x.category, x.count));
         }
 
+        public async Task<Category> GetCategoryByIdAsync(int id)
+        {
+            ThrowIfDisposed();
+            return await _repository.FindCategoryByIdAsync(id, CancellationToken);
+        }
+
+        public async Task<Category> GetCategoryByNameAsync(string categoryName)
+        {
+            ThrowIfDisposed();
+            if (categoryName == null) throw new ArgumentNullException(nameof(categoryName));
+
+            return await _repository.FindCategoryByNameAsync(categoryName, CancellationToken);
+        }
+
+        public async Task<OperationResult> CreateCategoryAsync(Category category)
+        {
+            ThrowIfDisposed();
+            if (category == null) throw new ArgumentNullException(nameof(category));
+
+            var result = await Validate(new[] {category}, CategoryValidators);
+            if (!result.Succeeded)
+            {
+                return result;
+            }
+
+            result = await _repository.CreateCategoryAsync(category, CancellationToken);
+            if (!result.Succeeded)
+            {
+                return result;
+            }
+            return OperationResult.Success();
+        }
+
+        public async Task<OperationResult> UpdateCategoryAsync(Category category)
+        {
+            ThrowIfDisposed();
+            if (category == null) throw new ArgumentNullException(nameof(category));
+
+            var result = await Validate(new[] {category}, CategoryValidators);
+            if (!result.Succeeded)
+            {
+                return result;
+            }
+
+            result = await _repository.UpdateCategoryAsync(category, CancellationToken);
+            if (!result.Succeeded)
+            {
+                return result;
+            }
+            return OperationResult.Success();
+        }
+
+        public async Task<OperationResult> DeleteCategoryAsync(int id)
+        {
+            ThrowIfDisposed();
+            
+            var category = await _repository.CategoriesQueryable
+                .Where(x => x.Id == id)
+                .Include(x => x.Children)
+                .FirstOrDefaultAsync(CancellationToken);
+
+            if (category == null)
+            {
+                return OperationResult.Failure(ErrorDescriber.EntityNotFound("Категория"));
+            }
+
+            if (_repository.ProductCategoriesQueryable.Any(x => x.CategoryId == id))
+            {
+                return OperationResult.Failure(ErrorDescriber.CannotDeleteCategoryWithProducts());
+            }
+
+            using (var tran = _repository.BeginTransaction())
+            {
+                foreach (var child in category.Children.ToList()) //to list or "Collection was modified; enumeration operation may not execute. exception"
+                {
+                    child.ParentId = category.ParentId;
+                    var updateRes = await _repository.UpdateCategoryAsync(child, CancellationToken);
+                    if (!updateRes.Succeeded)
+                    {
+                        return updateRes;
+                    }
+                }
+
+                var result = await _repository.DeleteCategoryAsync(id, CancellationToken);
+                if (!result.Succeeded)
+                {
+                    return result;
+                }
+                tran.Commit();
+            }
+
+            return OperationResult.Success();
+        }
+
         public async Task<IEnumerable<DescriptionGroup>> GetAllDescriptionGroupsAsync()
         {
             ThrowIfDisposed();
@@ -474,13 +569,11 @@ namespace Website.Services.Services
             {
                 foreach (var item in itemArray)
                 {
-                    if (predicateBeforeValidation?.Invoke(item) ?? true)
+                    if (!(predicateBeforeValidation?.Invoke(item) ?? true)) continue;
+                    var result = await validator.ValidateAsync(this, item);
+                    if (!result.Succeeded)
                     {
-                        var result = await validator.ValidateAsync(this, item);
-                        if (!result.Succeeded)
-                        {
-                            errors.AddRange(result.Errors);
-                        }
+                        errors.AddRange(result.Errors);
                     }
                 }
             }

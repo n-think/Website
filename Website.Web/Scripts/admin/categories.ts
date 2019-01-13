@@ -12,11 +12,10 @@ module categories {
 
         //edit buttons
         $("#edit-cat").on("click", categoryEdit);
-        $("#remove-cat").on("click", categoryRemove);
-        $("#save-edit-cat").on("click", categorySaveEdit);
+        // $("#remove-cat").on("click", categoryRemove);
+        // $("#save-edit-cat").on("click", categorySaveEdit);
         $("#cancel-edit-cat").on("click", categoryCancelEdit);
     }
-
 
     let currCatViewId = "";
     let catViewControls = $("#cat-view-controls");
@@ -36,13 +35,13 @@ module categories {
             .selectpicker("refresh");
     }
 
-    function categoryRemove() {
-
-    }
-
-    function categorySaveEdit() {
-
-    }
+    // function categoryRemove() {
+    //
+    // }
+    //
+    // function categorySaveEdit() {
+    //
+    // }
 
     function categoryCancelEdit() {
         editActive = false;
@@ -65,7 +64,8 @@ module categories {
             categoryCancelEdit();
         }
         let thisCat = $(this);
-        $("#cat-id-preview").val(thisCat.data("id"));
+        let id = thisCat.data("id");
+        $("#cat-id-preview").val(id);
         $("#cat-name-preview").val(thisCat.data("name"));
         $("#cat-desc-preview").val(thisCat.data("desc"));
         let parent = thisCat.parent().parent().prev();
@@ -79,6 +79,7 @@ module categories {
                 .data("id", parent.data("id"));
         }
         $("#cat-view-controls").removeClass("d-none");
+        $("#remove-cat-anchor").attr("href",`/admin/deleteCategory/${id}`);
     }
 
     function viewParentCategory() {

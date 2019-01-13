@@ -274,24 +274,24 @@ namespace Website.Web.Controllers
                 if (viewModel.Categories != null)
                 {
                     catsIds = viewModel.Categories
-                        .Where(x=>x.DtoState != DtoState.Deleted)
-                        .Select(x=> x.Id);
+                        .Where(x => x.DtoState != DtoState.Deleted)
+                        .Select(x => x.Id);
                 }
-                
+
                 var descs = Enumerable.Empty<Description>();
                 if (viewModel.Categories != null)
                 {
                     descs = _mapper.Map<IEnumerable<Description>>(viewModel.DescriptionGroups
-                        .SelectMany(x => x.DescriptionItems?.Where(i=>i.DtoState != DtoState.Deleted)));
+                        .SelectMany(x => x.DescriptionItems?.Where(i => i.DtoState != DtoState.Deleted)));
                 }
-                                
+
                 var images = Enumerable.Empty<Image>();
                 if (viewModel.Categories != null)
                 {
                     images = _mapper.Map<IEnumerable<Image>>(viewModel.Images?
                         .Where(x => x.DtoState != DtoState.Deleted));
                 }
-                
+
                 if (viewModel.CreateItem)
                 {
                     result = await _shopManager.CreateProductAsync(product, images, catsIds, descs);
@@ -380,9 +380,90 @@ namespace Website.Web.Controllers
 
         [HttpPost]
         [Authorize(Policy = "EditItems")]
-        public IActionResult EditCategories()
+        public async Task<IActionResult> AddCategory(CategoryDto categoryDto)
         {
-            return Ok();
+            if (categoryDto == null)
+            {
+                return RedirectToAction("Categories");
+            }
+
+            var category = _mapper.Map<Category>(categoryDto);
+            
+            OperationResult result = await _shopManager.CreateCategoryAsync(category);
+            if (!result.Succeeded)
+            {
+                TempData["Message"] = string.Join(Environment.NewLine, result.Errors.Select(x => x.Description));
+            }
+            else
+            {
+                TempData["Message"] = $"Категория \"{category.Name}\" успешно добавлена.";
+            }
+
+            return RedirectToAction("Categories");
+        }
+
+
+        [HttpPost]
+        [Authorize(Policy = "EditItems")]
+        public async Task<IActionResult> EditCategory(CategoryDto categoryDto)
+        {
+            if (categoryDto == null)
+            {
+                return RedirectToAction("Categories");
+            }
+            
+            var category = _mapper.Map<Category>(categoryDto);
+            
+            OperationResult result = await _shopManager.UpdateCategoryAsync(category);
+            if (!result.Succeeded)
+            {
+                TempData["Message"] = string.Join(Environment.NewLine, result.Errors.Select(x => x.Description));
+            }
+            else
+            {
+                TempData["Message"] = $"Категория \"{category.Name}\" успешно изменена.";
+            }
+            
+            return RedirectToAction("Categories");
+        }
+
+
+        [HttpGet("{id:required:int:min(0)}")]
+        [Authorize(Policy = "EditItems")]
+        public async Task<IActionResult> DeleteCategory(int id)
+        {
+            var category = await _shopManager.GetCategoryByIdAsync(id);
+            if (category == null)
+            {
+                return View("Error", new ErrorViewModel {Message = $"Категория с id {id} не найдена."});
+            }
+
+            var catDto = _mapper.Map<CategoryDto>(category);
+            return View(catDto);
+        }
+
+        [HttpPost]
+        [Authorize(Policy = "EditItems")]
+        public async Task<IActionResult> DeleteCategoryConfirm(CategoryDto category)
+        {
+            if (category == null)
+            {
+                return RedirectToAction("Categories");
+            }
+
+            var result = await _shopManager.DeleteCategoryAsync(category.Id);
+            if (!result.Succeeded)
+            {
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(error.Code, error.Description);
+                }
+
+                return View("DeleteCategory", category);
+            }
+
+            TempData["Message"] = $"Категория \"{category.Name}\" успешно удалена.";
+            return RedirectToAction("Categories");
         }
 
         public IActionResult DescriptionGroups()

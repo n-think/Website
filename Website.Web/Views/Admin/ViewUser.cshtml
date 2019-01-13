@@ -7,7 +7,12 @@
 <h2>Просмотр пользователя</h2>
 @if (!(TempData["Message"] as string).IsNullOrEmpty())
 {
-    <div class="alert alert-success">@TempData["Message"]</div>
+    <div class="alert alert-success alert-dismissible">
+        @TempData["Message"]
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
 }
 <a class="btn btn-outline-primary my-2" asp-area="" asp-route-id="@Model.Id" asp-action="EditUser">Редактировать</a>
 

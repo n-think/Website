@@ -41,7 +41,7 @@ module productEdit {
 
     function validateAndSubmitJson() {
         let editForm = $("#edit-form");
-        let result = editForm.validate().valid();
+        let result = editForm.valid();
         if (!result)
             return;
         let data = editForm.serializeArray();

@@ -74,7 +74,8 @@ namespace Website.Data.EF
                 entity.Property(e => e.Timestamp).IsRowVersion();
                 entity.HasOne(e => e.Parent)
                     .WithMany(e => e.Children)
-                    .HasForeignKey(e => e.ParentId);
+                    .HasForeignKey(e => e.ParentId)
+                    .OnDelete(DeleteBehavior.Restrict);
                 entity.ToTable("Categories", "Production");
             });
             

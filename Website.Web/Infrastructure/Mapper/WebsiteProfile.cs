@@ -30,7 +30,8 @@ namespace Website.Web.Infrastructure.Mapper
                 .ForMember(dest => dest.Categories,
                     opt => opt.MapFrom(x => x.ProductToCategory.Select(y => y.Category)));
 
-            CreateMap<Category, CategoryDto>();
+            CreateMap<Category, CategoryDto>().ReverseMap();
+            
             CreateMap<EditItemViewModel, Product>()
                 .ForMember(x => x.Images, opt => opt.Ignore())
                 .ForMember(x => x.ProductToCategory, opt => opt.Ignore())

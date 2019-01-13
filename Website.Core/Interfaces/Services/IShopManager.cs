@@ -26,6 +26,12 @@ namespace Website.Core.Interfaces.Services
         Task<SortPageResult<Product>> GetSortFilterPageAsync(ItemTypeSelector types, string search, string sortOrder, int currPage, int countPerPage);
         Task<IEnumerable<Category>> GetAllCategoriesAsync();
         Task<IEnumerable<(Category, int)>> GetAllCategoriesWithProductCountAsync();
+        Task<Category> GetCategoryByIdAsync(int id);
+        Task<Category> GetCategoryByNameAsync(string categoryName);
+        Task<OperationResult> CreateCategoryAsync(Category category);
+        Task<OperationResult> UpdateCategoryAsync(Category category);
+        Task<OperationResult> DeleteCategoryAsync(int id);
+        
         Task<IEnumerable<DescriptionGroup>> GetAllDescriptionGroupsAsync();
         Task<IEnumerable<DescriptionGroupItem>> GetDescriptionItemsAsync(int groupId);
         

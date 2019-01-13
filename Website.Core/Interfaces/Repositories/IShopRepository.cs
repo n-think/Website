@@ -11,11 +11,12 @@ using Website.Core.Models.Domain;
 namespace Website.Core.Interfaces.Repositories
 {
     public interface
-        IShopRepository<TProduct, TImage,TImageData, TCategory, TDescriptionGroup, TDescriptionGroupItem, TDescription, TOrder> : IDisposable
+        IShopRepository<TProduct, TImage, TImageData, TCategory, TProductCategory, TDescriptionGroup, TDescriptionGroupItem, TDescription, TOrder> : IDisposable
         where TProduct : class
         where TImage : class
         where TImageData : class
         where TCategory : class
+        where TProductCategory : class
         where TDescriptionGroup : class
         where TDescription : class
         where TOrder : class
@@ -48,10 +49,12 @@ namespace Website.Core.Interfaces.Repositories
         #region categories
 
         IQueryable<TCategory> CategoriesQueryable { get; }
+        IQueryable<TProductCategory> ProductCategoriesQueryable { get; }
         Task<OperationResult> CreateCategoryAsync(TCategory category, CancellationToken cancellationToken);
+        Task<TCategory> FindCategoryByIdAsync(int categoryId, CancellationToken cancellationToken);
         Task<TCategory> FindCategoryByNameAsync(string categoryName, CancellationToken cancellationToken);
         Task<OperationResult> UpdateCategoryAsync(TCategory category, CancellationToken cancellationToken);
-        Task<OperationResult> DeleteCategoryAsync(TCategory category, CancellationToken cancellationToken);
+        Task<OperationResult> DeleteCategoryAsync(int categoryId, CancellationToken cancellationToken);
         Task<IEnumerable<Category>> GetAllCategoriesAsync(CancellationToken cancellationToken);
 
         Task<OperationResult> AddProductCategoriesAsync(int productId, IEnumerable<int> categoryIds,

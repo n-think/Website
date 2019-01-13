@@ -150,8 +150,8 @@ namespace Website.Web
         private void AddMyServices(IServiceCollection services)
         {
             services.AddTransient<
-                IShopRepository<Product, Image, ImageBinData, Category, DescriptionGroup, DescriptionGroupItem,
-                    Description, Order>, ShopRepository>();
+                IShopRepository<Product, Image, ImageBinData, Category,  ProductToCategory, DescriptionGroup,
+                    DescriptionGroupItem, Description, Order>, ShopRepository>();
             services.AddTransient<IUserStore<User>, UserRepository>();
 
             services.AddScoped<OperationErrorDescriber>();
