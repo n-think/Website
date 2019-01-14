@@ -26,7 +26,7 @@ module productEdit {
             .on("click", ".product-desc-group-btn", loadProductDescGroupDropdown)
             .on("click", ".add-desc-group", addDescGroup)
             .on("click", ".remove-desc-group", removeDescGroup)
-            .on("click", ".product-desc-group-items-btn", loadProductDescGroupItemsDropdown)
+            .on("click", ".desc-group-items-btn", loadProductDescGroupItemsDropdown)
             .on("click", ".add-desc-group-item", addDescGroupItem)
             .on("click", ".remove-desc-group-item", removeDescGroupItem)
             .on("click", ".edit-desc-group-item", editDescItem)
@@ -307,7 +307,7 @@ module productEdit {
         let loadingBar = $("<div>").attr("id", "cat-loading").addClass("text-center mt-1").text("Загрузка")
             .append($("<span>").addClass("fa fa-spinner fa-spin ml-2"));
         $.ajax({
-            type: "GET",
+            method: "GET",
             url: "/api/admin/Categories",
             beforeSend: function (jqXHR) {
                 $(".bootstrap-select>.category-btn+.dropdown-menu>.inner")
@@ -369,7 +369,7 @@ module productEdit {
         let loadingBar = $("<div>").attr("id", "desc-group-loading").addClass("text-center mt-1").text("Загрузка")
             .append($("<span>").addClass("fa fa-spinner fa-spin ml-2"));
         $.ajax({
-            type: "GET",
+            method: "GET",
             url: "/api/admin/DescriptionGroups",
             beforeSend: function (jqXHR) {
                 $(".bootstrap-select>.desc-group-btn+.dropdown-menu>.inner")
@@ -377,13 +377,10 @@ module productEdit {
             },
             success: function (response) {
                 response.forEach(function (item) {
-                    $("#desc-group-select").append($("<option>",
-                        {
-                            "value": item.id,
-                            "data-subtext": item.description,
-                            "text": item.name
-                        }
-                    ));
+                    $("#desc-group-select").append($("<option>")
+                        .val(item.id)
+                        .data("subtext", item.description)
+                        .text(item.name));                    
                 });
                 loadingBar.remove();
                 $("#desc-group-select").selectpicker("refresh");
@@ -451,7 +448,10 @@ title="Добавить описание" data-live-search-placeholder="Поис
     }
 
     function loadProductDescGroupItemsDropdown() {
-        let loadingBar = $("<div>").attr("id", "desc-group-items-loading").addClass("text-center mt-1").text("Загрузка")
+        let loadingBar = $("<div>")
+            .attr("id", "desc-group-items-loading")
+            .addClass("text-center mt-1")
+            .text("Загрузка")
             .append($("<span>").addClass("fa fa-spinner fa-spin ml-2"));
         let container = $(this).closest(".desc-group");
         let id = container.data("id");

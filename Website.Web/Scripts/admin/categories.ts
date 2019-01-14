@@ -51,6 +51,12 @@ module categories {
         catEditControls.addClass("d-none");
         $("#cat-parent-preview").removeClass("d-none");
         $("#edit-category-select-container").addClass("d-none");
+
+        // $("#edit-form").validate().resetForm(); //not working =\
+        //hack to hide val error from prev edit
+        $("#cat-name-preview-error").remove();
+        $("#edit-form").find("input")
+            .removeClass("is-valid is-invalid input-validation-error");        
     }
 
     function categoryExpanderToggle() {
@@ -63,6 +69,7 @@ module categories {
         if (editActive) {
             categoryCancelEdit();
         }
+        
         let thisCat = $(this);
         let id = thisCat.data("id");
         $("#cat-id-preview").val(id);

@@ -13,6 +13,10 @@ namespace Website.Web.Models.AdminViewModels
         public int CountPerPage { get; set; }
         public int Types { get; set; }
         public int ItemCount { get; set; }
+        
+        public int[] CategoryIds { get; set; }
+        
+        public int[] DescGroupIds { get; set; }
         #endregion
 
         public IEnumerable<ProductDto> Items { get; set; }

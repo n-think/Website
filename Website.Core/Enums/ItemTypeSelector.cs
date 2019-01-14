@@ -6,9 +6,9 @@ namespace Website.Core.Enums
     {
         [Display(Name = "Все")]
         All,
-        [Display(Name = "В магазине")]
+        [Display(Name = "В магазине (доступен)")]
         Enabled,
-        [Display(Name = "Не в магазине")]
+        [Display(Name = "Не в магазине (не доступен)")]
         Disabled
     }
 }

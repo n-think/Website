@@ -1,5 +1,4 @@
-﻿
-@{
+﻿@{
     ViewData["Title"] = "Товары";
     ViewData.AddActivePage(AdminNavPages.Items);
 }
@@ -9,8 +8,18 @@
 
 <form id="admin-search-form" asp-action="Items" method="get">
     <div class="form-inline form-group">
-        <input class="form-control mr-2 mb-1" placeholder="Поиск товаров" type="text" name="s" value="@Model.CurrentSearch" />
-        @Html.DropDownList("st", Html.GetEnumSelectList<ItemTypeSelector>(), new { @class = "form-control mr-2 mb-1  admin-selector" })
+        <input class="form-control mr-2 mb-1" placeholder="Поиск товаров" type="text" name="s" value="@Model.CurrentSearch"/>
+        Категории:&nbsp;
+        <select id="category-selector" multiple data-style="form-control mr-2 mb-1 category-selector"
+                data-actions-box="true" data-live-search="true" name="cat" class="selectpicker category-picker">
+            @foreach (var category in Model.Categories)
+            {
+                <!option @((Model.CategoryIds?.Contains(category.Id)).GetValueOrDefault() ? "selected" : "") data-subtext="@category.Description" value="@category.Id">@category.Name</!option>
+            }
+        </select>
+        @Html.DropDownList("st", Html.GetEnumSelectList<ItemTypeSelector>(),
+            new {@class = "form-control mx-2 mb-1 admin-selector"})
+        <input class="btn btn-outline-primary mr-2 mb-1" type="submit" value="Поиск"/>
         <a class="btn btn-outline-secondary mr-2 mb-1" asp-action="Items">Сброс</a>
         <a class="btn btn-primary mr-2 mb-1" asp-action="AddItem">Добавить товар</a>
         <span>Товаров найдено: @ViewBag.itemCount.</span>
@@ -19,62 +28,72 @@
 <div class="table-responsive">
     <table id="item-table" class="table">
         <thead>
-            <tr>
-                <th scope="col">
-                    <sort-header action="Items" search="@Model.CurrentSearch" selector="@Model.Types" descending="@Model.Descending" current="@Model.CurrentSortOrder"
-                                 property="@nameof(ProductDto.Code)" content="@Html.DisplayNameFor(x => x.Items.First().Code)" />
-                </th>
-                <th scope="col">
-                    <sort-header action="Items" search="@Model.CurrentSearch" selector="@Model.Types" descending="@Model.Descending" current="@Model.CurrentSortOrder"
-                                 property="@nameof(ProductDto.Name)" content="@Html.DisplayNameFor(x => x.Items.First().Name)" />
-                </th>
-                <th scope="col">
-                    <sort-header action="Items" search="@Model.CurrentSearch" selector="@Model.Types" descending="@Model.Descending" current="@Model.CurrentSortOrder"
-                                 property="@nameof(ProductDto.Available)" content="@Html.DisplayNameFor(x => x.Items.First().Available)" />
-                </th>
-                <th scope="col">
-                    <sort-header action="Items" search="@Model.CurrentSearch" selector="@Model.Types" descending="@Model.Descending" current="@Model.CurrentSortOrder"
-                                 property="@nameof(ProductDto.Created)" content="@Html.DisplayNameFor(x => x.Items.First().Created)" />
-                </th>
-                <th scope="col">
-                    <sort-header action="Items" search="@Model.CurrentSearch" selector="@Model.Types" descending="@Model.Descending" current="@Model.CurrentSortOrder"
-                                 property="@nameof(ProductDto.Changed)" content="@Html.DisplayNameFor(x => x.Items.First().Changed)" />
-                </th>
-                <th scope="col">
-                    <sort-header action="Items" search="@Model.CurrentSearch" selector="@Model.Types" descending="@Model.Descending" current="@Model.CurrentSortOrder"
-                                 property="@nameof(ProductDto.Stock)" content="@Html.DisplayNameFor(x => x.Items.First().Stock)" />
-                </th>
-                <th scope="col">
-                    <sort-header action="Items" search="@Model.CurrentSearch" selector="@Model.Types" descending="@Model.Descending" current="@Model.CurrentSortOrder"
-                                 property="@nameof(ProductDto.Reserved)" content="@Html.DisplayNameFor(x => x.Items.First().Reserved)" />
-                </th>
-                <th scope="col">
-                    <sort-header action="Items" search="@Model.CurrentSearch" selector="@Model.Types" descending="@Model.Descending" current="@Model.CurrentSortOrder"
-                                 property="@nameof(ProductDto.Price)" content="@Html.DisplayNameFor(x => x.Items.First().Price)" />
-                </th>
-                <th scope="col"></th>
-            </tr>
+        <tr>
+            <th scope="col">
+                <sort-header action="Items" search="@Model.CurrentSearch" selector="@Model.Types" descending="@Model.Descending" current="@Model.CurrentSortOrder"
+                             property="@nameof(ProductDto.Code)" categories="@Model.CategoryIds" desc-groups="@Model.DescGroupIds" items-per-page="@Model.CountPerPage"
+                             content="@Html.DisplayNameFor(x => x.Items.First().Code)"/>
+            </th>
+            <th scope="col">
+                <sort-header action="Items" search="@Model.CurrentSearch" selector="@Model.Types" descending="@Model.Descending" current="@Model.CurrentSortOrder"
+                             property="@nameof(ProductDto.Name)" categories="@Model.CategoryIds" desc-groups="@Model.DescGroupIds" items-per-page="@Model.CountPerPage"
+                             content="@Html.DisplayNameFor(x => x.Items.First().Name)"/>
+            </th>
+            <th scope="col">
+                <sort-header action="Items" search="@Model.CurrentSearch" selector="@Model.Types" descending="@Model.Descending" current="@Model.CurrentSortOrder"
+                             property="@nameof(ProductDto.Available)" categories="@Model.CategoryIds" desc-groups="@Model.DescGroupIds" items-per-page="@Model.CountPerPage"
+                             content="@Html.DisplayNameFor(x => x.Items.First().Available)"/>
+            </th>
+            <th scope="col">
+                <sort-header action="Items" search="@Model.CurrentSearch" selector="@Model.Types" descending="@Model.Descending" current="@Model.CurrentSortOrder"
+                             property="@nameof(ProductDto.Created)" categories="@Model.CategoryIds" desc-groups="@Model.DescGroupIds" items-per-page="@Model.CountPerPage"
+                             content="@Html.DisplayNameFor(x => x.Items.First().Created)"/>
+            </th>
+            <th scope="col">
+                <sort-header action="Items" search="@Model.CurrentSearch" selector="@Model.Types" descending="@Model.Descending" current="@Model.CurrentSortOrder"
+                             property="@nameof(ProductDto.Changed)" categories="@Model.CategoryIds" descg-roups="@Model.DescGroupIds" items-per-page="@Model.CountPerPage"
+                             content="@Html.DisplayNameFor(x => x.Items.First().Changed)"/>
+            </th>
+            <th scope="col">
+                <sort-header action="Items" search="@Model.CurrentSearch" selector="@Model.Types" descending="@Model.Descending" current="@Model.CurrentSortOrder"
+                             property="@nameof(ProductDto.Stock)" categories="@Model.CategoryIds" desc-groups="@Model.DescGroupIds" items-per-page="@Model.CountPerPage"
+                             content="@Html.DisplayNameFor(x => x.Items.First().Stock)"/>
+            </th>
+            <th scope="col">
+                <sort-header action="Items" search="@Model.CurrentSearch" selector="@Model.Types" descending="@Model.Descending" current="@Model.CurrentSortOrder"
+                             property="@nameof(ProductDto.Reserved)" categories="@Model.CategoryIds" desc-groups="@Model.DescGroupIds" items-per-page="@Model.CountPerPage"
+                             content="@Html.DisplayNameFor(x => x.Items.First().Reserved)"/>
+            </th>
+            <th scope="col">
+                <sort-header action="Items" search="@Model.CurrentSearch" selector="@Model.Types" descending="@Model.Descending" current="@Model.CurrentSortOrder"
+                             property="@nameof(ProductDto.Price)" categories="@Model.CategoryIds" desc-groups="@Model.DescGroupIds" items-per-page="@Model.CountPerPage"
+                             content="@Html.DisplayNameFor(x => x.Items.First().Price)"/>
+            </th>
+            <th scope="col"></th>
+        </tr>
         </thead>
         <tbody>
-            @foreach (var item in Model.Items)
-            {
-                <tr>
-                    <td>@Html.DisplayFor(m => item.Code)</td>
-                    <td>@Html.DisplayFor(m => item.Name)</td>
-                    <td>@Html.DisplayFor(m => item.Available)</td>
-                    <td>@Html.DisplayFor(m => item.Created.DateTime)</td>
-                    <td>@Html.DisplayFor(m => item.Changed.DateTime)</td>
-                    <td>@Html.DisplayFor(m => item.Stock)</td>
-                    <td>@Html.DisplayFor(m => item.Reserved)</td>
-                    <td>@Html.DisplayFor(m => item.Price)</td>
-                    <td>
-                        <a class="btn btn-outline-primary btn-sm" asp-action="ViewItem" asp-route-id="@item.Id">Подробнее</a>
-                        <a class="btn btn-outline-primary btn-sm" asp-action="EditItem" asp-route-id="@item.Id"><span class="fa fa-pencil"></span></a>
-                    </td>
-                </tr>
-            }
+        @foreach (var item in Model.Items)
+        {
+            <tr>
+                <td>@Html.DisplayFor(m => item.Code)</td>
+                <td>@Html.DisplayFor(m => item.Name)</td>
+                <td>@Html.DisplayFor(m => item.Available)</td>
+                <td>@Html.DisplayFor(m => item.Created.DateTime)</td>
+                <td>@Html.DisplayFor(m => item.Changed.DateTime)</td>
+                <td>@Html.DisplayFor(m => item.Stock)</td>
+                <td>@Html.DisplayFor(m => item.Reserved)</td>
+                <td>@Html.DisplayFor(m => item.Price)</td>
+                <td>
+                    <a class="btn btn-outline-primary btn-sm" asp-action="ViewItem" asp-route-id="@item.Id">Подробнее</a>
+                    <a class="btn btn-outline-primary btn-sm" asp-action="EditItem" asp-route-id="@item.Id">
+                        <span class="fa fa-pencil"></span>
+                    </a>
+                </td>
+            </tr>
+        }
         </tbody>
     </table>
 </div>
 <page-link current-page="@Model.CurrentPage" search="@Model.CurrentSearch" selector="@Model.Types" current-prop="@Model.CurrentSortOrder"
-           items-count="@Model.ItemCount" items-per-page="@Model.CountPerPage" action="Items" />
+           items-count="@Model.ItemCount" items-per-page="@Model.CountPerPage" categories="@Model.CategoryIds" desc-groups="@Model.DescGroupIds" action="Items"/>

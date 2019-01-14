@@ -21,11 +21,10 @@ namespace Website.Web.Models.AdminViewModels
         public int? Code { get; set; }
 
         [Display(Name = "Цена")]
-        [Required(ErrorMessage = "Необходимо ввести цену товара.")]
+        [Required(ErrorMessage = "Необходимо ввести цену товара.")] //regex, required в разметке вьюшки, номера через запятую без ошибок валидации подругому не смог
         [RegularExpression("\\d+([,.])?\\d+", ErrorMessage =
-            "Поле должно быть положительным и содержать цифры, разделенные запятой или точкой.")] // custom binder converts , -> .
-        //TODO the field Цена must be a number. jquery validation error fix //jquery globalize
-        public decimal? Price { get; set; }
+            "Поле должно быть положительным и содержать цифры, разделенные запятой или точкой.")] // custom mvc binder converts , -> .
+        public decimal Price { get; set; }
 
         [Display(Name = "Склад")]
         [Required(ErrorMessage = "Необходимо ввести кол-во товара на складе.")]

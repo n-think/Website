@@ -25,6 +25,10 @@ namespace Website.Web.TagHelpers
         public string CurrentProp { get; set; } // значение активного свойства, выбранного для сортировки
         public string Search { get; set; } // значение активного поиска
         public int Selector { get; set; } // значение выбранного селектора поиска
+        
+        public int[] Categories { get; set; }
+        
+        public int[] DescGroups { get; set; }
 
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
@@ -101,7 +105,16 @@ namespace Website.Web.TagHelpers
             else
             {
                 link = new TagBuilder("a");
-                link.Attributes["href"] = urlHelper.Action(Action, new { s = Search, st = Selector, o = CurrentProp, p = pageNumber, c = ItemsPerPage });
+                link.Attributes["href"] = urlHelper.Action(Action, new
+                {
+                    s = Search,
+                    st = Selector,
+                    o = CurrentProp,
+                    cat = Categories,
+                    desc = DescGroups,
+                    c = ItemsPerPage,
+                    p = pageNumber
+                });
             }
             link.AddCssClass("page-link");
             link.InnerHtml.Append(pageNumber.ToString());

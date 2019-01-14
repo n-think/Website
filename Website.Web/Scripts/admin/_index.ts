@@ -1,8 +1,10 @@
 //js
-import "./admin"
-import "./categories"
-import "./productEdit"
+
 import "./userEdit"
+import "./items"
+import "./productEdit"
+import "./categories"
+import "./descriptionGroups"
 //css
 import "../../Css/admin.css"
 

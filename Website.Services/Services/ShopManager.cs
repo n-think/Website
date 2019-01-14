@@ -5,6 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Castle.Core.Internal;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -324,7 +325,8 @@ namespace Website.Services.Services
         }
 
         public async Task<SortPageResult<Product>> GetSortFilterPageAsync(ItemTypeSelector types,
-            string searchString, string sortPropName, int currPage, int countPerPage)
+            string searchString, string sortPropName, int currPage, int countPerPage, int[] categoryIds,
+            int[] descGroupIds)
         {
             ThrowIfDisposed();
             if (sortPropName == null) throw new ArgumentNullException(nameof(sortPropName));
@@ -332,10 +334,8 @@ namespace Website.Services.Services
             if (currPage < 0) throw new ArgumentOutOfRangeException(nameof(currPage));
             if (!Enum.IsDefined(typeof(ItemTypeSelector), types))
                 throw new InvalidEnumArgumentException(nameof(ItemTypeSelector), (int) types, typeof(ItemTypeSelector));
-
-            IQueryable<Product> prodQuery = _repository.ProductsQueryable;
-
-            FilterProductsTypeQuery(types, ref prodQuery);
+             
+            var prodQuery = await FilterProductsQuery(_repository.ProductsQueryable, types, categoryIds, descGroupIds);
             SearchProductsQuery(searchString, ref prodQuery);
             OrderProductsQuery(sortPropName, ref prodQuery);
             int totalProductsN = await prodQuery.CountAsync(CancellationToken);
@@ -352,8 +352,33 @@ namespace Website.Services.Services
             prodQuery = prodQuery.Skip(skip).Take(take);
         }
 
-        private void FilterProductsTypeQuery(ItemTypeSelector types, ref IQueryable<Product> productQuery)
+        private async Task<IQueryable<Product>> FilterProductsQuery(IQueryable<Product> productQuery,
+            ItemTypeSelector types, int[] categoryIds, int[] descGroupIds)
         {
+            //filter cats
+            if (!categoryIds.IsNullOrEmpty())
+            {
+                productQuery = productQuery
+                    .Where(x => x.ProductToCategory
+                        .Any(z => categoryIds.Contains(z.CategoryId))); 
+            }
+
+            if (!descGroupIds.IsNullOrEmpty())
+            {
+                //filter desc groups
+                var productIdsInDescGroups = await _repository.DescriptionGroupsQueryable
+                    .Where(x => descGroupIds.Contains(x.Id))
+                    .SelectMany(x => x.DescriptionGroupItems)
+                    .SelectMany(x => x.Descriptions)
+                    .Select(x => x.ProductId)
+                    .Distinct()
+                    .ToArrayAsync(CancellationToken);
+                
+                productQuery = productQuery
+                    .Where(x => productIdsInDescGroups.Contains(x.Id));
+            }
+            
+            //filter types
             switch (types)
             {
                 case ItemTypeSelector.Enabled:
@@ -365,6 +390,8 @@ namespace Website.Services.Services
                 default:
                     break;
             }
+
+            return productQuery;
         }
 
         private void SearchProductsQuery(string searchString, ref IQueryable<Product> prodQuery)
@@ -443,6 +470,7 @@ namespace Website.Services.Services
             {
                 return result;
             }
+
             return OperationResult.Success();
         }
 
@@ -462,13 +490,14 @@ namespace Website.Services.Services
             {
                 return result;
             }
+
             return OperationResult.Success();
         }
 
         public async Task<OperationResult> DeleteCategoryAsync(int id)
         {
             ThrowIfDisposed();
-            
+
             var category = await _repository.CategoriesQueryable
                 .Where(x => x.Id == id)
                 .Include(x => x.Children)
@@ -486,7 +515,8 @@ namespace Website.Services.Services
 
             using (var tran = _repository.BeginTransaction())
             {
-                foreach (var child in category.Children.ToList()) //to list or "Collection was modified; enumeration operation may not execute. exception"
+                foreach (var child in category.Children.ToList()
+                ) //to list or "Collection was modified; enumeration operation may not execute. exception"
                 {
                     child.ParentId = category.ParentId;
                     var updateRes = await _repository.UpdateCategoryAsync(child, CancellationToken);
@@ -501,6 +531,7 @@ namespace Website.Services.Services
                 {
                     return result;
                 }
+
                 tran.Commit();
             }
 
@@ -511,6 +542,26 @@ namespace Website.Services.Services
         {
             ThrowIfDisposed();
             return await _repository.GetDescriptionGroupsAsync(CancellationToken);
+        }
+
+        public async Task<IEnumerable<(DescriptionGroup, int)>> GetAllDescriptionGroupsWithProductCountAsync()
+        {
+            ThrowIfDisposed();
+            var groups = await _repository.GetDescriptionGroupsAsync(CancellationToken);
+            var result = new List<(DescriptionGroup, int)>();
+            foreach (var group in groups)
+            {
+                var prodCount = await _repository.DescriptionGroupsQueryable
+                    .Where(x => x.Id == group.Id)
+                    .SelectMany(x => x.DescriptionGroupItems)
+                    .SelectMany(x => x.Descriptions)
+                    .Select(x => x.ProductId)
+                    .Distinct()
+                    .CountAsync(CancellationToken);
+                result.Add((group, prodCount));
+            }
+
+            return result;
         }
 
         public async Task<IEnumerable<DescriptionGroupItem>> GetDescriptionItemsAsync(int groupId)

@@ -191,7 +191,9 @@ namespace Website.Web.Controllers
             [FromQuery(Name = "st")] ItemTypeSelector types,
             [FromQuery(Name = "o")] string sortOrder,
             [FromQuery(Name = "p")] int? page,
-            [FromQuery(Name = "c")] int? pageCount)
+            [FromQuery(Name = "c")] int? pageCount,
+            [FromQuery(Name = "cat")] int[] categoryIds,
+            [FromQuery(Name = "desc")] int[] descGroupIds)
         {
             if (sortOrder.IsNullOrEmpty())
             {
@@ -202,9 +204,10 @@ namespace Website.Web.Controllers
             var countPerPage = pageCount == null || pageCount <= 0 ? 15 : pageCount.Value;
 
             SortPageResult<Product> result =
-                await _shopManager.GetSortFilterPageAsync(types, search, sortOrder, currPage, countPerPage);
+                await _shopManager.GetSortFilterPageAsync(types, search, sortOrder, currPage, countPerPage, categoryIds, descGroupIds);
 
-            //TODO categories filter // List<CategoryDTO> allCategories = await _shopManager.GetAllCategoriesAsync();
+            var allCategories =
+                _mapper.Map<IEnumerable<CategoryDto>>(await _shopManager.GetAllCategoriesAsync());
 
             ViewBag.itemCount = result.TotalN;
 
@@ -218,8 +221,10 @@ namespace Website.Web.Controllers
                 CountPerPage = countPerPage,
                 Types = (int) types,
                 ItemCount = result.TotalN,
+                CategoryIds = categoryIds,
+                DescGroupIds = descGroupIds,
                 Items = _mapper.Map<IEnumerable<ProductDto>>(result.FilteredData),
-                //,Categories = allCategories
+                Categories = allCategories
             };
 
             return View(model);
@@ -279,14 +284,14 @@ namespace Website.Web.Controllers
                 }
 
                 var descs = Enumerable.Empty<Description>();
-                if (viewModel.Categories != null)
+                if (viewModel.DescriptionGroups != null)
                 {
                     descs = _mapper.Map<IEnumerable<Description>>(viewModel.DescriptionGroups
                         .SelectMany(x => x.DescriptionItems?.Where(i => i.DtoState != DtoState.Deleted)));
                 }
 
                 var images = Enumerable.Empty<Image>();
-                if (viewModel.Categories != null)
+                if (viewModel.Images != null)
                 {
                     images = _mapper.Map<IEnumerable<Image>>(viewModel.Images?
                         .Where(x => x.DtoState != DtoState.Deleted));
@@ -388,7 +393,7 @@ namespace Website.Web.Controllers
             }
 
             var category = _mapper.Map<Category>(categoryDto);
-            
+
             OperationResult result = await _shopManager.CreateCategoryAsync(category);
             if (!result.Succeeded)
             {
@@ -411,9 +416,9 @@ namespace Website.Web.Controllers
             {
                 return RedirectToAction("Categories");
             }
-            
+
             var category = _mapper.Map<Category>(categoryDto);
-            
+
             OperationResult result = await _shopManager.UpdateCategoryAsync(category);
             if (!result.Succeeded)
             {
@@ -423,7 +428,7 @@ namespace Website.Web.Controllers
             {
                 TempData["Message"] = $"Категория \"{category.Name}\" успешно изменена.";
             }
-            
+
             return RedirectToAction("Categories");
         }
 
@@ -466,9 +471,13 @@ namespace Website.Web.Controllers
             return RedirectToAction("Categories");
         }
 
-        public IActionResult DescriptionGroups()
+        public async Task<IActionResult> DescriptionGroups()
         {
-            return View();
+            var descGroups = (await _shopManager.GetAllDescriptionGroupsWithProductCountAsync())
+                .Select(x => (
+                    _mapper.Map<DescriptionGroupDto>(x.Item1),
+                    x.Item2));
+            return View(descGroups);
         }
 
         [HttpGet]

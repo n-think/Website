@@ -7,7 +7,7 @@ namespace Website.Services.Infrastructure.Validators
 {
     public class OrderValidator : IShopValidator<Order>
     {
-        public async Task<OperationResult> ValidateAsync(IShopManager manager, Order entity)
+        public/* async*/ Task<OperationResult> ValidateAsync(IShopManager manager, Order entity)
         {
             throw new System.NotImplementedException();
         }

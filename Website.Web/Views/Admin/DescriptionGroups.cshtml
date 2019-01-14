@@ -1,7 +1,38 @@
-﻿
+﻿@using Website.Web.Models.DTO;
+
 @{
     ViewData["Title"] = "Группы описаний";
     ViewData.AddActivePage(AdminNavPages.DescGroups);
 }
 
+@model IEnumerable<ValueTuple<DescriptionGroupDto, int>>
+
 <h2>Группы описаний</h2>
+<div class="row">
+    <div class="col-lg-6">
+        <h4>Группы</h4>
+        <div class="pr-2" style="overflow-y: auto; max-height: 35em">
+            <div id="description-groups" class="list-group description-groups">
+                @foreach (var descGroupAndCountTuple in Model)
+                {
+                    var descGroup = descGroupAndCountTuple.Item1;
+                    var count = descGroupAndCountTuple.Item2;
+                    <a class="list-group-item list-group-item-action description-group " data-id="@descGroup.Id">
+                        @descGroup.Name
+                        <span onclick=@($"location.href='Items?desc={descGroup.Id}';") class="badge badge-primary" style="cursor: pointer;">
+                            Продуктов: @count
+                        </span>
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <h4>Описания</h4>
+        <div class="pr-2" style="overflow-y: auto; max-height: 35em">
+            <div id="description-items" class="list-group description-items">
+                <h5 class="text-muted">Выберите группу слева.</h5>
+            </div>
+        </div>
+    </div>
+</div>

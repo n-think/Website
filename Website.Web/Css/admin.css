@@ -5,6 +5,12 @@
     margin: 0;
 }
 
+/* items category picker outline */
+div.category-picker>button.dropdown-toggle{
+    border: 1px solid #ced4da;
+}
+
+
 /* big checkboxes in admin view/edit pages*/
 input.form-control.admin-edit[type="checkbox"] {
     width: 2.375rem !important;

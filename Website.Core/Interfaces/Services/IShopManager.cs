@@ -23,7 +23,8 @@ namespace Website.Core.Interfaces.Services
             IEnumerable<Image> imagesToUpdate);
         Task<OperationResult> DeleteProductAsync(int productId);
 
-        Task<SortPageResult<Product>> GetSortFilterPageAsync(ItemTypeSelector types, string search, string sortOrder, int currPage, int countPerPage);
+        Task<SortPageResult<Product>> GetSortFilterPageAsync(ItemTypeSelector types, string search, string sortOrder,
+            int currPage, int countPerPage, int[] categoryIds, int[] descGroupIds);
         Task<IEnumerable<Category>> GetAllCategoriesAsync();
         Task<IEnumerable<(Category, int)>> GetAllCategoriesWithProductCountAsync();
         Task<Category> GetCategoryByIdAsync(int id);
@@ -33,6 +34,7 @@ namespace Website.Core.Interfaces.Services
         Task<OperationResult> DeleteCategoryAsync(int id);
         
         Task<IEnumerable<DescriptionGroup>> GetAllDescriptionGroupsAsync();
+        Task<IEnumerable<(DescriptionGroup, int)>> GetAllDescriptionGroupsWithProductCountAsync();
         Task<IEnumerable<DescriptionGroupItem>> GetDescriptionItemsAsync(int groupId);
         
        Task<(byte[], string)> GetImageDataMimeAsync(int imageId, bool thumb = false);

@@ -16,6 +16,12 @@ namespace Website.Web.TagHelpers
         public string Search { get; set; } // значение активного поиска
         public int Selector { get; set; } // значение выбранного селектора поиска
         public string Content { get; set; }// содержимое для отображения
+        
+        public int[] Categories { get; set; }
+        
+        public int[] DescGroups { get; set; }
+        
+        public int ItemsPerPage { get; set; }
 
         private IUrlHelperFactory _urlHelperFactory;
 
@@ -65,7 +71,15 @@ namespace Website.Web.TagHelpers
             output.TagName = "a";
             output.TagMode = TagMode.StartTagAndEndTag;
 
-            string url = urlHelper.Action(Action, new { s = Search, st = Selector, o = linkProp }); // o - sort order query
+            string url = urlHelper.Action(Action, new
+            {
+                s = Search,
+                st = Selector,
+                o = linkProp,// sort order
+                cat = Categories,
+                desc = DescGroups,
+                c = ItemsPerPage
+            }); 
             output.Attributes.SetAttribute("href", url);
         }
     }

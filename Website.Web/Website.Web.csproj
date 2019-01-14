@@ -33,8 +33,9 @@
 
 
   <ItemGroup>
-    <TypeScriptCompile Include="Scripts\admin\admin.ts" />
+    <TypeScriptCompile Include="Scripts\admin\items.ts" />
     <TypeScriptCompile Include="Scripts\admin\categories.ts" />
+    <TypeScriptCompile Include="Scripts\admin\descriptionGroups.ts" />
     <TypeScriptCompile Include="Scripts\admin\productEdit.ts" />
     <TypeScriptCompile Include="Scripts\admin\userEdit.ts" />
     <TypeScriptCompile Include="Scripts\site\site.ts" />
