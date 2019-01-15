@@ -5,6 +5,7 @@ using Website.Core.Models.Domain;
 using Website.Web.Infrastructure.TreeHelper;
 using Website.Web.Models.AdminViewModels;
 using Website.Web.Models.DTO;
+using Website.Web.Models.ManageViewModels;
 
 namespace Website.Web.Infrastructure.Mapper
 {
@@ -44,6 +45,10 @@ namespace Website.Web.Infrastructure.Mapper
 
             CreateMap<DescriptionGroupItemDto, Description>()
                 .ConvertUsing<DescGroupItemDtoToDescConverter>();
+
+            CreateMap<ProfileViewModel, User>()
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+            CreateMap<User, ProfileViewModel>();
         }
     }
 }

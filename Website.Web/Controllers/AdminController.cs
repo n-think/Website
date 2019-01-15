@@ -204,7 +204,8 @@ namespace Website.Web.Controllers
             var countPerPage = pageCount == null || pageCount <= 0 ? 15 : pageCount.Value;
 
             SortPageResult<Product> result =
-                await _shopManager.GetSortFilterPageAsync(types, search, sortOrder, currPage, countPerPage, categoryIds, descGroupIds);
+                await _shopManager.GetSortFilterPageAsync(types, search, sortOrder, currPage, countPerPage, categoryIds,
+                    descGroupIds);
 
             var allCategories =
                 _mapper.Map<IEnumerable<CategoryDto>>(await _shopManager.GetAllCategoriesAsync());
@@ -478,6 +479,190 @@ namespace Website.Web.Controllers
                     _mapper.Map<DescriptionGroupDto>(x.Item1),
                     x.Item2));
             return View(descGroups);
+        }
+
+        [HttpPost]
+        [Authorize(Policy = "EditItems")]
+        public async Task<IActionResult> AddDescriptionGroup(DescriptionGroupDto descriptionGroupDto)
+        {
+//            if (categoryDto == null)
+//            {
+//                return RedirectToAction("Categories");
+//            }
+//
+//            var category = _mapper.Map<Category>(categoryDto);
+//
+//            OperationResult result = await _shopManager.CreateCategoryAsync(category);
+//            if (!result.Succeeded)
+//            {
+//                TempData["Message"] = string.Join(Environment.NewLine, result.Errors.Select(x => x.Description));
+//            }
+//            else
+//            {
+//                TempData["Message"] = $"Категория \"{category.Name}\" успешно добавлена.";
+//            }
+//
+//            return RedirectToAction("Categories");
+            throw new NotImplementedException();
+        }
+
+
+        [HttpPost]
+        [Authorize(Policy = "EditItems")]
+        public async Task<IActionResult> EditDescriptionGroup(DescriptionGroupDto descriptionGroupDto)
+        {
+//            if (categoryDto == null)
+//            {
+//                return RedirectToAction("Categories");
+//            }
+//
+//            var category = _mapper.Map<Category>(categoryDto);
+//
+//            OperationResult result = await _shopManager.UpdateCategoryAsync(category);
+//            if (!result.Succeeded)
+//            {
+//                TempData["Message"] = string.Join(Environment.NewLine, result.Errors.Select(x => x.Description));
+//            }
+//            else
+//            {
+//                TempData["Message"] = $"Категория \"{category.Name}\" успешно изменена.";
+//            }
+//
+//            return RedirectToAction("Categories");
+            throw new NotImplementedException();
+        }
+
+
+        [HttpGet("{id:required:int:min(0)}")]
+        [Authorize(Policy = "EditItems")]
+        public async Task<IActionResult> DeleteDescriptionGroup(int id)
+        {
+//            var category = await _shopManager.GetCategoryByIdAsync(id);
+//            if (category == null)
+//            {
+//                return View("Error", new ErrorViewModel {Message = $"Категория с id {id} не найдена."});
+//            }
+//
+//            var catDto = _mapper.Map<CategoryDto>(category);
+//            return View(catDto);
+            throw new NotImplementedException();
+        }
+
+        [HttpPost]
+        [Authorize(Policy = "EditItems")]
+        public async Task<IActionResult> DeleteDescriptionGroupConfirm(DescriptionGroupDto descriptionGroupDto)
+        {
+//            if (category == null)
+//            {
+//                return RedirectToAction("Categories");
+//            }
+//
+//            var result = await _shopManager.DeleteCategoryAsync(category.Id);
+//            if (!result.Succeeded)
+//            {
+//                foreach (var error in result.Errors)
+//                {
+//                    ModelState.AddModelError(error.Code, error.Description);
+//                }
+//
+//                return View("DeleteCategory", category);
+//            }
+//
+//            TempData["Message"] = $"Категория \"{category.Name}\" успешно удалена.";
+//            return RedirectToAction("Categories");
+            throw new NotImplementedException();
+        }
+
+        [HttpPost]
+        [Authorize(Policy = "EditItems")]
+        public async Task<IActionResult> AddDescriptionGroupItem(DescriptionGroupItemDto descriptionGroupItemDto)
+        {
+//            if (categoryDto == null)
+//            {
+//                return RedirectToAction("Categories");
+//            }
+//
+//            var category = _mapper.Map<Category>(categoryDto);
+//
+//            OperationResult result = await _shopManager.CreateCategoryAsync(category);
+//            if (!result.Succeeded)
+//            {
+//                TempData["Message"] = string.Join(Environment.NewLine, result.Errors.Select(x => x.Description));
+//            }
+//            else
+//            {
+//                TempData["Message"] = $"Категория \"{category.Name}\" успешно добавлена.";
+//            }
+//
+//            return RedirectToAction("Categories");
+            throw new NotImplementedException();
+        }
+
+
+        [HttpPost]
+        [Authorize(Policy = "EditItems")]
+        public async Task<IActionResult> EditDescriptionGroupItem(DescriptionGroupItemDto descriptionGroupItemDto)
+        {
+//            if (categoryDto == null)
+//            {
+//                return RedirectToAction("Categories");
+//            }
+//
+//            var category = _mapper.Map<Category>(categoryDto);
+//
+//            OperationResult result = await _shopManager.UpdateCategoryAsync(category);
+//            if (!result.Succeeded)
+//            {
+//                TempData["Message"] = string.Join(Environment.NewLine, result.Errors.Select(x => x.Description));
+//            }
+//            else
+//            {
+//                TempData["Message"] = $"Категория \"{category.Name}\" успешно изменена.";
+//            }
+//
+//            return RedirectToAction("Categories");
+            throw new NotImplementedException();
+        }
+
+
+        [HttpGet("{id:required:int:min(0)}")]
+        [Authorize(Policy = "EditItems")]
+        public async Task<IActionResult> DescriptionGroupItem(int id)
+        {
+//            var category = await _shopManager.GetCategoryByIdAsync(id);
+//            if (category == null)
+//            {
+//                return View("Error", new ErrorViewModel {Message = $"Категория с id {id} не найдена."});
+//            }
+//
+//            var catDto = _mapper.Map<CategoryDto>(category);
+//            return View(catDto);
+            throw new NotImplementedException();
+        }
+
+        [HttpPost]
+        [Authorize(Policy = "EditItems")]
+        public async Task<IActionResult> DeleteDescriptionGroupItem(DescriptionGroupItemDto descriptionGroupItemDto)
+        {
+//            if (category == null)
+//            {
+//                return RedirectToAction("Categories");
+//            }
+//
+//            var result = await _shopManager.DeleteCategoryAsync(category.Id);
+//            if (!result.Succeeded)
+//            {
+//                foreach (var error in result.Errors)
+//                {
+//                    ModelState.AddModelError(error.Code, error.Description);
+//                }
+//
+//                return View("DeleteCategory", category);
+//            }
+//
+//            TempData["Message"] = $"Категория \"{category.Name}\" успешно удалена.";
+//            return RedirectToAction("Categories");
+            throw new NotImplementedException();
         }
 
         [HttpGet]

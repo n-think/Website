@@ -432,7 +432,7 @@ title="Добавить описание" data-live-search-placeholder="Поис
 <div class="desc-group-items">
 </div>
 </div>`;
-        let descGroup: any = $.parseHTML(strVar);
+        let descGroup = $.parseHTML(strVar);
         descGroups.append(descGroup);
         $(descGroup).find("#desc-group-items-select").selectpicker("refresh");
     }

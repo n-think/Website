@@ -1,7 +1,7 @@
 ﻿import $ from "jquery";
 
 module categories {
-    if (window.location.pathname.lastIndexOf("/Admin/Categories")==0){
+    if (window.location.pathname.lastIndexOf("/Admin/Categories") == 0) {
         loadCategoriesEventHandlers()
     }
 
@@ -12,7 +12,7 @@ module categories {
 
         //edit buttons
         $("#edit-cat").on("click", categoryEdit);
-        // $("#remove-cat").on("click", categoryRemove);
+        $("#remove-cat").on("click", categoryRemove);
         // $("#save-edit-cat").on("click", categorySaveEdit);
         $("#cancel-edit-cat").on("click", categoryCancelEdit);
     }
@@ -35,10 +35,11 @@ module categories {
             .selectpicker("refresh");
     }
 
-    // function categoryRemove() {
-    //
-    // }
-    //
+    function categoryRemove() {
+        let id = $("#cat-id-preview").val();
+        location.href = `/admin/deleteCategory/${id}`;
+    }
+
     // function categorySaveEdit() {
     //
     // }
@@ -56,7 +57,7 @@ module categories {
         //hack to hide val error from prev edit
         $("#cat-name-preview-error").remove();
         $("#edit-form").find("input")
-            .removeClass("is-valid is-invalid input-validation-error");        
+            .removeClass("is-valid is-invalid input-validation-error");
     }
 
     function categoryExpanderToggle() {
@@ -69,7 +70,7 @@ module categories {
         if (editActive) {
             categoryCancelEdit();
         }
-        
+
         let thisCat = $(this);
         let id = thisCat.data("id");
         $("#cat-id-preview").val(id);
@@ -86,7 +87,7 @@ module categories {
                 .data("id", parent.data("id"));
         }
         $("#cat-view-controls").removeClass("d-none");
-        $("#remove-cat-anchor").attr("href",`/admin/deleteCategory/${id}`);
+        // $("#remove-cat").attr("href",`/admin/deleteCategory/${id}`);
     }
 
     function viewParentCategory() {

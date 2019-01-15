@@ -98,58 +98,58 @@
                 }
                 <tr>
                     <th scope="row">
-                        @Html.LabelFor(x => x.Name)
+                        <label asp-for="Name"></label>
                     </th>
                     <td>
-                        @Html.EditorFor(x => x.Name, new {htmlAttributes = new {@class = "form-control admin-edit w-auto"}, value = ""})
-                        @Html.ValidationMessageFor(x => x.Name, "", new {@class = "text-danger"})
+                        <input asp-for="Name" class="form-control admin-edit w-auto" value="" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
                     </td>
                 </tr>
                 <tr>
                     <th scope="row">
-                        @Html.LabelFor(x => x.Description)
+                        <label asp-for="Description"></label>
                     </th>
                     <td>
-                        @Html.EditorFor(x => x.Description, new {htmlAttributes = new {@class = "form-control admin-edit w-auto"}, value = ""})
-                        @Html.ValidationMessageFor(x => x.Description, "", new {@class = "text-danger"})
+                        <input asp-for="Description" class="form-control admin-edit w-auto" value="" />
+                        <span asp-validation-for="Description" class="text-danger"></span>
                     </td>
                 </tr>
                 <tr>
                     <th scope="row">
-                        @Html.LabelFor(x => x.Code)
+                        <label asp-for="Code"></label>
                     </th>
                     <td>
-                        @Html.EditorFor(x => x.Code, new {htmlAttributes = new {@class = "form-control admin-edit w-auto"}, value = ""})
-                        @Html.ValidationMessageFor(x => x.Code, "", new {@class = "text-danger"})
+                        <input asp-for="Code" class="form-control admin-edit w-auto" value="" />
+                        <span asp-validation-for="Code" class="text-danger"></span>
                     </td>
                 </tr>
                 <tr>
                     <th scope="row">
-                        @Html.LabelFor(x => x.Price)
+                        <label asp-for="Price"></label>
                     </th>
                     <td>
                         <input class="form-control admin-edit w-auto text-box single-line" data-val="true" data-val-regex-pattern="\d+([,.])?\d+"
                                data-val-regex="Поле должно быть положительным и содержать цифры, разделенные запятой или точкой."
                                data-val-required="Необходимо ввести цену товара." id="Price" name="Price" type="text" value="@(Model.Price.ToString() == "0" ? "" : Model.Price.ToString())">
-                        @Html.ValidationMessageFor(x => x.Price, "", new {@class = "text-danger"})
+                        <span asp-validation-for="Price" class="text-danger"></span>
                     </td>
                 </tr>
                 <tr>
                     <th scope="row">
-                        @Html.LabelFor(x => x.Stock)
+                        <label asp-for="Stock"></label>
                     </th>
                     <td>
-                        @Html.EditorFor(x => x.Stock, new {htmlAttributes = new {@class = "form-control admin-edit w-auto"}, value = ""})
-                        @Html.ValidationMessageFor(x => x.Stock, "", new {@class = "text-danger"})
+                        <input asp-for="Stock" class="form-control admin-edit w-auto" value="" />
+                        <span asp-validation-for="Stock" class="text-danger"></span>
                     </td>
                 </tr>
                 <tr>
                     <th scope="row">
-                        @Html.LabelFor(x => x.Reserved)
+                        <label asp-for="Reserved"></label>
                     </th>
                     <td>
-                        @Html.EditorFor(x => x.Reserved, new {htmlAttributes = new {@class = "form-control admin-edit w-auto"}, value = ""})
-                        @Html.ValidationMessageFor(x => x.Reserved, "", new {@class = "text-danger"})
+                        <input asp-for="Reserved" class="form-control admin-edit w-auto" value="" />
+                        <span asp-validation-for="Reserved" class="text-danger"></span>
                     </td>
                 </tr>
                 <tr>

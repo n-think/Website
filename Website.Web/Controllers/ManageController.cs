@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -25,6 +27,7 @@ namespace Website.Web.Controllers
         private readonly IEmailSender _emailSender;
         private readonly ILogger _logger;
         private readonly UrlEncoder _urlEncoder;
+        private readonly IMapper _mapper;
 
         private const string AuthenticatorUriFormat = "otpauth://totp/{0}:{1}?secret={2}&issuer={0}&digits=6";
         private const string RecoveryCodesKey = nameof(RecoveryCodesKey);
@@ -34,13 +37,15 @@ namespace Website.Web.Controllers
           SignInManager signInManager,
           IEmailSender emailSender,
           ILogger<ManageController> logger,
-          UrlEncoder urlEncoder)
+          UrlEncoder urlEncoder,
+          IMapper mapper)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _emailSender = emailSender;
             _logger = logger;
             _urlEncoder = urlEncoder;
+            _mapper = mapper;
         }
 
         [TempData]
@@ -55,14 +60,8 @@ namespace Website.Web.Controllers
                 throw new ApplicationException($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
             }
 
-            var model = new ProfileViewModel
-            {
-                Username = user.UserName,
-                Email = user.Email,
-                PhoneNumber = user.PhoneNumber,
-                IsEmailConfirmed = user.EmailConfirmed,
-                StatusMessage = StatusMessage
-            };
+            var model = _mapper.Map<ProfileViewModel>(user);
+            model.StatusMessage = StatusMessage;
             
             return View(model);
         }
@@ -76,30 +75,23 @@ namespace Website.Web.Controllers
                 return View(model);
             }
 
+            if (User.Claims.First(x=>x.Type==ClaimTypes.Name).Value == "admin")
+            { 
+                StatusMessage = "Профиль этого администратора нельзя редактировать.";
+                return RedirectToAction(nameof(Profile));
+            }
+            
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
                 throw new ApplicationException($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
             }
-
-            var email = user.Email;
-            if (model.Email != email)
+            
+            _mapper.Map(model, user);
+            var updateResult = await _userManager.UpdateAsync(user);
+            if (!updateResult.Succeeded)
             {
-                var setEmailResult = await _userManager.SetEmailAsync(user, model.Email);
-                if (!setEmailResult.Succeeded)
-                {
-                    throw new ApplicationException($"Unexpected error occurred setting email for user with ID '{user.Id}'.");
-                }
-            }
-
-            var phoneNumber = user.PhoneNumber;
-            if (model.PhoneNumber != phoneNumber)
-            {
-                var setPhoneResult = await _userManager.SetPhoneNumberAsync(user, model.PhoneNumber);
-                if (!setPhoneResult.Succeeded)
-                {
-                    throw new ApplicationException($"Unexpected error occurred setting phone number for user with ID '{user.Id}'.");
-                }
+                throw new ApplicationException($"Unexpected error occurred while updating user with ID '{user.Id}'.");
             }
 
             StatusMessage = "Ваш профиль был изменен.";
@@ -157,6 +149,12 @@ namespace Website.Web.Controllers
             if (!ModelState.IsValid)
             {
                 return View(model);
+            }
+            
+            if (User.Claims.First(x=>x.Type==ClaimTypes.Name).Value == "admin")
+            { 
+                StatusMessage = "Пароль этого администратора нельзя редактировать.";
+                return RedirectToAction(nameof(ChangePassword));
             }
 
             var user = await _userManager.GetUserAsync(User);
