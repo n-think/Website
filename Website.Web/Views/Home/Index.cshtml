@@ -1,3 +1,36 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@using Website.Web.Models.DTO
+@using Website.Web.Models.HomeViewModels
+@{
+    ViewData["Title"] = "Домашняя страница";
 }
+@model IndexViewModel
+
+<form id="search-form" asp-action="Search" method="get" class="my-4">
+    <div class="form-inline form-group">
+        <input class="form-control mr-2 mb-1 w-100" placeholder="Поиск" type="text" name="s"/>
+    </div>
+</form>
+@if (Model.CurrentPage == 1)
+{
+    <div class="my-4 ">
+        <div class="h5">Новые товары:</div>
+        <div class="row cards justify-content-center">
+            @foreach (var item in Model.RecentItems ?? Enumerable.Empty<ProductDto>())
+            {
+                <partial name="_ProductCardPartial" model="@item"/>
+            }   
+        </div>
+    </div>
+}
+
+<div class="my-4">
+    <div class="h5">Товары:</div>
+    <div class="row cards justify-content-center">
+        @foreach (var item in Model.Items ?? Enumerable.Empty<ProductDto>())
+        {
+            <partial name="_ProductCardPartial" model="@item"/>
+        } 
+    </div>
+</div>
+
+<page-link current-page="@Model.CurrentPage" items-count="@Model.ItemCount" items-per-page="@Model.CountPerPage" action="Index"/>

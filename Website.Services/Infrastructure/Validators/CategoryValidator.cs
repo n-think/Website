@@ -26,10 +26,12 @@ namespace Website.Services.Infrastructure.Validators
             {
                 errors.Add(manager.ErrorDescriber.EmptyCategoryName());
             }
-
-            Category existing = await manager.GetCategoryByNameAsync(entity.Name);
-            if (existing != null & existing?.Id != entity.Id)
-                errors.Add(manager.ErrorDescriber.DuplicateCategoryName());
+            else
+            {
+                Category existing = await manager.GetCategoryByNameAsync(entity.Name);
+                if (existing != null & existing?.Id != entity.Id)
+                    errors.Add(manager.ErrorDescriber.DuplicateCategoryName());
+            }
             
             if (errors.Count > 0)
             {

@@ -15,29 +15,33 @@ namespace Website.Web.Infrastructure.Mapper
         {
             CreateMap<User, UserViewModel>().ReverseMap();
             CreateMap<User, EditUserViewModel>().ReverseMap();
+            CreateMap<User, ProfileViewModel>();
+            CreateMap<ProfileViewModel, User>()
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
-            CreateMap<Product, ProductDto>().ReverseMap();
-
+            CreateMap<Product, ProductDto>()
+                .ReverseMap();
             CreateMap<Product, ItemViewModel>()
                 .ForMember(dest => dest.DescriptionGroups,
                     opt => opt.MapFrom<ProductDescGroupDtoResolver>())
                 .ForMember(dest => dest.Categories,
                     opt => opt.MapFrom(x => x.ProductToCategory.Select(y => y.Category)));
             CreateMap<ItemViewModel, Product>();
-
             CreateMap<Product, EditItemViewModel>()
                 .ForMember(dest => dest.DescriptionGroups,
                     opt => opt.MapFrom<ProductDescGroupDtoResolver>())
                 .ForMember(dest => dest.Categories,
                     opt => opt.MapFrom(x => x.ProductToCategory.Select(y => y.Category)));
-
-            CreateMap<Category, CategoryDto>().ReverseMap();
-            CreateMap<DescriptionGroup, DescriptionGroupDto>().ReverseMap();
-            
             CreateMap<EditItemViewModel, Product>()
                 .ForMember(x => x.Images, opt => opt.Ignore())
                 .ForMember(x => x.ProductToCategory, opt => opt.Ignore())
                 .ForMember(x => x.Descriptions, opt => opt.Ignore());
+
+            CreateMap<Category, CategoryDto>().ReverseMap();
+            
+            CreateMap<DescriptionGroup, DescriptionGroupDto>().ReverseMap();
+            
+            CreateMap<DescriptionGroupItem, DescriptionGroupItemDto>().ReverseMap();
 
             CreateMap<Image, ImageDto>();
             CreateMap<ImageDto, Image>()
@@ -45,10 +49,6 @@ namespace Website.Web.Infrastructure.Mapper
 
             CreateMap<DescriptionGroupItemDto, Description>()
                 .ConvertUsing<DescGroupItemDtoToDescConverter>();
-
-            CreateMap<ProfileViewModel, User>()
-                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
-            CreateMap<User, ProfileViewModel>();
         }
     }
 }

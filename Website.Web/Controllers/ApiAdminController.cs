@@ -24,7 +24,7 @@ namespace Website.Web.Controllers
         public async Task<IActionResult> Categories()
         {
             var categories = (await _shopManager.GetAllCategoriesAsync())
-                .Select(x=> new
+                .Select(x => new
                 {
                     x.Id,
                     x.Name,
@@ -38,7 +38,7 @@ namespace Website.Web.Controllers
         public async Task<IActionResult> DescriptionGroups()
         {
             var descGroups = (await _shopManager.GetAllDescriptionGroupsAsync())
-                .Select(x=>new {Id = x.Id,Name = x.Name, Description= x.Description});
+                .Select(x => new {Id = x.Id, Name = x.Name, Description = x.Description});
             return Ok(descGroups);
         }
 
@@ -47,7 +47,7 @@ namespace Website.Web.Controllers
         public async Task<IActionResult> DescriptionItems(int groupId)
         {
             var descItems = (await _shopManager.GetDescriptionItemsAsync(groupId))
-                .Select(x=>new {x.Id,x.Name});
+                .Select(x => new {x.Id, x.Name, groupId});
             return Ok(descItems);
         }
     }

@@ -8,17 +8,21 @@
 
 <form id="admin-search-form" asp-action="Items" method="get">
     <div class="form-inline form-group">
-        <input class="form-control mr-2 mb-1" placeholder="Поиск товаров" type="text" name="s" value="@Model.CurrentSearch"/>
-        Категории:&nbsp;
-        <select id="category-selector" multiple data-style="form-control mr-2 mb-1 category-selector"
-                data-actions-box="true" data-live-search="true" name="cat" class="selectpicker category-picker">
-            @foreach (var category in Model.Categories)
-            {
-                <!option @((Model.CategoryIds?.Contains(category.Id)).GetValueOrDefault() ? "selected" : "") data-subtext="@category.Description" value="@category.Id">@category.Name</!option>
-            }
-        </select>
+        <div class="d-flex flex-grow-1">
+            <input class="form-control mr-2 mb-1 w-100" placeholder="Поиск товаров" type="text" name="s" value="@Model.CurrentSearch"/>
+        </div>
+        <div>
+            Категории:&nbsp;
+            <select id="category-selector" multiple data-style="form-control mr-2 mb-1 category-selector"
+                    data-actions-box="true" data-live-search="true" name="cat" class="selectpicker category-picker">
+                @foreach (var category in Model.Categories ?? Enumerable.Empty<CategoryDto>())
+                {
+                    <!option @((Model.CategoryIds?.Contains(category.Id)).GetValueOrDefault() ? "selected" : "") data-subtext="@category.Description" value="@category.Id">@category.Name</!option>
+                }
+            </select>  
+        </div>
         @Html.DropDownList("st", Html.GetEnumSelectList<ItemTypeSelector>(),
-            new {@class = "form-control mx-2 mb-1 admin-selector"})
+            new {@class = "form-control mr-2 mb-1 admin-selector"})
         <input class="btn btn-outline-primary mr-2 mb-1" type="submit" value="Поиск"/>
         <a class="btn btn-outline-secondary mr-2 mb-1" asp-action="Items">Сброс</a>
         <a class="btn btn-primary mr-2 mb-1" asp-action="AddItem">Добавить товар</a>

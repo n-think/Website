@@ -7,7 +7,8 @@ using Microsoft.AspNetCore.Razor.TagHelpers;
 
 namespace Website.Web.TagHelpers
 {
-    [HtmlTargetElement("page-link", TagStructure = TagStructure.WithoutEndTag)]
+    [HtmlTargetElement("page-link", 
+        TagStructure = TagStructure.WithoutEndTag)]
     public class PageLinkTagHelper : TagHelper
     {
         private IUrlHelperFactory _urlHelperFactory;
@@ -105,16 +106,34 @@ namespace Website.Web.TagHelpers
             else
             {
                 link = new TagBuilder("a");
-                link.Attributes["href"] = urlHelper.Action(Action, new
+
+                string action;
+                if (Selector == 0)
                 {
-                    s = Search,
-                    st = Selector,
-                    o = CurrentProp,
-                    cat = Categories,
-                    desc = DescGroups,
-                    c = ItemsPerPage,
-                    p = pageNumber
-                });
+                    action =urlHelper.Action(Action, new
+                    {
+                        s = Search,
+                        o = CurrentProp,
+                        cat = Categories,
+                        desc = DescGroups,
+                        c = ItemsPerPage,
+                        p = pageNumber
+                    });
+                }
+                else
+                {
+                    action = urlHelper.Action(Action, new
+                    {
+                        s = Search,
+                        st = Selector,
+                        o = CurrentProp,
+                        cat = Categories,
+                        desc = DescGroups,
+                        c = ItemsPerPage,
+                        p = pageNumber
+                    });
+                }
+                link.Attributes["href"] = action;
             }
             link.AddCssClass("page-link");
             link.InnerHtml.Append(pageNumber.ToString());

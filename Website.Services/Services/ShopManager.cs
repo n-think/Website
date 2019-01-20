@@ -33,6 +33,7 @@ namespace Website.Services.Services
             IEnumerable<IShopValidator<Image>> imgValidators,
             IEnumerable<IShopValidator<Category>> catValidators,
             IEnumerable<IShopValidator<DescriptionGroup>> descGroupValidators,
+            IEnumerable<IShopValidator<DescriptionGroupItem>> descGroupItemValidators,
             IEnumerable<IShopValidator<Description>> descValidators,
             IEnumerable<IShopValidator<Order>> orderValidators,
             IShopImageTransformer<Image> imgTransformer,
@@ -63,6 +64,11 @@ namespace Website.Services.Services
             foreach (var validator in descGroupValidators)
             {
                 DescriptionGroupValidators.Add(validator);
+            }
+            
+            foreach (var validator in descGroupItemValidators)
+            {
+                DescriptionGroupItemValidators.Add(validator);
             }
 
             foreach (var validator in descValidators)
@@ -97,6 +103,9 @@ namespace Website.Services.Services
 
         public IList<IShopValidator<DescriptionGroup>> DescriptionGroupValidators { get; } =
             new List<IShopValidator<DescriptionGroup>>();
+        
+        public IList<IShopValidator<DescriptionGroupItem>> DescriptionGroupItemValidators { get; } =
+            new List<IShopValidator<DescriptionGroupItem>>();
 
         public IList<IShopValidator<Description>> DescriptionValidators { get; } =
             new List<IShopValidator<Description>>();
@@ -324,23 +333,24 @@ namespace Website.Services.Services
             return product;
         }
 
-        public async Task<SortPageResult<Product>> GetSortFilterPageAsync(ItemTypeSelector types,
-            string searchString, string sortPropName, int currPage, int countPerPage, int[] categoryIds,
-            int[] descGroupIds)
+        public async Task<SortPageResult<Product>> GetSortFilterPageAsync(ItemTypeSelector types, int currPage,
+            int countPerPage, string searchString = null, string sortPropName = null, int[] categoryIds = null,
+            int[] descGroupIds = null)
         {
             ThrowIfDisposed();
-            if (sortPropName == null) throw new ArgumentNullException(nameof(sortPropName));
             if (countPerPage < 0) throw new ArgumentOutOfRangeException(nameof(countPerPage));
             if (currPage < 0) throw new ArgumentOutOfRangeException(nameof(currPage));
             if (!Enum.IsDefined(typeof(ItemTypeSelector), types))
                 throw new InvalidEnumArgumentException(nameof(ItemTypeSelector), (int) types, typeof(ItemTypeSelector));
-             
+            
             var prodQuery = await FilterProductsQuery(_repository.ProductsQueryable, types, categoryIds, descGroupIds);
             SearchProductsQuery(searchString, ref prodQuery);
             OrderProductsQuery(sortPropName, ref prodQuery);
-            int totalProductsN = await prodQuery.CountAsync(CancellationToken);
+            var totalProductsN = await prodQuery.CountAsync(CancellationToken);
             PaginateProductsQuery(currPage, countPerPage, ref prodQuery);
-            var products = await prodQuery.ToListAsync(CancellationToken);
+            var products = await prodQuery
+                .Include(x=>x.Images)
+                .ToListAsync(CancellationToken);
 
             return new SortPageResult<Product> {FilteredData = products, TotalN = totalProductsN};
         }
@@ -396,15 +406,18 @@ namespace Website.Services.Services
 
         private void SearchProductsQuery(string searchString, ref IQueryable<Product> prodQuery)
         {
-            if (!String.IsNullOrEmpty(searchString))
-            {
-                prodQuery = prodQuery.Where(x =>
-                    x.Name.Contains(searchString) || x.Code.ToString().Contains(searchString));
-            }
+            if (string.IsNullOrEmpty(searchString))
+                return;
+            
+            prodQuery = prodQuery.Where(x =>
+                x.Name.Contains(searchString) || x.Code.ToString().Contains(searchString));
         }
 
         private void OrderProductsQuery(string sortPropName, ref IQueryable<Product> prodQuery)
         {
+            if (sortPropName.IsNullOrEmpty())
+                return;
+            
             bool descending = false;
             if (sortPropName.EndsWith("_desc"))
             {
@@ -538,16 +551,30 @@ namespace Website.Services.Services
             return OperationResult.Success();
         }
 
+        public async Task<IEnumerable<Category>> SearchCategoriesByName(string search)
+        {
+            ThrowIfDisposed();
+            if (search == null)
+                throw new ArgumentNullException(nameof(search));
+            
+            if (search=="")
+                return Enumerable.Empty<Category>();
+
+            return await _repository.CategoriesQueryable
+                .Where(x => x.Name.Contains(search, StringComparison.OrdinalIgnoreCase))
+                .ToListAsync(CancellationToken);
+        }    
+
         public async Task<IEnumerable<DescriptionGroup>> GetAllDescriptionGroupsAsync()
         {
             ThrowIfDisposed();
-            return await _repository.GetDescriptionGroupsAsync(CancellationToken);
+            return await _repository.FindDescriptionGroupsAsync(CancellationToken);
         }
 
         public async Task<IEnumerable<(DescriptionGroup, int)>> GetAllDescriptionGroupsWithProductCountAsync()
         {
             ThrowIfDisposed();
-            var groups = await _repository.GetDescriptionGroupsAsync(CancellationToken);
+            var groups = await _repository.FindDescriptionGroupsAsync(CancellationToken);
             var result = new List<(DescriptionGroup, int)>();
             foreach (var group in groups)
             {
@@ -564,10 +591,177 @@ namespace Website.Services.Services
             return result;
         }
 
+        public async Task<OperationResult> CreateDescriptionGroupAsync(DescriptionGroup descriptionGroup)
+        {
+            ThrowIfDisposed();
+            if (descriptionGroup == null) throw new ArgumentNullException(nameof(descriptionGroup));
+
+            if (await _repository.DescriptionGroupItemsQueryable
+                .AnyAsync(x => x.Name == descriptionGroup.Name, CancellationToken))
+            {
+                return OperationResult.Failure(ErrorDescriber.DuplicateDescriptionGroupName());
+            }
+
+            var result = await Validate(new[] {descriptionGroup}, DescriptionGroupValidators);
+            if (!result.Succeeded)
+            {
+                return result;
+            }
+
+            result = await _repository.CreateDescriptionGroupAsync(descriptionGroup, CancellationToken);
+            if (!result.Succeeded)
+            {
+                return result;
+            }
+
+            return OperationResult.Success();
+        }
+        
+        public async Task<OperationResult> UpdateDescriptionGroupAsync(DescriptionGroup descriptionGroup)
+        {
+            ThrowIfDisposed();
+            if (descriptionGroup == null) throw new ArgumentNullException(nameof(descriptionGroup));
+
+            var result = await Validate(new[] {descriptionGroup}, DescriptionGroupValidators);
+            if (!result.Succeeded)
+            {
+                return result;
+            }
+
+            result = await _repository.UpdateDescriptionGroupAsync(descriptionGroup, CancellationToken);
+            if (!result.Succeeded)
+            {
+                return result;
+            }
+
+            return OperationResult.Success();
+        }        
+        public async Task<OperationResult> DeleteDescriptionGroupAsync(int id)
+        {
+            ThrowIfDisposed();
+            var descGroup = await _repository.DescriptionGroupsQueryable
+                .FirstOrDefaultAsync(x => x.Id == id,CancellationToken);
+
+            if (descGroup == null)
+            {
+                return OperationResult.Failure(ErrorDescriber.EntityNotFound("Группа описаний"));
+            }
+
+            var containsDescriptions = await _repository.DescriptionGroupsQueryable
+                .Where(x => x.Id == id)
+                .SelectMany(x => x.DescriptionGroupItems)
+                .SelectMany(x => x.Descriptions)
+                .AnyAsync(CancellationToken);
+            
+            if (containsDescriptions)
+            {
+                return OperationResult.Failure(ErrorDescriber.CannotDeleteDescGroupWithProducts());
+            }
+            
+            var result = await _repository.DeleteDescriptionGroupAsync(id, CancellationToken);
+            if (!result.Succeeded)
+            {
+                return result;
+            }
+            
+            return OperationResult.Success();
+        }
+
+        public async Task<DescriptionGroup> GetDescriptionGroupByIdAsync(int id)
+        {
+            return await _repository.FindDescriptionGroupByIdAsync(id, CancellationToken);
+        }
+        
+        public async Task<DescriptionGroup> GetDescriptionGroupByNameAsync(string name)
+        {
+            return await _repository.FindDescriptionGroupByNameAsync(name, CancellationToken);
+        }
+        
+        public async Task<DescriptionGroupItem> GetDescriptionItemByNameAsync(string name)
+        {
+            return await _repository.FindDescriptionGroupItemByNameAsync(name, CancellationToken);
+        }
+        
+        public async Task<OperationResult> CreateDescriptionItemAsync(DescriptionGroupItem descriptionGroupItem)
+        {
+            ThrowIfDisposed();
+            if (descriptionGroupItem == null) throw new ArgumentNullException(nameof(descriptionGroupItem));
+
+            var result = await Validate(new[] {descriptionGroupItem}, DescriptionGroupItemValidators);
+            if (!result.Succeeded)
+            {
+                return result;
+            }
+
+            result = await _repository.CreateDescriptionGroupItemAsync(descriptionGroupItem, CancellationToken);
+            if (!result.Succeeded)
+            {
+                return result;
+            }
+
+            return OperationResult.Success();
+        }
+
+        public async Task<OperationResult> UpdateDescriptionItemAsync(DescriptionGroupItem descriptionGroupItem)
+        {
+            ThrowIfDisposed();
+            if (descriptionGroupItem == null) throw new ArgumentNullException(nameof(descriptionGroupItem));
+
+            var result = await Validate(new[] {descriptionGroupItem}, DescriptionGroupItemValidators);
+            if (!result.Succeeded)
+            {
+                return result;
+            }
+
+            result = await _repository.UpdateDescriptionGroupItemAsync(descriptionGroupItem, CancellationToken);
+            if (!result.Succeeded)
+            {
+                return result;
+            }
+
+            return OperationResult.Success();
+        }
+
+        public async Task<OperationResult> DeleteDescriptionItemAsync(int id)
+        {
+            ThrowIfDisposed();
+            var descGroupItem = await _repository.DescriptionGroupItemsQueryable
+                .FirstOrDefaultAsync(x => x.Id == id,CancellationToken);
+
+            if (descGroupItem == null)
+            {
+                return OperationResult.Failure(ErrorDescriber.EntityNotFound("Группа описаний"));
+            }
+
+            var containsDescriptions = await _repository.DescriptionGroupItemsQueryable
+                .Where(x => x.Id == id)
+                .SelectMany(x => x.Descriptions)
+                .AnyAsync(CancellationToken);
+            
+            if (containsDescriptions)
+            {
+                return OperationResult.Failure(ErrorDescriber.CannotDeleteDescItemsWithProducts());
+            }
+            
+            var result = await _repository.DeleteDescriptionGroupItemAsync(id, CancellationToken);
+            if (!result.Succeeded)
+            {
+                return result;
+            }
+            
+            return OperationResult.Success();
+        }
+
+        public async Task<DescriptionGroupItem> GetDescriptionItemByIdAsync(int id)
+        {
+            ThrowIfDisposed();
+            return await _repository.FindDescriptionGroupItemByIdAsync(id, CancellationToken);
+        }
+
         public async Task<IEnumerable<DescriptionGroupItem>> GetDescriptionItemsAsync(int groupId)
         {
             ThrowIfDisposed();
-            return await _repository.GetDescriptionGroupItemsAsync(groupId, CancellationToken);
+            return await _repository.FindDescriptionGroupItemsAsync(groupId, CancellationToken);
         }
 
         public async Task<(byte[], string)> GetImageDataMimeAsync(int imageId, bool thumb = false)
@@ -592,6 +786,20 @@ namespace Website.Services.Services
                     .FirstOrDefault();
                 ;
             }
+        }
+
+        public async Task<IEnumerable<Product>> GetNewProducts(int count)
+        {
+            if (count <= 0) throw new ArgumentOutOfRangeException(nameof(count));
+            ThrowIfDisposed();
+            
+
+            var newProducts = await _repository.ProductsQueryable
+                .OrderByDescending(x => x.Created)
+                .Take(count)
+                .Include(x=>x.Images)
+                .ToListAsync(CancellationToken);
+            return newProducts;
         }
 
         private void TransformImages(IEnumerable<Image> images)

@@ -19,7 +19,8 @@ using Website.Core.Models.Domain;
 
 namespace Website.Data.EF.Repositories
 {
-    public class ShopRepository : IShopRepository<Product, Image, ImageBinData, Category, ProductToCategory, DescriptionGroup,
+    public class ShopRepository : IShopRepository<Product, Image, ImageBinData, Category, ProductToCategory,
+        DescriptionGroup,
         DescriptionGroupItem,
         Description, Order>
     {
@@ -49,7 +50,10 @@ namespace Website.Data.EF.Repositories
         private DbSet<Description> DescriptionsSet => Context.Set<Description>();
         public IQueryable<Product> ProductsQueryable => ProductsSet.AsQueryable();
         public IQueryable<Category> CategoriesQueryable => CategoriesSet.AsQueryable();
-        public IQueryable<ProductToCategory> ProductCategoriesQueryable => Context.Set<ProductToCategory>().AsQueryable();
+
+        public IQueryable<ProductToCategory> ProductCategoriesQueryable =>
+            Context.Set<ProductToCategory>().AsQueryable();
+
         public IQueryable<Image> ImagesQueryable => ImagesSet.AsQueryable();
         public IQueryable<ImageBinData> ImageDataQueryable => Context.Set<ImageBinData>().AsQueryable();
         public IQueryable<Description> DescriptionsQueryable => DescriptionsSet.AsQueryable();
@@ -199,7 +203,8 @@ namespace Website.Data.EF.Repositories
                 .FirstOrDefaultAsync(ct);
 
             if (product != null)
-            {//primary image first
+            {
+                //primary image first
                 product.Images = product.Images
                     .OrderBy(i => !i.Primary)
                     .ToArray();
@@ -309,7 +314,7 @@ namespace Website.Data.EF.Repositories
                 existing.Description = category.Description;
                 existing.ParentId = category.ParentId;
             }
-            
+
             try
             {
                 await SaveChangesAsync(ct);
@@ -337,7 +342,7 @@ namespace Website.Data.EF.Repositories
             {
                 return OperationResult.Failure(ErrorDescriber.EntityNotFound("Категория"));
             }
-            
+
             Context.Entry(entry).State = EntityState.Deleted;
             try
             {
@@ -597,7 +602,7 @@ namespace Website.Data.EF.Repositories
             {
                 if (image.BinData == null)
                 {
-                    if (!ImagesSet.Any(x=> x.Id == image.Id))
+                    if (!ImagesSet.Any(x => x.Id == image.Id))
                     {
                         return OperationResult.Failure(ErrorDescriber.InvalidModel());
                     }
@@ -792,25 +797,6 @@ namespace Website.Data.EF.Repositories
             return OperationResult.Success();
         }
 
-        public async Task<IEnumerable<DescriptionGroup>> GetDescriptionGroupsAsync(CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            ThrowIfDisposed();
-
-            return await DescGroupsSet.ToListAsync(cancellationToken);
-        }
-
-        public async Task<IEnumerable<DescriptionGroupItem>> GetDescriptionGroupItemsAsync(int groupId,
-            CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            ThrowIfDisposed();
-
-            return await DescGroupItemsSet
-                .Where(x => x.DescriptionGroupId == groupId)
-                .ToListAsync(cancellationToken);
-        }
-
         public async Task<List<Description>> GetProductDescriptions(int productId,
             CancellationToken ct = default(CancellationToken))
         {
@@ -842,6 +828,238 @@ namespace Website.Data.EF.Repositories
                 .OrderBy(x => x.Name != "Общие характеристики")
                 .ThenBy(x => x.Name)
                 .ToListAsync(ct);
+        }
+
+        #endregion
+
+        #region DescriptionGroups
+
+        public async Task<IEnumerable<DescriptionGroup>> FindDescriptionGroupsAsync(CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+
+            return await DescGroupsSet.ToListAsync(cancellationToken);
+        }
+
+        public async Task<IEnumerable<DescriptionGroupItem>> FindDescriptionGroupItemsAsync(int groupId,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+
+            return await DescGroupItemsSet
+                .Where(x => x.DescriptionGroupId == groupId)
+                .ToListAsync(cancellationToken);
+        }
+
+        public async Task<DescriptionGroup> FindDescriptionGroupByNameAsync(string name, CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+            if (name.IsNullOrEmpty())
+                throw new ArgumentNullException(nameof(name));
+
+            var descGroup = await DescGroupsSet
+                .Where(x => String.Equals(x.Name, name, StringComparison.CurrentCultureIgnoreCase))
+                .FirstOrDefaultAsync(ct);
+
+            return descGroup;
+        }
+
+        public async Task<OperationResult> CreateDescriptionGroupAsync(DescriptionGroup descriptionGroup,
+            CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+            if (descriptionGroup == null)
+                throw new ArgumentNullException(nameof(descriptionGroup));
+
+            DescGroupsSet.Attach(descriptionGroup);
+            Context.Entry(descriptionGroup).State = EntityState.Added;
+            try
+            {
+                await SaveChangesAsync(ct);
+            }
+            catch (DbUpdateException)
+            {
+                return OperationResult.Failure(ErrorDescriber.DbUpdateFailure());
+            }
+
+            return OperationResult.Success();
+        }
+
+        public async Task<OperationResult> UpdateDescriptionGroupAsync(DescriptionGroup descriptionGroup,
+            CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+            if (descriptionGroup == null)
+            {
+                throw new ArgumentNullException(nameof(descriptionGroup));
+            }
+
+            var existing = await DescGroupsSet.FindAsync(new object[] {descriptionGroup.Id}, ct);
+            if (existing == null)
+            {
+                DescGroupsSet.Attach(descriptionGroup);
+                Context.Entry(descriptionGroup).State = EntityState.Modified;
+            }
+            else
+            {
+                existing.Name = descriptionGroup.Name;
+                existing.Description = descriptionGroup.Description;
+            }
+
+            try
+            {
+                await SaveChangesAsync(ct);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return OperationResult.Failure(ErrorDescriber.ConcurrencyFailure());
+            }
+            catch (DbUpdateException)
+            {
+                return OperationResult.Failure(ErrorDescriber.DbUpdateFailure());
+            }
+
+            return OperationResult.Success();
+        }
+
+        public async Task<OperationResult> DeleteDescriptionGroupAsync(int id, CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+
+            var entry = await DescGroupsSet.FindAsync(new Object[] {id}, ct);
+            if (entry == null)
+            {
+                return OperationResult.Failure(ErrorDescriber.EntityNotFound("Группа описаний"));
+            }
+
+            Context.Entry(entry).State = EntityState.Deleted;
+            try
+            {
+                await SaveChangesAsync(ct);
+            }
+            catch (DbUpdateException)
+            {
+                return OperationResult.Failure(ErrorDescriber.DbUpdateFailure());
+            }
+
+            return OperationResult.Success();
+        }
+
+        public async Task<DescriptionGroup> FindDescriptionGroupByIdAsync(int id, CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+
+            return await DescGroupsSet.FindAsync(new object[] {id}, ct);
+        }
+
+        public async Task<DescriptionGroupItem> FindDescriptionGroupItemByIdAsync(int id, CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+
+            return await DescGroupItemsSet.FindAsync(new object[] {id}, ct);
+        }
+
+        public async Task<DescriptionGroupItem> FindDescriptionGroupItemByNameAsync(string name, CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+            if (name.IsNullOrEmpty())
+                throw new ArgumentNullException(nameof(name));
+
+            var descGroupItem = await DescGroupItemsSet
+                .Where(x => String.Equals(x.Name, name, StringComparison.CurrentCultureIgnoreCase))
+                .FirstOrDefaultAsync(ct);
+
+            return descGroupItem;
+        }
+
+        public async Task<OperationResult> CreateDescriptionGroupItemAsync(DescriptionGroupItem descriptionGroupItem, CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+            if (descriptionGroupItem == null)
+                throw new ArgumentNullException(nameof(descriptionGroupItem));
+
+            DescGroupItemsSet.Attach(descriptionGroupItem);
+            Context.Entry(descriptionGroupItem).State = EntityState.Added;
+            try
+            {
+                await SaveChangesAsync(ct);
+            }
+            catch (DbUpdateException)
+            {
+                return OperationResult.Failure(ErrorDescriber.DbUpdateFailure());
+            }
+
+            return OperationResult.Success();
+        }
+
+        public async Task<OperationResult> UpdateDescriptionGroupItemAsync(DescriptionGroupItem descriptionGroupItem, CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+            if (descriptionGroupItem == null)
+            {
+                throw new ArgumentNullException(nameof(descriptionGroupItem));
+            }
+
+            var existing = await DescGroupItemsSet.FindAsync(new object[] {descriptionGroupItem.Id}, ct);
+            if (existing == null)
+            {
+                DescGroupItemsSet.Attach(descriptionGroupItem);
+                Context.Entry(descriptionGroupItem).State = EntityState.Modified;
+            }
+            else
+            {
+                existing.Name = descriptionGroupItem.Name;
+            }
+
+            try
+            {
+                await SaveChangesAsync(ct);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return OperationResult.Failure(ErrorDescriber.ConcurrencyFailure());
+            }
+            catch (DbUpdateException)
+            {
+                return OperationResult.Failure(ErrorDescriber.DbUpdateFailure());
+            }
+
+            return OperationResult.Success();
+        }
+
+        public async Task<OperationResult> DeleteDescriptionGroupItemAsync(int id, CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+
+            var entry = await DescGroupItemsSet.FindAsync(new Object[] {id}, ct);
+            if (entry == null)
+            {
+                return OperationResult.Failure(ErrorDescriber.EntityNotFound("Описание"));
+            }
+
+            Context.Entry(entry).State = EntityState.Deleted;
+            try
+            {
+                await SaveChangesAsync(ct);
+            }
+            catch (DbUpdateException)
+            {
+                return OperationResult.Failure(ErrorDescriber.DbUpdateFailure());
+            }
+
+            return OperationResult.Success();
         }
 
         #endregion

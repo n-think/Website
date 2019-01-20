@@ -1,0 +1,59 @@
+@model Website.Web.Models.HomeViewModels.SearchViewModel
+@using Castle.Core.Internal
+@using Website.Web.Models.DTO
+@{
+    ViewBag.Title = "Поиск";
+}
+
+<form id="search-form" asp-action="" method="get" class="my-4">
+    <div class="form-inline form-group">
+        <div class="d-flex flex-grow-1">
+            <input class="form-control mr-2 mb-1 w-100" placeholder="Поиск" type="text" name="s" value="@Model.CurrentSearch"/>
+        </div>
+        <div class="">
+            <span>Категории:&nbsp;</span>
+            <select id="category-selector" name="cat" class="category-picker form-control mr-2 mb-1 category-selector">
+                <!option disabled selected value>- выбрать категорию -</!option>
+                @foreach (var category in Model.AllCategories ?? Enumerable.Empty<CategoryDto>())
+                {
+                    <!option @((Model.CategoryIds?.Contains(category.Id)).GetValueOrDefault() ? "selected" : "")
+                        data-subtext="@category.Description" value="@category.Id">
+                        @category.Name</!option>
+                }
+            </select>
+            <input class="btn btn-outline-primary mr-2 mb-1" type="submit" value="Поиск"/>
+            <a class="btn btn-outline-secondary mr-2 mb-1" asp-action="Search">Сброс</a>
+        </div>
+    </div>
+</form>
+@if (!Model.FilteredCategories.IsNullOrEmpty())
+{
+    <div class="">
+        Найдено категорий:
+        @foreach (var cat in Model.FilteredCategories ?? Enumerable.Empty<CategoryDto>())
+        {
+            <a class="" asp-action="Search" asp-route-cat="@cat.Id">@cat.Name</a>
+        }
+    </div> 
+}
+<div class="my-4">
+    <div class="h5">Товаров найдено: @ViewBag.itemCount.</div>
+    <div>
+        Сортировать по
+        <sort-header action="Search" search="@Model.CurrentSearch" descending="@Model.Descending" current="@Model.CurrentSortOrder"
+                     property="@nameof(ProductDto.Name)" categories="@Model.CategoryIds" items-per-page="@Model.CountPerPage"
+                     content="@Html.DisplayNameFor(x => x.FilteredItems.First().Name)"/>
+        
+        <sort-header action="Search" search="@Model.CurrentSearch" descending="@Model.Descending" current="@Model.CurrentSortOrder"
+                     property="@nameof(ProductDto.Price)" categories="@Model.CategoryIds" items-per-page="@Model.CountPerPage"
+                     content="@Html.DisplayNameFor(x => x.FilteredItems.First().Price)"/>
+    </div>
+    <div class="row cards justify-content-center">
+        @foreach (var item in Model.FilteredItems ?? Enumerable.Empty<ProductDto>())
+        {
+            <partial name="_ProductCardPartial" model="@item"/>
+        } 
+    </div>
+</div>
+<page-link current-page="@Model.CurrentPage" search="@Model.CurrentSearch" current-prop="@Model.CurrentSortOrder"
+           items-count="@Model.ItemCount" items-per-page="@Model.CountPerPage" categories="@Model.CategoryIds" action="Search"/>

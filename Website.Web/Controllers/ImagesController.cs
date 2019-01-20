@@ -14,7 +14,7 @@ namespace Website.Web.Controllers
             ShopManager = shopManager;
         }
 
-        [HttpGet("{controller}/{id:required:int:min(0)}")]
+        [HttpGet("[controller]/{id:required:int:min(0)}")]
         public async Task<IActionResult> FullSize(int id)
         {
             var (bytes, mime) = await ShopManager.GetImageDataMimeAsync(id, false);
@@ -28,7 +28,7 @@ namespace Website.Web.Controllers
             return new FileStreamResult(ms, mime);
         }
 
-        [HttpGet("{controller}/{action}/{id:required:int:min(0)}")]
+        [HttpGet("[controller]/[action]/{id:required:int:min(0)}")]
         public async Task<IActionResult> Thumb(int id)
         {
             var (bytes, mime) = await ShopManager.GetImageDataMimeAsync(id, true);

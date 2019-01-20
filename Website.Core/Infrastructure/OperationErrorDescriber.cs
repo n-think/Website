@@ -120,6 +120,24 @@
                 Description = $"Пункт описания не может быть пустым."
             };
         }
+        
+        public virtual OperationError EmptyDescriptionGroupName()
+        {
+            return new OperationError
+            {
+                Code = nameof(EmptyDescriptionGroupName),
+                Description = $"Имя группы описания не может быть пустым."
+            };
+        }
+        
+        public virtual OperationError EmptyDescriptionGroupItemName()
+        {
+            return new OperationError
+            {
+                Code = nameof(EmptyDescriptionGroupItemName),
+                Description = $"Имя описания не может быть пустым."
+            };
+        }
 
         public virtual OperationError EntityNotFound(string entityName)
         {
@@ -138,7 +156,43 @@
                 Description = $"Нельзя удалить категорию в которой находятся продукты."
             };
         }
+        
+        public virtual OperationError CannotDeleteDescGroupWithProducts()
+        {
+            return new OperationError
+            {
+                Code = nameof(CannotDeleteCategoryWithProducts),
+                Description = $"Нельзя удалить группу в которой находятся активные описания продуктов."
+            };
+        }
+        
+        public virtual OperationError CannotDeleteDescItemsWithProducts()
+        {
+            return new OperationError
+            {
+                Code = nameof(CannotDeleteCategoryWithProducts),
+                Description = $"Нельзя удалить описания которые используются продуктами."
+            };
+        }
 
+        public virtual OperationError DuplicateDescriptionGroupName()
+        {
+            return new OperationError
+            {
+                Code = nameof(DuplicateDescriptionGroupName),
+                Description = $"Группа с таким названием уже существует."
+            };
+        }
+        
+        public virtual OperationError DuplicateDescriptionGroupItemName()
+        {
+            return new OperationError
+            {
+                Code = nameof(DuplicateDescriptionGroupItemName),
+                Description = $"Описание с таким названием уже существует."
+            };
+        }
+        
         public virtual OperationError DuplicateCategoryName()
         {
             return new OperationError

@@ -204,15 +204,14 @@ namespace Website.Web.Controllers
             var countPerPage = pageCount == null || pageCount <= 0 ? 15 : pageCount.Value;
 
             SortPageResult<Product> result =
-                await _shopManager.GetSortFilterPageAsync(types, search, sortOrder, currPage, countPerPage, categoryIds,
-                    descGroupIds);
+                await _shopManager.GetSortFilterPageAsync(types, currPage, countPerPage, search, sortOrder,
+                    categoryIds, descGroupIds);
 
             var allCategories =
                 _mapper.Map<IEnumerable<CategoryDto>>(await _shopManager.GetAllCategoriesAsync());
 
             ViewBag.itemCount = result.TotalN;
-
-            //TODO mapper
+            
             var model = new ItemsViewModel()
             {
                 CurrentSearch = search,
@@ -385,6 +384,7 @@ namespace Website.Web.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Policy = "EditItems")]
         public async Task<IActionResult> AddCategory(CategoryDto categoryDto)
         {
@@ -410,6 +410,7 @@ namespace Website.Web.Controllers
 
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Policy = "EditItems")]
         public async Task<IActionResult> EditCategory(CategoryDto categoryDto)
         {
@@ -449,6 +450,7 @@ namespace Website.Web.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Policy = "EditItems")]
         public async Task<IActionResult> DeleteCategoryConfirm(CategoryDto category)
         {
@@ -482,54 +484,53 @@ namespace Website.Web.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Policy = "EditItems")]
         public async Task<IActionResult> AddDescriptionGroup(DescriptionGroupDto descriptionGroupDto)
         {
-//            if (categoryDto == null)
-//            {
-//                return RedirectToAction("Categories");
-//            }
-//
-//            var category = _mapper.Map<Category>(categoryDto);
-//
-//            OperationResult result = await _shopManager.CreateCategoryAsync(category);
-//            if (!result.Succeeded)
-//            {
-//                TempData["Message"] = string.Join(Environment.NewLine, result.Errors.Select(x => x.Description));
-//            }
-//            else
-//            {
-//                TempData["Message"] = $"Категория \"{category.Name}\" успешно добавлена.";
-//            }
-//
-//            return RedirectToAction("Categories");
-            throw new NotImplementedException();
+            if (descriptionGroupDto == null)
+            {
+                return RedirectToAction("DescriptionGroups");
+            }
+
+            var descriptionGroup = _mapper.Map<DescriptionGroup>(descriptionGroupDto);
+
+            OperationResult result = await _shopManager.CreateDescriptionGroupAsync(descriptionGroup);
+            if (!result.Succeeded)
+            {
+                TempData["Message"] = string.Join(Environment.NewLine, result.Errors.Select(x => x.Description));
+            }
+            else
+            {
+                TempData["Message"] = $"Группа \"{descriptionGroup.Name}\" успешно добавлена.";
+            }
+
+            return RedirectToAction("DescriptionGroups");
         }
 
-
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Policy = "EditItems")]
         public async Task<IActionResult> EditDescriptionGroup(DescriptionGroupDto descriptionGroupDto)
         {
-//            if (categoryDto == null)
-//            {
-//                return RedirectToAction("Categories");
-//            }
-//
-//            var category = _mapper.Map<Category>(categoryDto);
-//
-//            OperationResult result = await _shopManager.UpdateCategoryAsync(category);
-//            if (!result.Succeeded)
-//            {
-//                TempData["Message"] = string.Join(Environment.NewLine, result.Errors.Select(x => x.Description));
-//            }
-//            else
-//            {
-//                TempData["Message"] = $"Категория \"{category.Name}\" успешно изменена.";
-//            }
-//
-//            return RedirectToAction("Categories");
-            throw new NotImplementedException();
+            if (descriptionGroupDto == null)
+            {
+                return RedirectToAction("DescriptionGroups");
+            }
+
+            var descriptionGroup = _mapper.Map<DescriptionGroup>(descriptionGroupDto);
+
+            OperationResult result = await _shopManager.UpdateDescriptionGroupAsync(descriptionGroup);
+            if (!result.Succeeded)
+            {
+                TempData["Message"] = string.Join(Environment.NewLine, result.Errors.Select(x => x.Description));
+            }
+            else
+            {
+                TempData["Message"] = $"Группа \"{descriptionGroupDto.Name}\" успешно изменена.";
+            }
+
+            return RedirectToAction("DescriptionGroups");
         }
 
 
@@ -537,132 +538,124 @@ namespace Website.Web.Controllers
         [Authorize(Policy = "EditItems")]
         public async Task<IActionResult> DeleteDescriptionGroup(int id)
         {
-//            var category = await _shopManager.GetCategoryByIdAsync(id);
-//            if (category == null)
-//            {
-//                return View("Error", new ErrorViewModel {Message = $"Категория с id {id} не найдена."});
-//            }
-//
-//            var catDto = _mapper.Map<CategoryDto>(category);
-//            return View(catDto);
-            throw new NotImplementedException();
+            var descGroup = await _shopManager.GetDescriptionGroupByIdAsync(id);
+            if (descGroup == null)
+            {
+                return View("Error", new ErrorViewModel {Message = $"Категория с id {id} не найдена."});
+            }
+
+            var descGroupDto = _mapper.Map<DescriptionGroupDto>(descGroup);
+            return View(descGroupDto);
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Policy = "EditItems")]
         public async Task<IActionResult> DeleteDescriptionGroupConfirm(DescriptionGroupDto descriptionGroupDto)
         {
-//            if (category == null)
-//            {
-//                return RedirectToAction("Categories");
-//            }
-//
-//            var result = await _shopManager.DeleteCategoryAsync(category.Id);
-//            if (!result.Succeeded)
-//            {
-//                foreach (var error in result.Errors)
-//                {
-//                    ModelState.AddModelError(error.Code, error.Description);
-//                }
-//
-//                return View("DeleteCategory", category);
-//            }
-//
-//            TempData["Message"] = $"Категория \"{category.Name}\" успешно удалена.";
-//            return RedirectToAction("Categories");
-            throw new NotImplementedException();
+            if (descriptionGroupDto == null)
+            {
+                return RedirectToAction("DescriptionGroups");
+            }
+
+            var result = await _shopManager.DeleteDescriptionGroupAsync(descriptionGroupDto.Id.GetValueOrDefault());
+            if (!result.Succeeded)
+            {
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(error.Code, error.Description);
+                }
+
+                return View("DeleteDescriptionGroup", descriptionGroupDto);
+            }
+
+            TempData["Message"] = $"Категория \"{descriptionGroupDto.Name}\" успешно удалена.";
+            return RedirectToAction("DescriptionGroups");
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Policy = "EditItems")]
-        public async Task<IActionResult> AddDescriptionGroupItem(DescriptionGroupItemDto descriptionGroupItemDto)
+        public async Task<IActionResult> AddDescriptionItem(DescriptionGroupItemDto descriptionGroupItemDto)
         {
-//            if (categoryDto == null)
-//            {
-//                return RedirectToAction("Categories");
-//            }
-//
-//            var category = _mapper.Map<Category>(categoryDto);
-//
-//            OperationResult result = await _shopManager.CreateCategoryAsync(category);
-//            if (!result.Succeeded)
-//            {
-//                TempData["Message"] = string.Join(Environment.NewLine, result.Errors.Select(x => x.Description));
-//            }
-//            else
-//            {
-//                TempData["Message"] = $"Категория \"{category.Name}\" успешно добавлена.";
-//            }
-//
-//            return RedirectToAction("Categories");
-            throw new NotImplementedException();
+            if (descriptionGroupItemDto == null || descriptionGroupItemDto.DescriptionGroupId == null)
+            {
+                return BadRequest("Получены некорректные данные");
+            }
+
+            var item = _mapper.Map<DescriptionGroupItem>(descriptionGroupItemDto);
+
+            OperationResult result = await _shopManager.CreateDescriptionItemAsync(item);
+            if (!result.Succeeded)
+            {
+                return BadRequest(string.Join(Environment.NewLine, result.Errors.Select(x => x.Description)));
+            }
+            else
+            {
+                return Created("", item.Id);
+            }
         }
 
 
         [HttpPost]
         [Authorize(Policy = "EditItems")]
-        public async Task<IActionResult> EditDescriptionGroupItem(DescriptionGroupItemDto descriptionGroupItemDto)
+        public async Task<IActionResult> EditDescriptionItem(DescriptionGroupItemDto descriptionGroupItemDto)
         {
-//            if (categoryDto == null)
-//            {
-//                return RedirectToAction("Categories");
-//            }
-//
-//            var category = _mapper.Map<Category>(categoryDto);
-//
-//            OperationResult result = await _shopManager.UpdateCategoryAsync(category);
-//            if (!result.Succeeded)
-//            {
-//                TempData["Message"] = string.Join(Environment.NewLine, result.Errors.Select(x => x.Description));
-//            }
-//            else
-//            {
-//                TempData["Message"] = $"Категория \"{category.Name}\" успешно изменена.";
-//            }
-//
-//            return RedirectToAction("Categories");
-            throw new NotImplementedException();
-        }
+            if (descriptionGroupItemDto == null)
+            {
+                return BadRequest("Получены некорректные данные");
+            }
 
+            var item = _mapper.Map<DescriptionGroupItem>(descriptionGroupItemDto);
+
+            OperationResult result = await _shopManager.UpdateDescriptionItemAsync(item);
+            if (!result.Succeeded)
+            {
+                return BadRequest(string.Join(Environment.NewLine, result.Errors.Select(x => x.Description)));
+            }
+            else
+            {
+                return Ok(item.Id);
+            }
+        }
 
         [HttpGet("{id:required:int:min(0)}")]
         [Authorize(Policy = "EditItems")]
-        public async Task<IActionResult> DescriptionGroupItem(int id)
+        public async Task<IActionResult> DeleteDescriptionItem(int id)
         {
-//            var category = await _shopManager.GetCategoryByIdAsync(id);
-//            if (category == null)
-//            {
-//                return View("Error", new ErrorViewModel {Message = $"Категория с id {id} не найдена."});
-//            }
-//
-//            var catDto = _mapper.Map<CategoryDto>(category);
-//            return View(catDto);
-            throw new NotImplementedException();
+            DescriptionGroupItem item = await _shopManager.GetDescriptionItemByIdAsync(id);
+            if (item == null)
+            {
+                return View("Error", new ErrorViewModel {Message = $"Описание с id {id} не найдено."});
+            }
+
+            var itemDto = _mapper.Map<DescriptionGroupItemDto>(item);
+            return View(itemDto);
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Policy = "EditItems")]
-        public async Task<IActionResult> DeleteDescriptionGroupItem(DescriptionGroupItemDto descriptionGroupItemDto)
+        public async Task<IActionResult> DeleteDescriptionItemConfirm(DescriptionGroupItemDto descriptionGroupItemDto)
         {
-//            if (category == null)
-//            {
-//                return RedirectToAction("Categories");
-//            }
-//
-//            var result = await _shopManager.DeleteCategoryAsync(category.Id);
-//            if (!result.Succeeded)
-//            {
-//                foreach (var error in result.Errors)
-//                {
-//                    ModelState.AddModelError(error.Code, error.Description);
-//                }
-//
-//                return View("DeleteCategory", category);
-//            }
-//
-//            TempData["Message"] = $"Категория \"{category.Name}\" успешно удалена.";
-//            return RedirectToAction("Categories");
-            throw new NotImplementedException();
+            if (descriptionGroupItemDto == null || descriptionGroupItemDto.Id == null)
+            {
+                return RedirectToAction("DescriptionGroups");
+            }
+
+            var result = await _shopManager.DeleteDescriptionItemAsync(descriptionGroupItemDto.Id.GetValueOrDefault());
+            if (!result.Succeeded)
+            {
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(error.Code, error.Description);
+                }
+
+                return View("DeleteDescriptionItem", descriptionGroupItemDto);
+            }
+
+            TempData["Message"] = $"Описание \"{descriptionGroupItemDto.Name}\" успешно удалено.";
+            return RedirectToAction("DescriptionGroups");
         }
 
         [HttpGet]

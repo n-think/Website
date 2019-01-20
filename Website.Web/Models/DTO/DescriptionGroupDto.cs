@@ -3,7 +3,7 @@ using Website.Web.Infrastructure.TreeHelper;
 
 namespace Website.Web.Models.DTO
 {
-    public class DescriptionGroupDto : ITreeItem<DescriptionGroupDto>
+    public class DescriptionGroupDto
     {
         public DescriptionGroupDto()
         {

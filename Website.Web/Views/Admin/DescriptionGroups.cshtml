@@ -1,4 +1,5 @@
-﻿@using Website.Web.Models.DTO;
+﻿@using Castle.Core.Internal
+@using Website.Web.Models.DTO;
 
 @{
     ViewData["Title"] = "Группы описаний";
@@ -6,7 +7,17 @@
 }
 
 @model IEnumerable<ValueTuple<DescriptionGroupDto, int>>
-
+<div id="alert">
+@if (!(TempData["Message"] as string).IsNullOrEmpty())
+{
+    <div class="alert alert-warning alert-dismissible">
+        @TempData["Message"]
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+}
+</div>
 <h2>Группы описаний</h2>
 <div class="row">
     <div class="col-lg-6">
@@ -14,7 +25,7 @@
             <span class="h4">Группы</span>
             <span id="add-group-button" class="btn-pushy btn btn-sm btn-outline-success fa fa-plus" style="vertical-align: baseline"></span> 
         </div>
-        <form id="add-group-form" class="mx-3 mb-3 d-none" @*asp-controller="Admin" asp-action="AddDescriptionGroup"*@>
+        <form id="add-group-form" class="mx-3 mb-3 d-none" asp-controller="Admin" asp-action="AddDescriptionGroup">
             <div>
                 <button id="confirm-add-group" type="submit" class="btn-pushy btn btn-outline-success btn-sm">
                     Добавить
@@ -36,23 +47,43 @@
                 {
                     var descGroup = descGroupAndCountTuple.Item1;
                     var count = descGroupAndCountTuple.Item2;
-                    <a class="list-group-item list-group-item-action description-group " data-id="@descGroup.Id">
+                    <a class="list-group-item list-group-item-action description-group" data-id="@descGroup.Id">
                         <div class="d-flex flex-row">
-                            <div class="mr-auto">
-                                <span class="desc-group-name">@descGroup.Name</span>
-                                <span onclick=@($"location.href='Items?desc={descGroup.Id}';") 
-                                      class="badge badge-primary" style="cursor: pointer;">Продуктов: @count</span>
-                                <span class="desc-group-description d-block font-weight-light">Описание: @(descGroup.Description ?? "<нет описания>")</span> 
+                            <div class="w-75">
+                                <div class="group-view">
+                                    <span class="desc-group-name" data-val="@descGroup.Name">@descGroup.Name</span>
+                                    @if (count > 0)
+                                    {
+                                        <span onclick=@($"location.href='Items?desc={descGroup.Id}';")
+                                              class="badge badge-primary" style="cursor: pointer;">Продуктов: @count</span>
+                                    }
+                                    <span class="desc-group-description d-block font-weight-light" data-val="@descGroup.Description">
+                                        Описание: @(descGroup.Description ?? "<нет описания>")
+                                    </span>
+                                </div>
+                                <form asp-controller="Admin" asp-action="EditDescriptionGroup" class="group-edit-form d-none">
+                                    <input type="number" id="@descGroup.Id" class="group-id" name="Id" value="@descGroup.Id" hidden/>
+                                    <div class="row">
+                                        <label for="@descGroup.GetHashCode()" class="col-form-label">Имя:&nbsp;</label>
+                                        <input class="col form-control form-control-sm d-inline" id="@descGroup.GetHashCode()"
+                                               name="Name" value="@descGroup.Name" required data-val="true"/>
+                                    </div>
+                                    <div class="row">
+                                        <label for="@(descGroup.Description + descGroup.Id)" class="col-form-label">Описание:&nbsp;</label>
+                                        <input class="col form-control form-control-sm d-inline" id="@(descGroup.Description + descGroup.Id)"
+                                               name="Description" value="@descGroup.Description"/>
+                                    </div>
+                                </form>
                             </div>
-                            <div class="align-self-center">
+                            <div class="align-self-center justify-content-end ml-auto">
                                 <span class="group-controls">
-                                    <span class="group-view-controls" style="vertical-align: top">
+                                    <span class="group-view-controls" >
                                         <span class="edit-group btn-pushy btn btn-success fa fa-pencil" style="vertical-align: top"></span>
                                         <span class="remove-group btn-pushy btn btn-danger fa fa-remove" style="vertical-align: top"></span>
                                     </span>
                                     <span class="group-edit-controls d-none">
-                                        <span id="save-edit-group" class="btn-pushy btn btn-success fa fa-check" style="vertical-align: top"></span>
-                                        <span id="cancel-edit-group" class="btn-pushy btn btn-warning fa fa-undo" style="vertical-align: top"></span>
+                                        <span class="save-edit-group btn-pushy btn btn-success fa fa-check" style="vertical-align: top"></span>
+                                        <span class="cancel-edit-group btn-pushy btn btn-warning fa fa-undo" style="vertical-align: top"></span>
                                     </span>
                                 </span>
                             </div>
@@ -67,12 +98,12 @@
             <span class="h4">Описания</span>
             <span id="add-item-button" class="d-none btn-pushy btn btn-sm btn-outline-success fa fa-plus" style="vertical-align: top"></span> 
         </div>
-        <form id="add-item-form" class="mx-3 mb-3 d-none" @*asp-controller="Admin" asp-action="AddDescriptionGroup"*@>
+        <form id="add-item-form" class="mx-3 mb-3 d-none">
             <div>
-                <button id="confirm-add-item" type="submit" class="btn-pushy btn btn-outline-success btn-sm">
+                <span id="confirm-add-item" class="btn-pushy btn btn-outline-success btn-sm">
                     Добавить
                     <span class=" fa fa-check"></span>
-                </button>
+                </span>
                 <span id="cancel-add-item" class="btn-pushy btn btn-sm btn-outline-danger">
                     Отмена
                     <span class="fa fa-remove"></span>
@@ -81,6 +112,8 @@
             <input id="item-name" name="Name" class="form-control my-2" placeholder="Имя" required data-val-required="Необходимо ввести имя описания."
                    data-val="true">
             <span class="field-validation-valid text-danger" data-valmsg-for="Name" data-valmsg-replace="true"></span>
+            <input id="item-group-id" name="DescriptionGroupId" hidden value="-1">
+            @Html.AntiForgeryToken()
         </form>
         <div class="pr-2" style="overflow-y: auto; max-height: 35em">
             <div id="description-items" class="list-group description-items">

@@ -1,0 +1,23 @@
+@model Website.Web.Models.DTO.DescriptionGroupItemDto
+
+@{
+    ViewBag.Title = "Подтвердить удаление описания";
+}
+<div>
+    <form asp-controller="Admin" asp-action="DeleteDescriptionItemConfirm" method="post">
+        <span class="h3">Подтвердите удаление описания</span>
+        <span id="controls" class="">
+            <button class="btn btn-outline-danger" type="submit">Удалить<span class="fa fa-check ml-2"></span></button>
+            <a asp-action="DescriptionGroups" class="btn btn-outline-success">Отмена<span class="fa fa-remove ml-2"></span></a>
+        </span>
+        <div asp-validation-summary="All" class="text-danger"></div>
+        <div class="mb-2">
+            <label for="Name">Id:</label>
+            <input id="Id" name="Id" class="form-control" readonly value="@Model.Id">
+        </div>
+        <div class="mb-2">
+            <label for="Name">Имя:</label>
+            <input id="Name" name="Name" class="form-control" readonly value="@Model.Name">
+        </div>
+    </form>
+</div>

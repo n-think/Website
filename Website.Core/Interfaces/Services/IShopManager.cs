@@ -23,8 +23,9 @@ namespace Website.Core.Interfaces.Services
             IEnumerable<Image> imagesToUpdate);
         Task<OperationResult> DeleteProductAsync(int productId);
 
-        Task<SortPageResult<Product>> GetSortFilterPageAsync(ItemTypeSelector types, string search, string sortOrder,
-            int currPage, int countPerPage, int[] categoryIds, int[] descGroupIds);
+        Task<SortPageResult<Product>> GetSortFilterPageAsync(ItemTypeSelector types, int currPage, int countPerPage,
+            string search = null, string sortOrder = null, int[] categoryIds = null, int[] descGroupIds = null);
+        
         Task<IEnumerable<Category>> GetAllCategoriesAsync();
         Task<IEnumerable<(Category, int)>> GetAllCategoriesWithProductCountAsync();
         Task<Category> GetCategoryByIdAsync(int id);
@@ -32,11 +33,24 @@ namespace Website.Core.Interfaces.Services
         Task<OperationResult> CreateCategoryAsync(Category category);
         Task<OperationResult> UpdateCategoryAsync(Category category);
         Task<OperationResult> DeleteCategoryAsync(int id);
-        
-        Task<IEnumerable<DescriptionGroup>> GetAllDescriptionGroupsAsync();
-        Task<IEnumerable<(DescriptionGroup, int)>> GetAllDescriptionGroupsWithProductCountAsync();
-        Task<IEnumerable<DescriptionGroupItem>> GetDescriptionItemsAsync(int groupId);
-        
+        Task<IEnumerable<Category>> SearchCategoriesByName(string search);
+       
+       Task<OperationResult> CreateDescriptionGroupAsync(DescriptionGroup descriptionGroup);
+       Task<OperationResult> UpdateDescriptionGroupAsync(DescriptionGroup descriptionGroup);
+       Task<OperationResult> DeleteDescriptionGroupAsync(int id);
+       Task<DescriptionGroup> GetDescriptionGroupByIdAsync(int id);
+       Task<DescriptionGroup> GetDescriptionGroupByNameAsync(string name);
+       Task<IEnumerable<DescriptionGroup>> GetAllDescriptionGroupsAsync();
+       Task<IEnumerable<(DescriptionGroup, int)>> GetAllDescriptionGroupsWithProductCountAsync();
+       
+       Task<OperationResult> CreateDescriptionItemAsync(DescriptionGroupItem descriptionGroupItem);
+       Task<OperationResult> UpdateDescriptionItemAsync(DescriptionGroupItem descriptionGroupItem);
+       Task<OperationResult> DeleteDescriptionItemAsync(int id);
+       Task<DescriptionGroupItem> GetDescriptionItemByIdAsync(int id);
+       Task<DescriptionGroupItem> GetDescriptionItemByNameAsync(string name);
+       Task<IEnumerable<DescriptionGroupItem>> GetDescriptionItemsAsync(int groupId);
+       
        Task<(byte[], string)> GetImageDataMimeAsync(int imageId, bool thumb = false);
+       Task<IEnumerable<Product>> GetNewProducts(int count);
     }
 }

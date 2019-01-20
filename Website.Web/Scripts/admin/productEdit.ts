@@ -55,7 +55,8 @@ module productEdit {
         dataToJson.Images = getImagesData();
         dataToJson.Categories = getCategoriesData();
         dataToJson.DescriptionGroups = getDescriptionsData();
-        //console.log(dataToJson);
+        
+        //console.log(dataToJson);        
         let json = JSON.stringify(dataToJson);
         //console.log(json);
         //console.log("sending json");
@@ -64,7 +65,7 @@ module productEdit {
             url: "/admin/editItem",
             headers: {
                 RequestVerificationToken: csrftoken,
-                "Content-Type": "application/json"
+                "Content-Type": "application/json"                
             },
             data: json,
             //timeout: 15000,
@@ -85,9 +86,9 @@ module productEdit {
                 let errorList = $("div.validation-summary-valid>ul");
                 errorList.empty();
                 $.validator.unobtrusive.parse("form#edit-form");                
-                if (jqXHR.status === 400) {
-                    var responseJson = JSON.parse(jqXHR.responseText);
-                    if (Array.isArray(responseJson)) {                        
+                if (jqXHR.status === 400) {                    
+                    if (Array.isArray(jqXHR.responseText)) {
+                        var responseJson = JSON.parse(jqXHR.responseText);
                         for (let i = 0; i < responseJson.length; i++) {
                             errorList.append("<li>").text(responseJson[i]);
                         }

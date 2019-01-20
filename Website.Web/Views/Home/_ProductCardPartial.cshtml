@@ -1,0 +1,12 @@
+@model Website.Web.Models.DTO.ProductDto
+<div class="card shop-card m-2">
+    <img class="card-img-top card-img-fixed-top" src="@($"/Images/{Model.Images.FirstOrDefault(x => x.Primary == true)?.Id}")" alt="Нет изображения">
+    <div class="card-body">
+        <h5 class="card-title">@Model.Name</h5>
+        <p class="card-text">@Model.Description</p>
+    </div>
+    <div class="card-footer d-flex justify-content-around">
+        <h3 class="mr-auto d-inline">@($"{Model.Price:0}") ¤</h3>
+        <a asp-action="ViewItem" asp-route-id="@Model.Id" class="btn btn-outline-primary" style="vertical-align: top">Подробнее</a>
+    </div>
+</div>

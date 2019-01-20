@@ -71,16 +71,32 @@ namespace Website.Web.TagHelpers
             output.TagName = "a";
             output.TagMode = TagMode.StartTagAndEndTag;
 
-            string url = urlHelper.Action(Action, new
+            string action;
+            if (Selector == 0)
             {
-                s = Search,
-                st = Selector,
-                o = linkProp,// sort order
-                cat = Categories,
-                desc = DescGroups,
-                c = ItemsPerPage
-            }); 
-            output.Attributes.SetAttribute("href", url);
+                action =urlHelper.Action(Action, new
+                {
+                    s = Search,
+                    o = linkProp,// sort order
+                    cat = Categories,
+                    desc = DescGroups,
+                    c = ItemsPerPage
+                });
+            }
+            else
+            {
+                action = urlHelper.Action(Action, new
+                {
+                    s = Search,
+                    st = Selector,
+                    o = linkProp,// sort order
+                    cat = Categories,
+                    desc = DescGroups,
+                    c = ItemsPerPage
+                });
+            }
+            
+            output.Attributes.SetAttribute("href", action);
         }
     }
 }

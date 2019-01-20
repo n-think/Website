@@ -88,8 +88,6 @@ namespace Website.Core.Interfaces.Repositories
         #region Descriptions
 
         IQueryable<TDescription> DescriptionsQueryable { get; }
-        IQueryable<TDescriptionGroup> DescriptionGroupsQueryable { get; }
-        IQueryable<TDescriptionGroupItem> DescriptionGroupItemsQueryable { get; }
 
         Task<List<Description>> GetProductDescriptions(int productId,
             CancellationToken cancellationToken);
@@ -101,9 +99,31 @@ namespace Website.Core.Interfaces.Repositories
         
         Task<OperationResult> DeleteProductDescriptions(int productId,
             IEnumerable<Description> newDescriptions, CancellationToken cancellationToken);
-        
-        Task<IEnumerable<DescriptionGroup>> GetDescriptionGroupsAsync(CancellationToken cancellationToken);
-        Task<IEnumerable<DescriptionGroupItem>> GetDescriptionGroupItemsAsync(int groupId, CancellationToken cancellationToken);
+
         #endregion
+
+        #region DescriptionGroups
+
+        Task<IEnumerable<DescriptionGroup>> FindDescriptionGroupsAsync(CancellationToken cancellationToken);
+        Task<IEnumerable<DescriptionGroupItem>> FindDescriptionGroupItemsAsync(int groupId, CancellationToken cancellationToken);
+        
+        IQueryable<TDescriptionGroup> DescriptionGroupsQueryable { get; }
+        IQueryable<TDescriptionGroupItem> DescriptionGroupItemsQueryable { get; }
+        
+        Task<DescriptionGroup> FindDescriptionGroupByIdAsync(int id, CancellationToken cancellationToken);
+        Task<DescriptionGroup> FindDescriptionGroupByNameAsync(string name, CancellationToken cancellationToken);
+        Task<OperationResult> CreateDescriptionGroupAsync(DescriptionGroup descriptionGroup, CancellationToken cancellationToken);
+        Task<OperationResult> UpdateDescriptionGroupAsync(DescriptionGroup descriptionGroup, CancellationToken cancellationToken);
+        Task<OperationResult> DeleteDescriptionGroupAsync(int id, CancellationToken cancellationToken);
+        
+        Task<DescriptionGroupItem> FindDescriptionGroupItemByIdAsync(int id, CancellationToken cancellationToken);
+        Task<DescriptionGroupItem> FindDescriptionGroupItemByNameAsync(string name, CancellationToken cancellationToken);
+        Task<OperationResult> CreateDescriptionGroupItemAsync(DescriptionGroupItem descriptionGroupItem, CancellationToken cancellationToken);
+        Task<OperationResult> UpdateDescriptionGroupItemAsync(DescriptionGroupItem descriptionGroupItem, CancellationToken cancellationToken);
+        Task<OperationResult> DeleteDescriptionGroupItemAsync(int id, CancellationToken cancellationToken);
+        
+        #endregion
+
+
     }
 }

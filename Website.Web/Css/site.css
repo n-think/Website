@@ -45,7 +45,24 @@
     }
 }
 
+.shop-card{
+    width: 16.5rem;
+}
+
 .input-validation-error {
     border-color: #dc3545;
 }
+
+
+.card-img-fixed-top {
+    width: 100%;
+    height: 50%;
+    object-fit: cover;
+}
+
+
+/*!* footer at the bottom: *!*/
+/*.except-footer {*/
+    /*min-height: calc(100vh - 57px !* footer height *!);*/
+/*}*/
 

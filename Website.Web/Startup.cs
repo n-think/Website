@@ -162,8 +162,8 @@ namespace Website.Web
             services.AddScoped<IShopValidator<Image>, ImageValidator>();
             services.AddScoped<IShopValidator<Category>, CategoryValidator>();
             services.AddScoped<IShopValidator<DescriptionGroup>, DescriptionGroupValidator>();
+            services.AddScoped<IShopValidator<DescriptionGroupItem>, DescriptionGroupItemValidator>();
             services.AddScoped<IShopValidator<Description>, DescriptionValidator>();
-            services.AddScoped<IShopValidator<Order>, OrderValidator>();
             services.AddScoped<IShopValidator<Order>, OrderValidator>();
 
             services.AddScoped<IShopImageTransformer<Image>, ShopImageTransformer>();
