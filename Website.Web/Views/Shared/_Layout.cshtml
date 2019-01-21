@@ -13,7 +13,6 @@
     @RenderSection("Css", required: false)
 </head>
 <body>
-<div class="except-footer">
     <div class="jumbotron mb-0 p-3">
         <div class="container text-center">
             <a class="h1" href="/">Сайт</a>
@@ -25,16 +24,14 @@
             </p>
         </div>
     </div>
-    <div id="instant-search-results" class="p-2 mt-2 dropdown-menu border-dark text-truncate">
-        <div>Item1 Item1 Item1 Item1</div>
-        <div>Item2 Item2 Item2 Item2</div>
-    </div>
     <nav id="navbar" class="navbar navbar-dark bg-dark navbar-expand-md p-0">
         <div class="container-fluid px-0">
             <a class="navbar-brand m-0 btn btn-link rounded-0" asp-area="" asp-controller="Home" asp-action="Index">
                 <span class="fa fa-home"></span>
             </a>
-            <input id="mini-nav-search" class="w-50 form-control m-1 p-1 px-2" type="search" placeholder="Поиск" aria-label="Search">
+            <form class="flex-grow-1 d-flex mini-nav-search" asp-controller="Home" asp-action="Search" method="get">
+                <input name="s" class="w-100 form-control m-1 p-1 px-2" type="search" placeholder="Поиск" aria-label="Search">
+            </form>
             <button class="navbar-toggler btn btn-outline-light btn-link rounded-0" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
                     aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -53,8 +50,12 @@
                     @* <li class="nav-item"> *@
                     @*     <a class="nav-link btn btn-link rounded-0" asp-area="" asp-controller="Home" asp-action="Contact">Контакты</a> *@
                     @* </li> *@
-                    <li id="nav-search-li" class="nav-item" style="width: 28rem;">
-                        <input id="nav-search" class="form-control m-1 p-1 px-2" type="search" placeholder="Быстрый поиск" aria-label="Search">
+                    <li id="nav-search-container" class="nav-item" style="width: 24rem;">
+                        <form id="nav-search-form" asp-controller="Home" asp-action="Search" method="get">
+                            <input id="nav-search" class="form-control m-1 p-1 px-2" type="search" placeholder="Быстрый поиск" aria-label="Search">
+                            <div id="instant-search-results" class="p-2 mt-2 list-group dropdown-menu show border-dark text-truncate w-auto"
+                                 style="display: none;"></div>
+                        </form>
                     </li>
                 </ul>
                 @await Html.PartialAsync("_LoginPartial")
@@ -64,7 +65,6 @@
     <div class="main-body">
         @RenderBody()
     </div>
-</div>
 <footer class="footer pb-3">
     <hr class="mt-0 border-top"/>
     <div class="text-center">

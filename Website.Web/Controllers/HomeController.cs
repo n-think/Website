@@ -11,6 +11,7 @@ using Website.Core.Models.Domain;
 using Website.Web.Models.AdminViewModels;
 using Website.Web.Models.DTO;
 using Website.Web.Models.HomeViewModels;
+using ItemViewModel = Website.Web.Models.HomeViewModels.ItemViewModel;
 
 namespace Website.Web.Controllers
 {
@@ -102,12 +103,14 @@ namespace Website.Web.Controllers
         [HttpGet("[action]/{id:int:required:min(0)}")]
         public async Task<IActionResult> ViewItem(int id)
         {
-            var item = await _shopManager.GetProductByIdAsync(id);
+            var item = await _shopManager.GetProductByIdAsync(id, true, true, true);
             if (item == null)
             {
                 return NotFound();
             }
-            return View(_mapper.Map<ViewItemModel>(item));
+
+            var viewModel = _mapper.Map<ItemViewModel>(item);
+            return View(viewModel);
         }
 
         public IActionResult About()

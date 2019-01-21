@@ -135,7 +135,7 @@ namespace Website.Web
                     options.DataAnnotationLocalizerProvider = (type, factory) =>
                         factory.Create(typeof(SharedResource));
                 })
-                .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+                .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
             AddPolicies(services);
             services.AddDataProtection()

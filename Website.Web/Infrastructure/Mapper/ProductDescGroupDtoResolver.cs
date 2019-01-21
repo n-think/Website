@@ -4,19 +4,31 @@ using AutoMapper;
 using Castle.Core.Internal;
 using Website.Core.Models.Domain;
 using Website.Web.Models.AdminViewModels;
+using Website.Web.Models.HomeViewModels;
 using Website.Web.Models.DTO;
+using ItemViewModel = Website.Web.Models.HomeViewModels.ItemViewModel;
 
 namespace Website.Web.Infrastructure.Mapper
 {
-    public class ProductDescGroupDtoResolver : IValueResolver<Product, ItemViewModel, List<DescriptionGroupDto>>,
-        IValueResolver<Product, EditItemViewModel, List<DescriptionGroupDto>>
+    public class ProductDescGroupDtoResolver :
+        IValueResolver<Product, Models.AdminViewModels.ItemViewModel, List<DescriptionGroupDto>>,
+        IValueResolver<Product, EditItemViewModel, List<DescriptionGroupDto>>,
+        IValueResolver<Product, Models.HomeViewModels.ItemViewModel, List<DescriptionGroupDto>>
     {
-        public List<DescriptionGroupDto> Resolve(Product source, ItemViewModel destination, List<DescriptionGroupDto> destMember, ResolutionContext context)
+        public List<DescriptionGroupDto> Resolve(Product source, Models.AdminViewModels.ItemViewModel destination,
+            List<DescriptionGroupDto> destMember, ResolutionContext context)
         {
             return ConvertDescsToDescGroupDto(source);
         }
 
-        public List<DescriptionGroupDto> Resolve(Product source, EditItemViewModel destination, List<DescriptionGroupDto> destMember, ResolutionContext context)
+        public List<DescriptionGroupDto> Resolve(Product source, EditItemViewModel destination,
+            List<DescriptionGroupDto> destMember, ResolutionContext context)
+        {
+            return ConvertDescsToDescGroupDto(source);
+        }
+
+        public List<DescriptionGroupDto> Resolve(Product source, ItemViewModel destination,
+            List<DescriptionGroupDto> destMember, ResolutionContext context)
         {
             return ConvertDescsToDescGroupDto(source);
         }

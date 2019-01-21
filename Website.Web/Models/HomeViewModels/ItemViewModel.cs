@@ -5,7 +5,7 @@ using Website.Web.Models.DTO;
 
 namespace Website.Web.Models.HomeViewModels
 {
-    public class ViewItemModel
+    public class ItemViewModel
     {
         [ScaffoldColumn(false)]
         public int Id { get; set; }
@@ -27,10 +27,10 @@ namespace Website.Web.Models.HomeViewModels
         public int Stock { get; set; }
 
         [ScaffoldColumn(false)]
-        public List<CategoryDto> Categories { get; set; } = new List<CategoryDto>();
+        public List<CategoryDto> Categories { get; set; }
         [ScaffoldColumn(false)]
-        public List<ImageDto> Images { get; set; } = new List<ImageDto>();
+        public List<ImageDto> Images { get; set; }
         [ScaffoldColumn(false)]
-        public List<DescriptionGroupDto> DescriptionGroups { get; set; } = new List<DescriptionGroupDto>();
+        public List<DescriptionGroupDto> DescriptionGroups { get; set; }
     }
 }

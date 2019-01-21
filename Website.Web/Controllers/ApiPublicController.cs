@@ -1,8 +1,10 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Website.Core.Interfaces.Services;
+using Website.Core.Models.Domain;
 
 namespace Website.Web.Controllers
 {
@@ -17,14 +19,21 @@ namespace Website.Web.Controllers
         {
             _shopManager = sManager;
         }
-        
-        [HttpGet]
+
+        [HttpGet("{searchString:required:minlength(2)}")]
         public async Task<IActionResult> InstantSearch(string searchString)
         {
-            var categories = await _shopManager.GetAllCategoriesAsync();
-            return Ok(categories.Select(x=>new {x.Id,x.Name,x.Description}));
-        }
+            IEnumerable<Product> products = await _shopManager.SearchProductsByName(searchString);
 
-        
+            return Ok(products.Select(x => new
+                {
+                    x.Id,
+                    x.Name,
+                    x.Description,
+                    x.Price,
+                    imageThumb = $"/images/thumb/{x.Images.FirstOrDefault(y=>y.Primary)?.Id}"
+                }
+            ));
+        }
     }
 }

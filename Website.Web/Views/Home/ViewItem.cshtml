@@ -2,21 +2,21 @@
     ViewBag.Title = "Поиск";
 }
 @using Website.Web.Models.DTO
-@model Website.Web.Models.HomeViewModels.ViewItemModel
+@model Website.Web.Models.HomeViewModels.ItemViewModel
 
-<div class="h2 mb-2 d-inline-block">Просмотр товара</div>
+<div class="h2 my-3">Просмотр товара</div>
 
 <div class="row">
     <div class="col-md-7">
         <div>
-            <div class="admin-img-box">
-                <img id="admin-image-view" src="@Model.Images?.FirstOrDefault(x => x.Primary)?.DataUrlOrPath" alt="Нет изображения"/>
+            <div class="img-box">
+                <img id="image-view" src="@Model.Images?.FirstOrDefault(x => x.Primary)?.DataUrlOrPath" alt="Нет изображения"/>
                 <span></span>
             </div>
-            <div id="image-container" class="admin-img-thumbs">
+            <div id="image-container" class="img-thumbs">
                 @foreach (var item in Model.Images ?? Enumerable.Empty<ImageDto>())
                 {
-                    <img class="admin-img-thumb" data-path="@item.DataUrlOrPath"
+                    <img class="img-thumb" data-path="@item.DataUrlOrPath"
                          src="@item.DataUrlOrThumbPath"/>
                 }
             </div>
@@ -26,20 +26,14 @@
         <h3>@Model.Name</h3>
         <div class="table-responsive">
             <table class="table table-striped border">
-                <thead>
-                <tr>
-                    <th scope="col">Параметр</th>
-                    <th scope="col">Значение</th>
-                </tr>
-                </thead>
                 <tbody>
-                @Html.DisplayForModel("TableDataRowDisplay", new {htmlAttributes = new {@class = "admin-view"}})
+                @Html.DisplayForModel("TableDataRowDisplay", new {htmlAttributes = new {@class = "view"}})
                 </tbody>
             </table>
         </div>
     </div>
 </div>
-<div>
+<div class="item-categories my-2">
     <span class="h3 d-block">Категории</span>
     @foreach (var cat in Model.Categories ?? Enumerable.Empty<CategoryDto>())
     {
@@ -48,7 +42,7 @@
         <br/>
     }
 </div>
-<div class="admin-item-descriptions">
+<div class="item-descriptions my-2">
     <span class="h3">Описания</span>
     @foreach (var descriptionGroup in Model.DescriptionGroups ?? Enumerable.Empty<DescriptionGroupDto>())
     {

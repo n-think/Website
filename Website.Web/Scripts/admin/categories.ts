@@ -13,7 +13,6 @@ module categories {
         //edit buttons
         $("#edit-cat").on("click", categoryEdit);
         $("#remove-cat").on("click", categoryRemove);
-        // $("#save-edit-cat").on("click", categorySaveEdit);
         $("#cancel-edit-cat").on("click", categoryCancelEdit);
     }
 
@@ -39,10 +38,6 @@ module categories {
         let id = $("#cat-id-preview").val();
         location.href = `/admin/deleteCategory/${id}`;
     }
-
-    // function categorySaveEdit() {
-    //
-    // }
 
     function categoryCancelEdit() {
         editActive = false;

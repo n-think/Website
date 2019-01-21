@@ -65,7 +65,7 @@ namespace Website.Services.Services
             {
                 DescriptionGroupValidators.Add(validator);
             }
-            
+
             foreach (var validator in descGroupItemValidators)
             {
                 DescriptionGroupItemValidators.Add(validator);
@@ -103,7 +103,7 @@ namespace Website.Services.Services
 
         public IList<IShopValidator<DescriptionGroup>> DescriptionGroupValidators { get; } =
             new List<IShopValidator<DescriptionGroup>>();
-        
+
         public IList<IShopValidator<DescriptionGroupItem>> DescriptionGroupItemValidators { get; } =
             new List<IShopValidator<DescriptionGroupItem>>();
 
@@ -333,6 +333,17 @@ namespace Website.Services.Services
             return product;
         }
 
+        public async Task<IEnumerable<Product>> SearchProductsByName(string searchString)
+        {
+            ThrowIfDisposed();
+            if (searchString.IsNullOrEmpty())
+                return Enumerable.Empty<Product>();
+            return await _repository.ProductsQueryable
+                .Where(x => x.Name.Contains(searchString))
+                .Include(x=>x.Images)
+                .ToListAsync(CancellationToken);
+        }
+
         public async Task<SortPageResult<Product>> GetSortFilterPageAsync(ItemTypeSelector types, int currPage,
             int countPerPage, string searchString = null, string sortPropName = null, int[] categoryIds = null,
             int[] descGroupIds = null)
@@ -342,14 +353,14 @@ namespace Website.Services.Services
             if (currPage < 0) throw new ArgumentOutOfRangeException(nameof(currPage));
             if (!Enum.IsDefined(typeof(ItemTypeSelector), types))
                 throw new InvalidEnumArgumentException(nameof(ItemTypeSelector), (int) types, typeof(ItemTypeSelector));
-            
+
             var prodQuery = await FilterProductsQuery(_repository.ProductsQueryable, types, categoryIds, descGroupIds);
             SearchProductsQuery(searchString, ref prodQuery);
             OrderProductsQuery(sortPropName, ref prodQuery);
             var totalProductsN = await prodQuery.CountAsync(CancellationToken);
             PaginateProductsQuery(currPage, countPerPage, ref prodQuery);
             var products = await prodQuery
-                .Include(x=>x.Images)
+                .Include(x => x.Images)
                 .ToListAsync(CancellationToken);
 
             return new SortPageResult<Product> {FilteredData = products, TotalN = totalProductsN};
@@ -370,7 +381,7 @@ namespace Website.Services.Services
             {
                 productQuery = productQuery
                     .Where(x => x.ProductToCategory
-                        .Any(z => categoryIds.Contains(z.CategoryId))); 
+                        .Any(z => categoryIds.Contains(z.CategoryId)));
             }
 
             if (!descGroupIds.IsNullOrEmpty())
@@ -383,11 +394,11 @@ namespace Website.Services.Services
                     .Select(x => x.ProductId)
                     .Distinct()
                     .ToArrayAsync(CancellationToken);
-                
+
                 productQuery = productQuery
                     .Where(x => productIdsInDescGroups.Contains(x.Id));
             }
-            
+
             //filter types
             switch (types)
             {
@@ -408,7 +419,7 @@ namespace Website.Services.Services
         {
             if (string.IsNullOrEmpty(searchString))
                 return;
-            
+
             prodQuery = prodQuery.Where(x =>
                 x.Name.Contains(searchString) || x.Code.ToString().Contains(searchString));
         }
@@ -417,7 +428,7 @@ namespace Website.Services.Services
         {
             if (sortPropName.IsNullOrEmpty())
                 return;
-            
+
             bool descending = false;
             if (sortPropName.EndsWith("_desc"))
             {
@@ -556,14 +567,14 @@ namespace Website.Services.Services
             ThrowIfDisposed();
             if (search == null)
                 throw new ArgumentNullException(nameof(search));
-            
-            if (search=="")
+
+            if (search == "")
                 return Enumerable.Empty<Category>();
 
             return await _repository.CategoriesQueryable
                 .Where(x => x.Name.Contains(search, StringComparison.OrdinalIgnoreCase))
                 .ToListAsync(CancellationToken);
-        }    
+        }
 
         public async Task<IEnumerable<DescriptionGroup>> GetAllDescriptionGroupsAsync()
         {
@@ -616,7 +627,7 @@ namespace Website.Services.Services
 
             return OperationResult.Success();
         }
-        
+
         public async Task<OperationResult> UpdateDescriptionGroupAsync(DescriptionGroup descriptionGroup)
         {
             ThrowIfDisposed();
@@ -635,12 +646,13 @@ namespace Website.Services.Services
             }
 
             return OperationResult.Success();
-        }        
+        }
+
         public async Task<OperationResult> DeleteDescriptionGroupAsync(int id)
         {
             ThrowIfDisposed();
             var descGroup = await _repository.DescriptionGroupsQueryable
-                .FirstOrDefaultAsync(x => x.Id == id,CancellationToken);
+                .FirstOrDefaultAsync(x => x.Id == id, CancellationToken);
 
             if (descGroup == null)
             {
@@ -652,18 +664,18 @@ namespace Website.Services.Services
                 .SelectMany(x => x.DescriptionGroupItems)
                 .SelectMany(x => x.Descriptions)
                 .AnyAsync(CancellationToken);
-            
+
             if (containsDescriptions)
             {
                 return OperationResult.Failure(ErrorDescriber.CannotDeleteDescGroupWithProducts());
             }
-            
+
             var result = await _repository.DeleteDescriptionGroupAsync(id, CancellationToken);
             if (!result.Succeeded)
             {
                 return result;
             }
-            
+
             return OperationResult.Success();
         }
 
@@ -671,17 +683,17 @@ namespace Website.Services.Services
         {
             return await _repository.FindDescriptionGroupByIdAsync(id, CancellationToken);
         }
-        
+
         public async Task<DescriptionGroup> GetDescriptionGroupByNameAsync(string name)
         {
             return await _repository.FindDescriptionGroupByNameAsync(name, CancellationToken);
         }
-        
+
         public async Task<DescriptionGroupItem> GetDescriptionItemByNameAsync(string name)
         {
             return await _repository.FindDescriptionGroupItemByNameAsync(name, CancellationToken);
         }
-        
+
         public async Task<OperationResult> CreateDescriptionItemAsync(DescriptionGroupItem descriptionGroupItem)
         {
             ThrowIfDisposed();
@@ -726,7 +738,7 @@ namespace Website.Services.Services
         {
             ThrowIfDisposed();
             var descGroupItem = await _repository.DescriptionGroupItemsQueryable
-                .FirstOrDefaultAsync(x => x.Id == id,CancellationToken);
+                .FirstOrDefaultAsync(x => x.Id == id, CancellationToken);
 
             if (descGroupItem == null)
             {
@@ -737,18 +749,18 @@ namespace Website.Services.Services
                 .Where(x => x.Id == id)
                 .SelectMany(x => x.Descriptions)
                 .AnyAsync(CancellationToken);
-            
+
             if (containsDescriptions)
             {
                 return OperationResult.Failure(ErrorDescriber.CannotDeleteDescItemsWithProducts());
             }
-            
+
             var result = await _repository.DeleteDescriptionGroupItemAsync(id, CancellationToken);
             if (!result.Succeeded)
             {
                 return result;
             }
-            
+
             return OperationResult.Success();
         }
 
@@ -792,12 +804,12 @@ namespace Website.Services.Services
         {
             if (count <= 0) throw new ArgumentOutOfRangeException(nameof(count));
             ThrowIfDisposed();
-            
+
 
             var newProducts = await _repository.ProductsQueryable
                 .OrderByDescending(x => x.Created)
                 .Take(count)
-                .Include(x=>x.Images)
+                .Include(x => x.Images)
                 .ToListAsync(CancellationToken);
             return newProducts;
         }

@@ -1,6 +1,8 @@
 //js
 import "./site"
 import "./validationFixes"
+import "./itemView"
+
 //css
 import '../../Css/site.css'
 

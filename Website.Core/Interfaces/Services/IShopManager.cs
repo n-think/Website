@@ -14,7 +14,7 @@ namespace Website.Core.Interfaces.Services
 
         Task<OperationResult> CreateProductAsync(Product product, IEnumerable<Image> images,
             IEnumerable<int> categoryIdsToAdd, IEnumerable<Description> descriptions);
-        Task<Product> GetProductByIdAsync(int id, bool loadImages = false, bool loadDescriptions = false, bool loadCategories = false);
+        Task<Product> GetProductByIdAsync(int id, bool loadImages, bool loadDescriptions, bool loadCategories);
         Task<Product> GetProductByNameAsync(string name, bool loadImages, bool loadDescriptions, bool loadCategories);
         Task<Product> GetProductByCodeAsync(int code, bool loadImages, bool loadDescriptions, bool loadCategories);
         Task<OperationResult> UpdateProductAsync(Product product,
@@ -22,6 +22,8 @@ namespace Website.Core.Interfaces.Services
             IEnumerable<int> categoryIdsToUpdate,
             IEnumerable<Image> imagesToUpdate);
         Task<OperationResult> DeleteProductAsync(int productId);
+        Task<IEnumerable<Product>> GetNewProducts(int count);
+        Task<IEnumerable<Product>> SearchProductsByName(string searchString);
 
         Task<SortPageResult<Product>> GetSortFilterPageAsync(ItemTypeSelector types, int currPage, int countPerPage,
             string search = null, string sortOrder = null, int[] categoryIds = null, int[] descGroupIds = null);
@@ -51,6 +53,5 @@ namespace Website.Core.Interfaces.Services
        Task<IEnumerable<DescriptionGroupItem>> GetDescriptionItemsAsync(int groupId);
        
        Task<(byte[], string)> GetImageDataMimeAsync(int imageId, bool thumb = false);
-       Task<IEnumerable<Product>> GetNewProducts(int count);
     }
 }
