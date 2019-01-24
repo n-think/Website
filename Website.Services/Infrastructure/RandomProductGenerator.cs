@@ -222,7 +222,7 @@ namespace Website.Services.Infrastructure
                 }
                 catch (FileNotFoundException)
                 {
-                    array[i][1] = new byte[0];
+                    array[i][0] = new byte[0];
                 }
 
                 //try image 2
@@ -239,7 +239,7 @@ namespace Website.Services.Infrastructure
                 }
                 catch (FileNotFoundException)
                 {
-                    array[i][2] = new byte[0];
+                    array[i][1] = new byte[0];
                 }
             }
 

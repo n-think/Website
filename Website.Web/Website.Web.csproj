@@ -12,7 +12,6 @@
     <TypeScriptToolsVersion>3.0</TypeScriptToolsVersion>    
   </PropertyGroup>
 
-
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="8.0.0" />
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="6.0.0" />
@@ -73,11 +72,11 @@
     <Folder Include="Css" />
     <Folder Include="Data" />
     <Folder Include="wwwroot\dist" />
+    <Folder Include="TestImages" />
   </ItemGroup>
   
 
   <ItemGroup>
-    <None Remove="keys\key-9f4c2bad-21dc-45d7-85bc-87e1a479e971.xml" />
     <None Remove="keys\**" />
     <None Remove="Data\website.mdf" />
     <None Remove="Data\website_log.ldf" />

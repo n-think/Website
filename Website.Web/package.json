@@ -22,6 +22,7 @@
     "jquery-validation": "1.17.0",
     "jquery-validation-unobtrusive": "3.2.10",
     "mini-css-extract-plugin": "^0.4.5",
+    "optimize-css-assets-webpack-plugin": "^5.0.1",
     "popper.js": "1.14.4",
     "source-map-loader": "^0.2.4",
     "style-loader": "^0.23.1",
