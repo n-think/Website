@@ -55,7 +55,5 @@ namespace Website.Web.Models.AdminViewModels
 
         [ScaffoldColumn(false)]
         public IList<Claim> CurrentClaims { get; set; }
-
-
     }
 }

@@ -1,9 +1,8 @@
 ﻿
 @{
     ViewData["Title"] = "Удалить товар";
-    TempData["DeleteToken"] = Guid.NewGuid();
 }
-@model DeleteItemModel
+@model DeleteItemViewModel
 
 <h3>Вы действительно хотите удалить этот товар?</h3>
 <h6>ID товара: @Model.Id</h6>
@@ -14,5 +13,4 @@
     <input name="id" value="@Model.Id" hidden />
     <input class="btn btn-danger mx-2" type="submit" value="Удалить" />
     <a class="btn btn-outline-success" asp-action="ViewItem" asp-route-id="@Model.Id">Отмена</a>
-    <input name="token" value="@TempData.Peek("DeleteToken")" hidden />
 </form>

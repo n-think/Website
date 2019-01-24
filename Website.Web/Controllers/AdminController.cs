@@ -5,7 +5,9 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
 using Castle.Core.Internal;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Website.Core.Enums;
@@ -25,6 +27,8 @@ namespace Website.Web.Controllers
     [Authorize(Policy = "Administrators")]
     public class AdminController : Controller
     {
+        private readonly IAuthenticationService _authService;
+        private readonly IDatabaseInitializer _dbInitializer;
         private readonly IUserManager _userManager;
         private readonly RoleManager _roleManager;
         private readonly IMapper _mapper;
@@ -32,9 +36,11 @@ namespace Website.Web.Controllers
         private readonly IShopManager _shopManager;
 
         public AdminController(IUserManager userManager, IShopManager shopManager, RoleManager roleManager,
-            SignInManager signInManager,
-            IMapper mapper)
+            SignInManager signInManager, IMapper mapper, IDatabaseInitializer dbInitializer,
+            IAuthenticationService authService)
         {
+            _authService = authService;
+            _dbInitializer = dbInitializer;
             _userManager = userManager;
             _roleManager = roleManager;
             _signInManager = signInManager;
@@ -117,7 +123,7 @@ namespace Website.Web.Controllers
             return View(modelUser);
         }
 
-        [HttpPost("{id:required:int:min(0)}")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Policy = "EditUsers")]
         public async Task<IActionResult> EditUser(EditUserViewModel editModel)
@@ -185,6 +191,60 @@ namespace Website.Web.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "DeleteUsers")]
+        public async Task<IActionResult> DeleteUser(int id, string deleteToken)
+        {
+            if (deleteToken == null || deleteToken != TempData["DeleteToken"]?.ToString())
+            {
+                return View("Error",
+                    new ErrorViewModel
+                        {Message = $"Переход на страницу удаления пользователя возможен только после его просмотра."});
+            }
+
+            if (id <= 0)
+            {
+                return View("Error", new ErrorViewModel {Message = $"Получены некорректные данные."});
+            }
+
+            var user = await _userManager.FindByIdAsync(id.ToString());
+            if (user == null)
+            {
+                return View("Error", new ErrorViewModel {Message = $"Пользователь с id {id} не найден."});
+            }
+
+            return View(_mapper.Map<DeleteUserViewModel>(user));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Policy = "DeleteUsers")]
+        public async Task<IActionResult> DeleteUserConfirm(int id)
+        {
+            if (id <= 0)
+            {
+                return View("Error", new ErrorViewModel {Message = $"Получены некорректные данные."});
+            }
+
+            var user = await _userManager.FindByIdAsync(id.ToString());
+            if (user == null)
+            {
+                return View("Error", new ErrorViewModel {Message = $"Пользователь с id {id} не найден."});
+            }
+
+            var result = await _userManager.DeleteAsync(user);
+            if (!result.Succeeded)
+            {
+                ViewData["message"] = result.Errors?.FirstOrDefault()?.Description;
+            }
+            else
+            {
+                ViewData["message"] = "Пользователь успешно удален.";
+            }
+
+            return View();
+        }
+
+        [HttpGet]
         [Authorize(Policy = "ViewItems")]
         public async Task<IActionResult> Items(
             [FromQuery(Name = "s")] string search,
@@ -211,7 +271,7 @@ namespace Website.Web.Controllers
                 _mapper.Map<IEnumerable<CategoryDto>>(await _shopManager.GetAllCategoriesAsync());
 
             ViewBag.itemCount = result.TotalN;
-            
+
             var model = new ItemsViewModel()
             {
                 CurrentSearch = search,
@@ -245,7 +305,7 @@ namespace Website.Web.Controllers
         }
 
         [HttpGet("{id:required:int:min(0)}")]
-        [Authorize(Policy = "EditItems")]
+        [Authorize(Policy = "AddEditItems")]
         public async Task<IActionResult> EditItem(int id)
         {
             var prod = await _shopManager.GetProductByIdAsync(id, true, true, true);
@@ -261,7 +321,7 @@ namespace Website.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Policy = "EditItems")]
+        [Authorize(Policy = "AddEditItems")]
         public async Task<IActionResult> EditItem([FromBody] EditItemViewModel viewModel) //json input //move to api?
         {
             if (viewModel?.Id == null || viewModel?.Name == null || viewModel.Timestamp == null)
@@ -324,37 +384,54 @@ namespace Website.Web.Controllers
         }
 
         [HttpGet]
-        [Authorize(Policy = "EditItems")]
+        [Authorize(Policy = "AddEditItems")]
         public IActionResult AddItem()
         {
             return View("EditItem", new EditItemViewModel {CreateItem = true});
         }
 
         [HttpGet]
-        [Authorize(Policy = "EditItems")]
-        public IActionResult DeleteItem(DeleteItemModel model, string deleteToken) //token = 1 use token
+        [Authorize(Policy = "DeleteItems")]
+        public async Task<IActionResult> DeleteItem(int id, string deleteToken) //token = 1 use token
         {
-            if (model?.Id == null || deleteToken == null || deleteToken != TempData["DeleteToken"]?.ToString())
+            if (deleteToken == null || deleteToken != TempData["DeleteToken"]?.ToString())
             {
                 return View("Error",
                     new ErrorViewModel
                         {Message = $"Переход на страницу удаления товара возможен только после его просмотра."});
             }
 
-            return View(model);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [Authorize(Policy = "EditItems")]
-        public async Task<IActionResult> DeleteItemConfirm(int? id, string token) //token = 1 use token
-        {
-            if (id == null || token == null || token != TempData["DeleteToken"]?.ToString())
+            if (id <= 0)
             {
                 return View("Error", new ErrorViewModel {Message = $"Получены некорректные данные."});
             }
 
-            var result = await _shopManager.DeleteProductAsync(id.GetValueOrDefault());
+            var item = await _shopManager.GetProductByIdAsync(id, false, false, false);
+            if (item == null)
+            {
+                return View("Error", new ErrorViewModel {Message = $"Товар с id {id} не найден."});
+            }
+
+            return View(_mapper.Map<DeleteItemViewModel>(item));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Policy = "DeleteItems")]
+        public async Task<IActionResult> DeleteItemConfirm(int id)
+        {
+            if (id <= 0)
+            {
+                return View("Error", new ErrorViewModel {Message = $"Получены некорректные данные."});
+            }
+
+            var item = await _shopManager.GetProductByIdAsync(id, false, false, false);
+            if (item == null)
+            {
+                return View("Error", new ErrorViewModel {Message = $"Товар с id {id} не найден."});
+            }
+
+            var result = await _shopManager.DeleteProductAsync(id);
             if (!result.Succeeded)
             {
                 ViewData["message"] = result.Errors?.FirstOrDefault()?.Description;
@@ -380,12 +457,12 @@ namespace Website.Web.Controllers
                 cats.Add(catDto);
             }
 
-            return View(cats.ToTree());
+            return View(cats.ToTree().OrderBy(x=>x.Name));
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Policy = "EditItems")]
+        [Authorize(Policy = "AddEditItems")]
         public async Task<IActionResult> AddCategory(CategoryDto categoryDto)
         {
             if (categoryDto == null)
@@ -411,7 +488,7 @@ namespace Website.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Policy = "EditItems")]
+        [Authorize(Policy = "AddEditItems")]
         public async Task<IActionResult> EditCategory(CategoryDto categoryDto)
         {
             if (categoryDto == null)
@@ -436,7 +513,7 @@ namespace Website.Web.Controllers
 
 
         [HttpGet("{id:required:int:min(0)}")]
-        [Authorize(Policy = "EditItems")]
+        [Authorize(Policy = "DeleteItems")]
         public async Task<IActionResult> DeleteCategory(int id)
         {
             var category = await _shopManager.GetCategoryByIdAsync(id);
@@ -451,7 +528,7 @@ namespace Website.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Policy = "EditItems")]
+        [Authorize(Policy = "DeleteItems")]
         public async Task<IActionResult> DeleteCategoryConfirm(CategoryDto category)
         {
             if (category == null)
@@ -485,7 +562,7 @@ namespace Website.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Policy = "EditItems")]
+        [Authorize(Policy = "AddEditItems")]
         public async Task<IActionResult> AddDescriptionGroup(DescriptionGroupDto descriptionGroupDto)
         {
             if (descriptionGroupDto == null)
@@ -510,7 +587,7 @@ namespace Website.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Policy = "EditItems")]
+        [Authorize(Policy = "AddEditItems")]
         public async Task<IActionResult> EditDescriptionGroup(DescriptionGroupDto descriptionGroupDto)
         {
             if (descriptionGroupDto == null)
@@ -535,7 +612,7 @@ namespace Website.Web.Controllers
 
 
         [HttpGet("{id:required:int:min(0)}")]
-        [Authorize(Policy = "EditItems")]
+        [Authorize(Policy = "DeleteItems")]
         public async Task<IActionResult> DeleteDescriptionGroup(int id)
         {
             var descGroup = await _shopManager.GetDescriptionGroupByIdAsync(id);
@@ -550,7 +627,7 @@ namespace Website.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Policy = "EditItems")]
+        [Authorize(Policy = "DeleteItems")]
         public async Task<IActionResult> DeleteDescriptionGroupConfirm(DescriptionGroupDto descriptionGroupDto)
         {
             if (descriptionGroupDto == null)
@@ -575,7 +652,7 @@ namespace Website.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Policy = "EditItems")]
+        [Authorize(Policy = "AddEditItems")]
         public async Task<IActionResult> AddDescriptionItem(DescriptionGroupItemDto descriptionGroupItemDto)
         {
             if (descriptionGroupItemDto == null || descriptionGroupItemDto.DescriptionGroupId == null)
@@ -598,7 +675,7 @@ namespace Website.Web.Controllers
 
 
         [HttpPost]
-        [Authorize(Policy = "EditItems")]
+        [Authorize(Policy = "AddEditItems")]
         public async Task<IActionResult> EditDescriptionItem(DescriptionGroupItemDto descriptionGroupItemDto)
         {
             if (descriptionGroupItemDto == null)
@@ -620,7 +697,7 @@ namespace Website.Web.Controllers
         }
 
         [HttpGet("{id:required:int:min(0)}")]
-        [Authorize(Policy = "EditItems")]
+        [Authorize(Policy = "DeleteItems")]
         public async Task<IActionResult> DeleteDescriptionItem(int id)
         {
             DescriptionGroupItem item = await _shopManager.GetDescriptionItemByIdAsync(id);
@@ -635,7 +712,7 @@ namespace Website.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Policy = "EditItems")]
+        [Authorize(Policy = "DeleteItems")]
         public async Task<IActionResult> DeleteDescriptionItemConfirm(DescriptionGroupItemDto descriptionGroupItemDto)
         {
             if (descriptionGroupItemDto == null || descriptionGroupItemDto.Id == null)
@@ -656,6 +733,66 @@ namespace Website.Web.Controllers
 
             TempData["Message"] = $"Описание \"{descriptionGroupItemDto.Name}\" успешно удалено.";
             return RedirectToAction("DescriptionGroups");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Policy = "EditUsers")]
+        public async Task<IActionResult> GenerateUsers(int count)
+        {
+            if (count < 1 || count >= 100)
+            {
+                TempData["Message"] = $"Количество должно быть от 1 до 100.";
+                return RedirectToAction("Index");
+            }
+
+            int generated = await _dbInitializer.GenerateUsersAsync(count);
+            TempData["Message"] = $"Cгенерировано {generated} пользователей.";
+
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Policy = "AddEditItems")]
+        public async Task<IActionResult> GenerateItems(int count)
+        {
+            if (count < 1 || count >= 100)
+            {
+                TempData["Message"] = $"Количество должно быть от 1 до 100.";
+                return RedirectToAction("Index");
+            }
+
+            int generated = await _dbInitializer.GenerateItemsAsync(count);
+            TempData["Message"] = $"Cгенерировано {generated} товаров.";
+
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "admin_generated")]
+        public async Task<IActionResult> DropCreateDatabase()
+        {
+            OperationResult result = await _dbInitializer.DropCreateDatabase();
+
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(Environment.NewLine, result.Errors.Select(x => x.Description));
+                TempData["Message"] = $"Ошибка при пересоздании базы данных. {errors}";
+            }
+            else
+            {
+                TempData["Message"] = $"База данных была успешно пересоздана.";
+            }
+
+            var newAdminUser = await _userManager.FindByNameAsync("admin");
+            var userPrincipal = await _signInManager.CreateUserPrincipalAsync(newAdminUser);
+            await _signInManager.SignOutAsync();
+            await _authService.SignInAsync(HttpContext, IdentityConstants.ApplicationScheme, userPrincipal,
+                new AuthenticationProperties());
+
+            return RedirectToAction("Index");
         }
 
         [HttpGet]

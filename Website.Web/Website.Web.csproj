@@ -33,7 +33,7 @@
 
 
   <ItemGroup>
-    <TypeScriptCompile Include="Scripts\admin\items.ts" />
+    <TypeScriptCompile Include="Scripts\admin\admin.ts" />
     <TypeScriptCompile Include="Scripts\admin\categories.ts" />
     <TypeScriptCompile Include="Scripts\admin\descriptionGroups.ts" />
     <TypeScriptCompile Include="Scripts\admin\productEdit.ts" />
@@ -51,9 +51,6 @@
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>
     <Content Update="Views\Admin\DeleteItem.cshtml">
-      <Pack>$(IncludeRazorContentInPack)</Pack>
-    </Content>
-    <Content Update="Views\Test\Form.cshtml">
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>
     <Content Update="Typescript\tsconfig.json">
@@ -74,6 +71,7 @@
 
   <ItemGroup>
     <Folder Include="Css" />
+    <Folder Include="Data" />
     <Folder Include="wwwroot\dist" />
   </ItemGroup>
   
@@ -81,6 +79,8 @@
   <ItemGroup>
     <None Remove="keys\key-9f4c2bad-21dc-45d7-85bc-87e1a479e971.xml" />
     <None Remove="keys\**" />
+    <None Remove="Data\website.mdf" />
+    <None Remove="Data\website_log.ldf" />
   </ItemGroup>
   
 

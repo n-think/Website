@@ -14,25 +14,6 @@ namespace Website.Web.Controllers
             return View(claimList);
         }
 
-        public IActionResult Form(TestData asdddd)
-        {
-            var json = JsonConvert.SerializeObject(asdddd, Formatting.Indented);
-            return View("Form",json);
-        }
-
-        public class TestData
-        {
-            public string Name { get; set; }
-            public int Number { get; set; }
-            public List<Data> Datas { get; set; }
-        }
-        public class Data
-        {
-            public string DataName { get; set; }
-            public List<IFormFile> Files { get; set; }
-            public Data Nested { get; set; }
-        }
-
         public IActionResult Calc()
         {
             return View();

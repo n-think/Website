@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Website.Core.Enums;
 using Website.Core.Infrastructure;
@@ -11,7 +12,19 @@ namespace Website.Core.Interfaces.Services
         //TODO interface
         ShopManagerOptions Options { get; }
         OperationErrorDescriber ErrorDescriber { get; }
+        
+        IList<IShopValidator<Product>> ProductValidators { get; }
+        IList<IShopValidator<Image>> ImageValidators { get; }
+        IList<IShopValidator<Category>> CategoryValidators { get; }
+        IList<IShopValidator<DescriptionGroup>> DescriptionGroupValidators { get; }
+        IList<IShopValidator<DescriptionGroupItem>> DescriptionGroupItemValidators { get; }
+        IList<IShopValidator<Description>> DescriptionValidators { get; }
+        IList<IShopValidator<Order>> OrderValidators { get; }
 
+        void TransformImages(IEnumerable<Image> images);
+        Task<OperationResult> Validate<T>(IEnumerable<T> items, IEnumerable<IShopValidator<T>> validators,
+            Func<T, bool> predicateBeforeValidation = null) where T : class;
+        
         Task<OperationResult> CreateProductAsync(Product product, IEnumerable<Image> images,
             IEnumerable<int> categoryIdsToAdd, IEnumerable<Description> descriptions);
         Task<Product> GetProductByIdAsync(int id, bool loadImages, bool loadDescriptions, bool loadCategories);
@@ -23,7 +36,7 @@ namespace Website.Core.Interfaces.Services
             IEnumerable<Image> imagesToUpdate);
         Task<OperationResult> DeleteProductAsync(int productId);
         Task<IEnumerable<Product>> GetNewProducts(int count);
-        Task<IEnumerable<Product>> SearchProductsByName(string searchString);
+        Task<IEnumerable<Product>> SearchProductsByName(string searchString, int count);
 
         Task<SortPageResult<Product>> GetSortFilterPageAsync(ItemTypeSelector types, int currPage, int countPerPage,
             string search = null, string sortOrder = null, int[] categoryIds = null, int[] descGroupIds = null);

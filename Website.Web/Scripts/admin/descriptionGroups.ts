@@ -5,6 +5,18 @@ module descGroups {
         loadDescGroupsEventHandlers()
     }
 
+    class UserClaims {
+        canEditAdd: boolean;
+        canDelete: boolean;
+    }    
+    
+    let Claims: UserClaims = {canEditAdd: false, canDelete: false};
+    
+    // export function setUserClaims(canEditAdd:boolean, canDelete:boolean) {
+    //     Claims.canEditAdd = canEditAdd;
+    //     Claims.canDelete = canDelete;        
+    // }
+
     function loadDescGroupsEventHandlers() {
         $(".description-group").on("click", viewDescriptionGroupItems);
         $("#add-group-button").on("click", addGroup);
@@ -251,7 +263,7 @@ ${message}
 
                 let itemsArray: Array<DescriptionItem> = descGroup.data("items");
 
-                for (let i = 0;i < itemsArray.length; i++) {
+                for (let i = 0; i < itemsArray.length; i++) {
                     let item = itemsArray[i];
                     if (item.id === itemId) {
                         item.name = newName.toString();
@@ -376,12 +388,14 @@ ${message}
     }
 
     function getDescItem(itemId, itemName, groupId): JQuery<HTMLElement> {
-        let descItem = $("<a>")
+        let descItemContainer = $("<a>")
             .addClass("list-group-item list-group-item-action description-item list-group-item-light")
             .data("id", itemId)
             .data("name", itemName)
             .data("groupId", groupId);
-        let descItemControls = `
+        // @ts-ignore //from view script //todo export claims hz kak
+        let userPermissions = Claims || UserDescriptionClaims;
+        let descItem = `
 <div class="d-flex flex-row">
  <div class="w-75">
   <span class="item-name-view">${itemName}</span>
@@ -390,21 +404,28 @@ ${message}
    <input name="Id" value="${itemId}" hidden>
    <input name="Name" class="item-name-edit form-control form-control-sm" value="${itemName}" required data-val="true"/>  
   </form>                                
- </div>
+ </div>`;
+        if (userPermissions.canDelete || userPermissions.canEditAdd) {
+            descItem += `
  <div class="align-self-center ml-auto">
   <span class="item-controls">
    <span class="item-view-controls" style="vertical-align: top">
-    <span class="edit-item btn-pushy btn btn-sm btn-outline-success fa fa-pencil" style="vertical-align: top"></span>
-    <span class="remove-item btn-pushy btn btn-sm btn-outline-danger fa fa-remove" style="vertical-align: top"></span>
-   </span>
+    <span class="edit-item btn-pushy btn btn-sm btn-outline-success fa fa-pencil" style="vertical-align: top"></span>`;
+            if (userPermissions.canDelete) {
+                descItem += `
+<span class="remove-item btn-pushy btn btn-sm btn-outline-danger fa fa-remove" style="vertical-align: top"></span>`;
+            }
+            descItem += `
+  </span>
    <span class="item-edit-controls d-none">
     <span class="save-edit-item btn-pushy btn btn-sm btn-outline-success fa fa-check" style="vertical-align: top"></span>
     <span class="cancel-edit-item btn-pushy btn btn-sm btn-outline-warning fa fa-undo" style="vertical-align: top"></span>
    </span>
   </span>
- </div>
-</div>`;
-        descItem.append(descItemControls);
-        return descItem;
+ </div>`;
+        }
+        descItem += `</div>`;
+        descItemContainer.append(descItem);
+        return descItemContainer;
     }
 }

@@ -2,8 +2,11 @@
 using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -44,22 +47,17 @@ namespace Website.Web
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            string connectionString = Configuration.GetConnectionString("DefaultConnection");
+            if(connectionString.Contains("%CONTENTROOTPATH%"))
+            {
+                connectionString = connectionString.Replace("%CONTENTROOTPATH%", Environment.ContentRootPath);
+            }
+            
             services.AddDbContext<WebsiteDbContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+                options.UseSqlServer(connectionString));
             services.AddScoped<DbContext, WebsiteDbContext>();
 
             services.AddAutoMapper(opt => { opt.AddProfile<WebsiteProfile>(); });
-
-            services.AddOptions();
-            services.Configure<ShopManagerOptions>(options =>
-            {
-                options.Image.SaveFormat = ImageFormat.Jpeg;
-                options.Image.EncoderQuality = 80L;
-                options.Image.MaxWidth = 1000;
-                options.Image.MaxWidth = 1000;
-                options.Image.MaxThumbWidth = 150;
-                options.Image.MaxThumbHeight = 150;
-            });
 
             services.AddIdentity<User, Role>(options =>
                 {
@@ -150,13 +148,26 @@ namespace Website.Web
         private void AddMyServices(IServiceCollection services)
         {
             services.AddTransient<
-                IShopRepository<Product, Image, ImageBinData, Category,  ProductToCategory, DescriptionGroup,
+                IShopRepository<Product, Image, ImageBinData, Category, ProductToCategory, DescriptionGroup,
                     DescriptionGroupItem, Description, Order>, ShopRepository>();
             services.AddTransient<IUserStore<User>, UserRepository>();
 
             services.AddScoped<OperationErrorDescriber>();
             services.AddScoped<IUserManager, UserManager>();
             services.AddScoped<IShopManager, ShopManager>();
+
+            services.AddOptions();
+            services.Configure<ShopManagerOptions>(options =>
+            {
+                options.Image.SaveFormat = ImageFormat.Jpeg;
+                options.Image.EncoderQuality = 80L;
+                options.Image.MaxWidth = 1000;
+                options.Image.MaxWidth = 1000;
+                options.Image.MaxThumbWidth = 150;
+                options.Image.MaxThumbHeight = 150;
+            });
+
+            services.AddScoped<IDatabaseInitializer, DatabaseInitializer>();
 
             services.AddScoped<IShopValidator<Product>, ProductValidator>();
             services.AddScoped<IShopValidator<Image>, ImageValidator>();
@@ -183,34 +194,55 @@ namespace Website.Web
                     //user manage policies
                     options.AddPolicy("ViewUsers",
                         policy => policy.RequireAssertion(context => context.User.HasClaim(c =>
-                            c.Type == "ViewUsers" || c.Type == "EditUsers" || c.Type == "DeleteUsers")));
+                                                                         c.Type == "ViewUsers" ||
+                                                                         c.Type == "EditUsers" ||
+                                                                         c.Type == "DeleteUsers")
+                                                                     || context.User.IsInRole("admin_generated")));
                     options.AddPolicy("EditUsers",
                         policy => policy.RequireAssertion(context => context.User.HasClaim(c =>
-                            c.Type == "EditUsers" || c.Type == "DeleteUsers")));
+                                                                         c.Type == "EditUsers" ||
+                                                                         c.Type == "DeleteUsers")
+                                                                     || context.User.IsInRole("admin_generated")));
                     options.AddPolicy("DeleteUsers",
-                        policy => policy.RequireClaim("DeleteUsers"));
+                        policy => policy.RequireAssertion(context => context.User.HasClaim(c =>
+                                                                         c.Type == "DeleteUsers")
+                                                                     || context.User.IsInRole("admin_generated")));
 
                     //item manage policies
                     options.AddPolicy("ViewItems",
                         policy => policy.RequireAssertion(context => context.User.HasClaim(c =>
-                            c.Type == "ViewItems" || c.Type == "EditItems" || c.Type == "DeleteItems")));
+                                                                         c.Type == "ViewItems" ||
+                                                                         c.Type == "EditItems" ||
+                                                                         c.Type == "DeleteItems")
+                                                                     || context.User.IsInRole("admin_generated")));
 
-                    options.AddPolicy("EditItems",
+                    options.AddPolicy("AddEditItems",
                         policy => policy.RequireAssertion(context => context.User.HasClaim(c =>
-                            c.Type == "EditItems" || c.Type == "DeleteItems")));
+                                                                         c.Type == "EditItems" ||
+                                                                         c.Type == "DeleteItems")
+                                                                     || context.User.IsInRole("admin_generated")));
 
                     options.AddPolicy("DeleteItems",
-                        policy => policy.RequireClaim("DeleteItems"));
+                        policy => policy.RequireAssertion(context => context.User.HasClaim(c =>
+                                                                         c.Type == "DeleteItems")
+                                                                     || context.User.IsInRole("admin_generated")));
 
                     //orders manage policies
                     options.AddPolicy("ViewOrders",
                         policy => policy.RequireAssertion(context => context.User.HasClaim(c =>
-                            c.Type == "ViewOrders" || c.Type == "EditOrders" || c.Type == "DeleteOrders")));
+                                                                         c.Type == "ViewOrders" ||
+                                                                         c.Type == "EditOrders" ||
+                                                                         c.Type == "DeleteOrders")
+                                                                     || context.User.IsInRole("admin_generated")));
                     options.AddPolicy("EditOrders",
                         policy => policy.RequireAssertion(context => context.User.HasClaim(c =>
-                            c.Type == "EditOrders" || c.Type == "DeleteOrders")));
+                                                                         c.Type == "EditOrders" ||
+                                                                         c.Type == "DeleteOrders")
+                                                                     || context.User.IsInRole("admin_generated")));
                     options.AddPolicy("DeleteUOrders",
-                        policy => policy.RequireClaim("DeleteOrders"));
+                        policy => policy.RequireAssertion(context => context.User.HasClaim(c =>
+                                                                         c.Type == "DeleteOrders")
+                                                                     || context.User.IsInRole("admin_generated")));
                 }
             );
         }

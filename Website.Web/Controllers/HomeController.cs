@@ -36,7 +36,7 @@ namespace Website.Web.Controllers
             SortPageResult<Product> result =
                 await _shopManager.GetSortFilterPageAsync(ItemTypeSelector.Enabled, currPage, countPerPage);
 
-            var recentProductNumber = 5;
+            var recentProductNumber = 4;
             IEnumerable<Product> recentProducts = await _shopManager.GetNewProducts(recentProductNumber);
             
             var model = new IndexViewModel()

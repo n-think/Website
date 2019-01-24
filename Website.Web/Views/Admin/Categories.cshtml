@@ -3,9 +3,11 @@
     ViewData.AddActivePage(AdminNavPages.Categories);
 }
 @using Castle.Core.Internal
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Html
 @using Website.Web.Infrastructure.TreeHelper
 @model IEnumerable<Website.Web.Infrastructure.TreeHelper.CategoryDtoTreeItem>
+@inject IAuthorizationService AuthorizationService
 
 <h2>Категории</h2>
 @if (!(TempData["Message"] as string).IsNullOrEmpty())
@@ -17,6 +19,7 @@
         </button>
     </div>
 }
+@{ var userCanEditAdd = (await AuthorizationService.AuthorizeAsync(User, "AddEditItems")).Succeeded; }
 <div class="row">
     <div class="col-lg-6" style="overflow-y: auto; max-height: 35rem;">
         <div class="tree m-1">
@@ -29,8 +32,14 @@
                 <div>
                     <span class="h3">Информация о категории</span>
                     <span id="cat-view-controls" class="d-none" style="vertical-align: top">
-                        <span id="edit-cat" class="btn-pushy btn btn-outline-primary fa fa-pencil" style="vertical-align: top"></span>
-                        <span id="remove-cat" class="btn-pushy btn btn-outline-danger fa fa-remove" style="vertical-align: top"></span>
+                        @if (userCanEditAdd)
+                        {
+                            <span id="edit-cat" class="btn-pushy btn btn-outline-primary fa fa-pencil" style="vertical-align: top"></span>
+                        }
+                        @if ((await AuthorizationService.AuthorizeAsync(User, "DeleteItems")).Succeeded)
+                        {
+                            <span id="remove-cat" class="btn-pushy btn btn-outline-danger fa fa-remove" style="vertical-align: top"></span>
+                        }
                     </span>
                     <span id="cat-edit-controls" class="d-none">
                         <button type="submit" class="btn-pushy btn btn-outline-success btn-sm" style="vertical-align: top">
@@ -73,31 +82,34 @@
                 </div>
             </form>
         </div>
-        <div>
-            <form class="" asp-controller="Admin" asp-action="AddCategory">
-                <div>
-                    <span class="h3">Добавить категорию</span>
-                    <button type="submit" class="btn-pushy btn btn-outline-success btn-sm">
-                        <span id="add-cat" class=" fa fa-check"></span>
-                    </button>
-                    @* <span id="reset-cat" class="btn-pushy btn btn-outline-primary fa fa-undo"></span> *@
-                </div>
-                <input id="cat-name" name="Name" class="form-control my-2" placeholder="Имя" required data-val-required="Необходимо ввести имя категории." data-val="true">
-                <span class="field-validation-valid text-danger" data-valmsg-for="Name" data-valmsg-replace="true"></span>
-                <input id="cat-desc" name="Description" class="form-control my-2" placeholder="Описание (отображается только администраторам)">
-                <label class="d-block">Родительская категория:</label>
-                <select id="add-category-select" name="ParentId" class="selectpicker" data-live-search="true" data-live-search-normalize="true" data-live-search-style="contains"
-                        data-style="btn-outline-primary add-category-btn" title="Выбрать категорию" data-live-search-placeholder="Поиск">
-                    @foreach (var cat in Model)
-                    {
-                        foreach (var item in TreeHelper.GetNodeAndChildren(cat))
+        @if (userCanEditAdd)
+        {
+            <div>
+                <form class="" asp-controller="Admin" asp-action="AddCategory">
+                    <div>
+                        <span class="h3">Добавить категорию</span>
+                        <button type="submit" class="btn-pushy btn btn-outline-success btn-sm">
+                            <span id="add-cat" class=" fa fa-check"></span>
+                        </button>
+                        @* <span id="reset-cat" class="btn-pushy btn btn-outline-primary fa fa-undo"></span> *@
+                    </div>
+                    <input id="cat-name" name="Name" class="form-control my-2" placeholder="Имя" required data-val-required="Необходимо ввести имя категории." data-val="true">
+                    <span class="field-validation-valid text-danger" data-valmsg-for="Name" data-valmsg-replace="true"></span>
+                    <input id="cat-desc" name="Description" class="form-control my-2" placeholder="Описание (отображается только администраторам)">
+                    <label class="d-block">Родительская категория:</label>
+                    <select id="add-category-select" name="ParentId" class="selectpicker" data-live-search="true" data-live-search-normalize="true" data-live-search-style="contains"
+                            data-style="btn-outline-primary add-category-btn" title="Выбрать категорию" data-live-search-placeholder="Поиск">
+                        @foreach (var cat in Model)
                         {
-                            <option value="@item.Id" data-subtext="@item.Description">@item.Name</option>
+                            foreach (var item in TreeHelper.GetNodeAndChildren(cat))
+                            {
+                                <option value="@item.Id" data-subtext="@item.Description">@item.Name</option>
+                            }
                         }
-                    }
-                </select>
-            </form>
-        </div>
+                    </select>
+                </form>
+            </div>
+        }
     </div>
 </div>
 

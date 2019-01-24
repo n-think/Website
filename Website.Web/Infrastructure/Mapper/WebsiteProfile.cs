@@ -16,6 +16,7 @@ namespace Website.Web.Infrastructure.Mapper
         {
             CreateMap<User, UserViewModel>().ReverseMap();
             CreateMap<User, EditUserViewModel>().ReverseMap();
+            CreateMap<User, DeleteUserViewModel>();
             CreateMap<User, ProfileViewModel>();
             CreateMap<ProfileViewModel, User>()
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
@@ -37,6 +38,7 @@ namespace Website.Web.Infrastructure.Mapper
                 .ForMember(x => x.Images, opt => opt.Ignore())
                 .ForMember(x => x.ProductToCategory, opt => opt.Ignore())
                 .ForMember(x => x.Descriptions, opt => opt.Ignore());
+            CreateMap<Product, DeleteItemViewModel>();
 
             CreateMap<Category, CategoryDto>().ReverseMap();
             

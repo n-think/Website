@@ -15,6 +15,11 @@ namespace Website.Services.Infrastructure.Validators
             {
                 return Task.FromResult(OperationResult.Failure(manager.ErrorDescriber.EmptyProductDescriptionItem()));
             }
+
+            if (!description.DescriptionGroupItemId.HasValue)
+            {
+                return Task.FromResult(OperationResult.Failure(manager.ErrorDescriber.InvalidModel("Описание без ID")));
+            }
             
             return Task.FromResult(OperationResult.Success());
         }

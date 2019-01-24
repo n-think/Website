@@ -87,7 +87,6 @@ namespace Website.Data.EF.Repositories
             product.Created = DateTimeOffset.Now;
             product.Changed = product.Created;
             product.Id = 0; //reset id to default before adding
-            ProductsSet.Attach(product);
             Context.Entry(product).State = EntityState.Added;
             try
             {
@@ -114,8 +113,9 @@ namespace Website.Data.EF.Repositories
                 throw new ArgumentNullException(nameof(product));
 
             product.Changed = DateTimeOffset.Now;
-            ProductsSet.Attach(product);
             Context.Entry(product).State = EntityState.Modified;
+            Context.Entry(product).Property(x=>x.Created).IsModified = false;
+            
             try
             {
                 await Context.SaveChangesAsync(ct);
@@ -255,7 +255,6 @@ namespace Website.Data.EF.Repositories
             if (category == null)
                 throw new ArgumentNullException(nameof(category));
 
-            CategoriesSet.Attach(category);
             Context.Entry(category).State = EntityState.Added;
             try
             {
@@ -305,7 +304,6 @@ namespace Website.Data.EF.Repositories
             var existing = await CategoriesSet.FindAsync(new object[] {category.Id}, ct);
             if (existing == null)
             {
-                CategoriesSet.Attach(category);
                 Context.Entry(category).State = EntityState.Modified;
             }
             else
@@ -386,7 +384,6 @@ namespace Website.Data.EF.Repositories
                 };
                 if (!currentProdCats.Contains(prodToCat))
                 {
-                    ProdToCatSet.Attach(prodToCat);
                     Context.Entry(prodToCat).State = EntityState.Added;
                 }
             }
@@ -431,7 +428,6 @@ namespace Website.Data.EF.Repositories
                 };
                 if (!currentProdCats.Contains(prodToCat))
                 {
-                    ProdToCatSet.Attach(prodToCat);
                     Context.Entry(prodToCat).State = EntityState.Deleted;
                 }
             }
@@ -481,7 +477,6 @@ namespace Website.Data.EF.Repositories
                     ProductId = productId,
                     CategoryId = catId
                 };
-                ProdToCatSet.Attach(newProdToCat);
                 Context.Entry(newProdToCat).State = EntityState.Added;
             }
 
@@ -538,7 +533,6 @@ namespace Website.Data.EF.Repositories
             {
                 image.Id = 0;
                 image.ProductId = productId;
-                ImagesSet.Attach(image);
                 Context.Entry(image).State = EntityState.Added;
                 if (image.BinData != null)
                 {
@@ -574,7 +568,6 @@ namespace Website.Data.EF.Repositories
 
             foreach (var image in productImages)
             {
-                ImagesSet.Attach(image);
                 Context.Entry(image).State = EntityState.Deleted;
             }
 
@@ -636,7 +629,6 @@ namespace Website.Data.EF.Repositories
                 {
                     //add
                     image.Id = 0;
-                    ImagesSet.Attach(image);
                     Context.Entry(image).State = EntityState.Added;
                     if (image.BinData != null)
                     {
@@ -678,10 +670,12 @@ namespace Website.Data.EF.Repositories
             if (descriptions.IsNullOrEmpty())
                 throw new ArgumentNullException(nameof(newDescriptions));
 
+            if (newDescriptions.Any(x => !x.DescriptionGroupItemId.HasValue))
+                return OperationResult.Failure(ErrorDescriber.InvalidModel("Invalid description."));
+
             foreach (var desc in descriptions)
             {
                 desc.Id = 0;
-                DescriptionsSet.Attach(desc);
                 Context.Entry(desc).State = EntityState.Added;
             }
 
@@ -706,7 +700,11 @@ namespace Website.Data.EF.Repositories
         {
             ct.ThrowIfCancellationRequested();
             ThrowIfDisposed();
-            if (descriptionsToUpdate == null) throw new ArgumentNullException(nameof(descriptionsToUpdate));
+            if (descriptionsToUpdate == null)
+                throw new ArgumentNullException(nameof(descriptionsToUpdate));
+
+            if (descriptionsToUpdate.Any(x => !x.DescriptionGroupItemId.HasValue))
+                return OperationResult.Failure(ErrorDescriber.InvalidModel("Invalid description."));
 
             var newDescsArray = descriptionsToUpdate as Description[] ?? descriptionsToUpdate.ToArray();
 
@@ -731,7 +729,6 @@ namespace Website.Data.EF.Repositories
                 {
                     //add
                     description.Id = 0;
-                    DescriptionsSet.Attach(description);
                     Context.Entry(description).State = EntityState.Added;
                 }
             }
@@ -776,7 +773,6 @@ namespace Website.Data.EF.Repositories
             {
                 if (!oldDescs.Contains(desc))
                 {
-                    DescriptionsSet.Attach(desc);
                     Context.Entry(desc).State = EntityState.Deleted;
                 }
             }
@@ -875,7 +871,6 @@ namespace Website.Data.EF.Repositories
             if (descriptionGroup == null)
                 throw new ArgumentNullException(nameof(descriptionGroup));
 
-            DescGroupsSet.Attach(descriptionGroup);
             Context.Entry(descriptionGroup).State = EntityState.Added;
             try
             {
@@ -902,7 +897,6 @@ namespace Website.Data.EF.Repositories
             var existing = await DescGroupsSet.FindAsync(new object[] {descriptionGroup.Id}, ct);
             if (existing == null)
             {
-                DescGroupsSet.Attach(descriptionGroup);
                 Context.Entry(descriptionGroup).State = EntityState.Modified;
             }
             else
@@ -981,14 +975,14 @@ namespace Website.Data.EF.Repositories
             return descGroupItem;
         }
 
-        public async Task<OperationResult> CreateDescriptionGroupItemAsync(DescriptionGroupItem descriptionGroupItem, CancellationToken ct)
+        public async Task<OperationResult> CreateDescriptionGroupItemAsync(DescriptionGroupItem descriptionGroupItem,
+            CancellationToken ct)
         {
             ct.ThrowIfCancellationRequested();
             ThrowIfDisposed();
             if (descriptionGroupItem == null)
                 throw new ArgumentNullException(nameof(descriptionGroupItem));
 
-            DescGroupItemsSet.Attach(descriptionGroupItem);
             Context.Entry(descriptionGroupItem).State = EntityState.Added;
             try
             {
@@ -1002,7 +996,8 @@ namespace Website.Data.EF.Repositories
             return OperationResult.Success();
         }
 
-        public async Task<OperationResult> UpdateDescriptionGroupItemAsync(DescriptionGroupItem descriptionGroupItem, CancellationToken ct)
+        public async Task<OperationResult> UpdateDescriptionGroupItemAsync(DescriptionGroupItem descriptionGroupItem,
+            CancellationToken ct)
         {
             ct.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -1014,7 +1009,6 @@ namespace Website.Data.EF.Repositories
             var existing = await DescGroupItemsSet.FindAsync(new object[] {descriptionGroupItem.Id}, ct);
             if (existing == null)
             {
-                DescGroupItemsSet.Attach(descriptionGroupItem);
                 Context.Entry(descriptionGroupItem).State = EntityState.Modified;
             }
             else

@@ -95,6 +95,8 @@ module instantSearch {
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
                     //console.log("live search error")
+                    searchResults.empty();
+                    searchResults.append(`<span>Ошибка при поиске.</span>`)
                 }
             }
         );

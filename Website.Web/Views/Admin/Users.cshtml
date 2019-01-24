@@ -4,12 +4,15 @@
 }
 @using Website.Core.Enums
 @using Website.Web.Models.DTO
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
 @model UsersViewModel
 
 <form id="admin-search-form" asp-action="Users" method="get">
     <div class="form-inline form-group">
-        <input class="form-control mr-2 mb-1" placeholder="Поиск аккаунтов" type="text" name="s" value="@Model.CurrentSearch" />
-        @Html.DropDownList("st", Html.GetEnumSelectList<RoleSelector>(), null, new { @class = "form-control mr-2 mb-1 admin-selector" })
+        <input class="form-control mr-2 mb-1" placeholder="Поиск аккаунтов" type="text" name="s" value="@Model.CurrentSearch"/>
+        @Html.DropDownList("st", Html.GetEnumSelectList<RoleSelector>(), null, new {@class = "form-control mr-2 mb-1 admin-selector"})
+        <input class="btn btn-outline-primary mr-2 mb-1" asp-action="Users" type="submit" value="Поиск"/>
         <a class="btn btn-outline-secondary mr-2 mb-1" asp-action="Users">Сброс</a>
         <span>Пользователей найдено: @ViewBag.itemCount.</span>
     </div>
@@ -17,68 +20,77 @@
 <div class="table-responsive">
     <table id="user-table" class="table">
         <thead>
-            <tr>
-                <th scope="col">
-                    <sort-header action="Users" search="@Model.CurrentSearch" selector="@Model.Roles" descending="@Model.Descending" current="@Model.CurrentSortOrder"
-                                 property="@nameof(UserDto.Email)" content="@Html.DisplayNameFor(x => x.Users.First().Email)" />
-                </th>
-                <th scope="col">@Html.DisplayNameFor(x => x.Users.First().PhoneNumber)</th>
-                <th scope="col">
-                    <sort-header action="Users" search="@Model.CurrentSearch" selector="@Model.Roles" descending="@Model.Descending" current="@Model.CurrentSortOrder"
-                                 property="@nameof(UserDto.LastName)" content="@Html.DisplayNameFor(x => x.Users.First().LastName)" />
-                </th>
-                <th scope="col">
-                    <sort-header action="Users" search="@Model.CurrentSearch" selector="@Model.Roles" descending="@Model.Descending" current="@Model.CurrentSortOrder"
-                                 property="@nameof(UserDto.FirstName)" content="@Html.DisplayNameFor(x => x.Users.First().FirstName)" />
-                </th>
-                <th scope="col">
-                    <sort-header action="Users" search="@Model.CurrentSearch" selector="@Model.Roles" descending="@Model.Descending" current="@Model.CurrentSortOrder"
-                                 property="@nameof(UserDto.PatrName)" content="@Html.DisplayNameFor(x => x.Users.First().PatrName)" />
-                </th>
-                <th scope="col">@Html.DisplayNameFor(x => x.Users.First().City)</th>
-                <th scope="col">Количество заказов</th>
-                <th scope="col">
-                    <sort-header action="Users" search="@Model.CurrentSearch" selector="@Model.Roles" descending="@Model.Descending" current="@Model.CurrentSortOrder"
-                                 property="@nameof(UserDto.RegistrationDate)" content="@Html.DisplayNameFor(x => x.Users.First().RegistrationDate)" />
-                </th>
-                <th scope="col">
-                    <sort-header action="Users" search="@Model.CurrentSearch" selector="@Model.Roles" descending="@Model.Descending" current="@Model.CurrentSortOrder"
-                                 property="@nameof(UserDto.LastActivityDate)" content="@Html.DisplayNameFor(x => x.Users.First().LastActivityDate)" />
-                </th>
-                <th scope="col"></th>
-            </tr>
+        <tr>
+            <th scope="col">
+                <sort-header action="Users" search="@Model.CurrentSearch" selector="@Model.Roles" descending="@Model.Descending" current="@Model.CurrentSortOrder"
+                             property="@nameof(UserDto.Email)" content="@Html.DisplayNameFor(x => x.Users.First().Email)"/>
+            </th>
+            <th scope="col">@Html.DisplayNameFor(x => x.Users.First().PhoneNumber)</th>
+            <th scope="col">
+                <sort-header action="Users" search="@Model.CurrentSearch" selector="@Model.Roles" descending="@Model.Descending" current="@Model.CurrentSortOrder"
+                             property="@nameof(UserDto.LastName)" content="@Html.DisplayNameFor(x => x.Users.First().LastName)"/>
+            </th>
+            <th scope="col">
+                <sort-header action="Users" search="@Model.CurrentSearch" selector="@Model.Roles" descending="@Model.Descending" current="@Model.CurrentSortOrder"
+                             property="@nameof(UserDto.FirstName)" content="@Html.DisplayNameFor(x => x.Users.First().FirstName)"/>
+            </th>
+            <th scope="col">
+                <sort-header action="Users" search="@Model.CurrentSearch" selector="@Model.Roles" descending="@Model.Descending" current="@Model.CurrentSortOrder"
+                             property="@nameof(UserDto.PatrName)" content="@Html.DisplayNameFor(x => x.Users.First().PatrName)"/>
+            </th>
+            <th scope="col">
+                <sort-header action="Users" search="@Model.CurrentSearch" selector="@Model.Roles" descending="@Model.Descending" current="@Model.CurrentSortOrder"
+                             property="@nameof(UserDto.City)" content="@Html.DisplayNameFor(x => x.Users.First().City)"/>
+            </th>
+            @* <th scope="col">Количество заказов</th> *@
+            <th scope="col">
+                <sort-header action="Users" search="@Model.CurrentSearch" selector="@Model.Roles" descending="@Model.Descending" current="@Model.CurrentSortOrder"
+                             property="@nameof(UserDto.RegistrationDate)" content="@Html.DisplayNameFor(x => x.Users.First().RegistrationDate)"/>
+            </th>
+            <th scope="col">
+                <sort-header action="Users" search="@Model.CurrentSearch" selector="@Model.Roles" descending="@Model.Descending" current="@Model.CurrentSortOrder"
+                             property="@nameof(UserDto.LastActivityDate)" content="@Html.DisplayNameFor(x => x.Users.First().LastActivityDate)"/>
+            </th>
+            <th scope="col"></th>
+        </tr>
         </thead>
         <tbody>
-            @foreach (var user in Model.Users)
-            {
-                <tr>
-                    <td>@Html.DisplayFor(m => user.Email)</td>
-                    <td>@Html.DisplayFor(m => user.PhoneNumber)</td>
-                    <td>@Html.DisplayFor(m => user.LastName)</td>
-                    <td>@Html.DisplayFor(m => user.FirstName)</td>
-                    <td>@Html.DisplayFor(m => user.PatrName)</td>
-                    <td>@Html.DisplayFor(m => user.City)</td>
-                    <td>100500</td>
-                    <td>
-                        @if (user.RegistrationDate.HasValue)
-                        {
-                            @Html.DisplayFor(m => user.RegistrationDate.Value.DateTime)
-                        }
-                    </td>
-                    <td>
-                        @if (user.LastActivityDate.HasValue)
-                        {
-                            @Html.DisplayFor(m => user.LastActivityDate.Value.DateTime)
-                        }
-                    </td>
-                    <td>
-                        <a class="btn btn-outline-primary btn-sm" asp-action="ViewUser" asp-route-id="@user.Id">Подробнее</a>
-                        <a class="btn btn-outline-primary btn-sm" asp-action="EditUser" asp-route-id="@user.Id"><span class="fa fa-pencil"></span></a>
-                    </td>
-                </tr>
-            }
+        @{ var userCanEdit = (await AuthorizationService.AuthorizeAsync(User, "EditUsers")).Succeeded; }
+        @foreach (var user in Model.Users)
+        {
+            <tr>
+                <td>@Html.DisplayFor(m => user.Email)</td>
+                <td>@Html.DisplayFor(m => user.PhoneNumber)</td>
+                <td>@Html.DisplayFor(m => user.LastName)</td>
+                <td>@Html.DisplayFor(m => user.FirstName)</td>
+                <td>@Html.DisplayFor(m => user.PatrName)</td>
+                <td>@Html.DisplayFor(m => user.City)</td>
+                @* <td>100500</td> *@
+                <td>
+                    @if (user.RegistrationDate.HasValue)
+                    {
+                        @Html.DisplayFor(m => user.RegistrationDate.Value.DateTime)
+                    }
+                </td>
+                <td>
+                    @if (user.LastActivityDate.HasValue)
+                    {
+                        @Html.DisplayFor(m => user.LastActivityDate.Value.DateTime)
+                    }
+                </td>
+                <td>
+                    <a class="btn btn-outline-primary btn-sm" asp-action="ViewUser" asp-route-id="@user.Id">Подробнее</a>
+                    @if (userCanEdit)
+                    {
+                        <a class="btn btn-outline-primary btn-sm" asp-action="EditUser" asp-route-id="@user.Id">
+                            <span class="fa fa-pencil"></span>
+                        </a>
+                    }
+                </td>
+            </tr>
+        }
         </tbody>
     </table>
 </div>
 <page-link current-page="@Model.CurrentPage" search="@Model.CurrentSearch" selector="@Model.Roles" current-prop="@Model.CurrentSortOrder"
-           items-count="@Model.ItemCount" items-per-page="@Model.CountPerPage" action="Users" />
+           items-count="@Model.ItemCount" items-per-page="@Model.CountPerPage" action="Users"/>

@@ -1,8 +1,20 @@
-﻿<div class="list-group text-truncate">
+﻿@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+
+<div class="list-group text-truncate">
     <a class="list-group-item list-group-item-action @AdminNavPages.IndexNavClass(ViewContext)" asp-action="Index">Index</a>
-    <a class="list-group-item list-group-item-action read-height @AdminNavPages.UsersNavClass(ViewContext)" asp-action="Users">Пользователи</a>
-    <a class="list-group-item list-group-item-action read-height @AdminNavPages.ItemsNavClass(ViewContext)" asp-action="Items">Товары</a>
-    <a class="list-group-item list-group-item-action @AdminNavPages.CategoriesNavClass(ViewContext)" asp-action="Categories">Категории товаров</a>
-    <a class="list-group-item list-group-item-action @AdminNavPages.DescGroupsNavClass(ViewContext)" asp-action="DescriptionGroups">Группы описаний товаров</a>
-    @* <a class="list-group-item list-group-item-action @AdminNavPages.OrdersNavClass(ViewContext)" asp-action="Orders">Заказы</a> *@
+    @if((await AuthorizationService.AuthorizeAsync(User, "ViewUsers")).Succeeded)
+    {
+        <a class="list-group-item list-group-item-action read-height @AdminNavPages.UsersNavClass(ViewContext)" asp-action="Users">Пользователи</a>
+    } 
+    @if((await AuthorizationService.AuthorizeAsync(User, "ViewItems")).Succeeded)
+    {
+        <a class="list-group-item list-group-item-action read-height @AdminNavPages.ItemsNavClass(ViewContext)" asp-action="Items">Товары</a>
+        <a class="list-group-item list-group-item-action @AdminNavPages.CategoriesNavClass(ViewContext)" asp-action="Categories">Категории товаров</a>
+        <a class="list-group-item list-group-item-action @AdminNavPages.DescGroupsNavClass(ViewContext)" asp-action="DescriptionGroups">Группы описаний товаров</a>
+    }   
+@*     @if((await AuthorizationService.AuthorizeAsync(User, "ViewOrders")).Succeeded) *@
+@*     { *@
+@*             <a class="list-group-item list-group-item-action @AdminNavPages.OrdersNavClass(ViewContext)" asp-action="Orders">Заказы</a> *@
+@*     } *@
 </div>

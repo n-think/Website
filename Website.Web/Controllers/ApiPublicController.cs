@@ -23,7 +23,7 @@ namespace Website.Web.Controllers
         [HttpGet("{searchString:required:minlength(2)}")]
         public async Task<IActionResult> InstantSearch(string searchString)
         {
-            IEnumerable<Product> products = await _shopManager.SearchProductsByName(searchString);
+            IEnumerable<Product> products = await _shopManager.SearchProductsByName(searchString, 5);
 
             return Ok(products.Select(x => new
                 {

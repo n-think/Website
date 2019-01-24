@@ -4,8 +4,11 @@
 }
 @using Website.Core.Enums
 @using Website.Web.Models.DTO
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
 @model ItemsViewModel
 
+@{ var userCanEditAdd = (await AuthorizationService.AuthorizeAsync(User, "AddEditItems")).Succeeded; }
 <form id="admin-search-form" asp-action="Items" method="get">
     <div class="form-inline form-group">
         <div class="d-flex flex-grow-1">
@@ -22,10 +25,13 @@
             </select>  
         </div>
         @Html.DropDownList("st", Html.GetEnumSelectList<ItemTypeSelector>(),
-            new {@class = "form-control mr-2 mb-1 admin-selector"})
+            new {@class = "form-control mx-2 mb-1 admin-selector"})
         <input class="btn btn-outline-primary mr-2 mb-1" type="submit" value="Поиск"/>
         <a class="btn btn-outline-secondary mr-2 mb-1" asp-action="Items">Сброс</a>
-        <a class="btn btn-primary mr-2 mb-1" asp-action="AddItem">Добавить товар</a>
+        @if (userCanEditAdd)
+        {
+            <a class="btn btn-primary mr-2 mb-1" asp-action="AddItem">Добавить товар</a>
+        }
         <span>Товаров найдено: @ViewBag.itemCount.</span>
     </div>
 </form>
@@ -90,9 +96,12 @@
                 <td>@Html.DisplayFor(m => item.Price)</td>
                 <td>
                     <a class="btn btn-outline-primary btn-sm" asp-action="ViewItem" asp-route-id="@item.Id">Подробнее</a>
-                    <a class="btn btn-outline-primary btn-sm" asp-action="EditItem" asp-route-id="@item.Id">
-                        <span class="fa fa-pencil"></span>
-                    </a>
+                    @if (userCanEditAdd)
+                    {
+                        <a class="btn btn-outline-primary btn-sm" asp-action="EditItem" asp-route-id="@item.Id">
+                            <span class="fa fa-pencil"></span>
+                        </a>
+                    }
                 </td>
             </tr>
         }

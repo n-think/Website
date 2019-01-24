@@ -1,7 +1,7 @@
 //js
 
 import "./userEdit"
-import "./items"
+import "./admin"
 import "./productEdit"
 import "./categories"
 import "./descriptionGroups"

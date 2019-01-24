@@ -43,6 +43,12 @@ namespace Website.Services.Infrastructure.Validators
             {
                 errors.Add(manager.ErrorDescriber.DuplicateProductCode());
             }
+
+            prod = await manager.GetProductByNameAsync(product.Name, false, false, false);
+            if (prod != null && prod.Id != product.Id)
+            {
+                errors.Add(manager.ErrorDescriber.DuplicateProductName());
+            }
         }
     }
 }

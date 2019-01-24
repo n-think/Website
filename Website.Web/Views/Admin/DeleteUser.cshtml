@@ -1,0 +1,20 @@
+﻿
+@{
+    ViewData["Title"] = "Удалить пользователя";
+}
+@model DeleteUserViewModel
+
+<h3>Вы действительно хотите удалить этого пользователя?</h3>
+<h6>ID: @Model.Id</h6>
+<h6>Email: @Model.Email</h6>
+<h6>Логин: @Model.UserName</h6>
+<h6>Имя: @Model.FirstName</h6>
+<h6>Фамилия: @Model.LastName</h6>
+<h6>Отчество: @Model.PatrName</h6>
+<h5 class="text-danger">Внимание: это действие необратимо, после удаление восстановить пользователя будет невозможно.</h5>
+@* <h6 >Прим: пользователей с заказами удалить нельзя.</h6> *@
+<form asp-action="DeleteUserConfirm" method="post">
+    <input name="id" value="@Model.Id" hidden />
+    <input class="btn btn-danger mx-2" type="submit" value="Удалить" />
+    <a class="btn btn-outline-success" asp-action="ViewUser" asp-route-id="@Model.Id">Отмена</a>
+</form>

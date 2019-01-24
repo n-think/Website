@@ -1,12 +1,82 @@
-﻿@model UserViewModel
+﻿@using Castle.Core.Internal
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
 @{
     ViewData["Title"] = "Администрирование";
     ViewData.AddActivePage(AdminNavPages.Index);
 }
 
 <h4>@ViewData["Title"]</h4>
-<div class="row">
-    <div class="col-md-6">
-        
+
+@if (!(TempData["Message"] as string).IsNullOrEmpty())
+{
+    <div class="alert alert-warning alert-dismissible">
+        @TempData["Message"]
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
     </div>
+}
+<div class="">
+    @if ((await AuthorizationService.AuthorizeAsync(User, "EditUsers")).Succeeded)
+    {
+        <div class="mt-2">
+            <span class="h5">Сгенерировать пользователей</span>
+            <form class="" asp-controller="Admin" asp-action="GenerateUsers">
+                <input class="form-control w-auto my-2" id="count" name="count" type="number" value="" placeholder="количество (1-100)"
+                       data-val="true"
+                       required
+                       data-rule-range="[1,100]" 
+                       data-val-required="Необходимо ввести число."
+                       data-msg-range="Необходимо ввести число от 1 до 100."/>
+                <span class="text-danger field-validation-valid d-block" data-valmsg-for="count" data-valmsg-replace="true"></span>
+                <input class="w-auto btn btn-outline-primary my-2 d-block" type="submit" value="Сгенерировать"/>
+            </form>
+        </div>
+    }
+
+    @if ((await AuthorizationService.AuthorizeAsync(User, "AddEditItems")).Succeeded)
+    {
+        <div class="mt-2">
+            <span class="h5">Сгенерировать товары</span>
+            <form class="" asp-controller="Admin" asp-action="GenerateItems">
+                <input class="form-control w-auto my-2" id="count" name="count" type="number" value="" placeholder="количество (1-100)"
+                       data-val="true"
+                       data-rule-range="[1,100]" 
+                       data-val-required="Необходимо ввести число."
+                       data-msg-range="Необходимо ввести число от 1 до 100."/>
+                <span class="text-danger field-validation-valid d-block" data-valmsg-for="count" data-valmsg-replace="true"></span>
+                <input class="w-auto btn btn-outline-primary my-2d-block" type="submit" value="Сгенерировать"/>
+            </form>
+        </div>
+    }
+
+    @if (Context.User.IsInRole("admin_generated"))
+    {
+        <div class="mt-2">
+            <span class="h5">Очистить базу данных</span>
+            <form class="" asp-controller="Admin" asp-action="DropCreateDatabase">
+                <button type="button" class="my-2 btn btn-outline-primary" data-toggle="modal" data-target="#modal">Очистить</button>
+                <div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="exampleModalLongTitle">Очистить базу данных</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                База данных будет удалена и создана заново.
+                            </div>
+                            <div class="modal-footer">
+                                <input class="btn btn-primary" type="submit" value="Подтвердить"/>
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    }
 </div>

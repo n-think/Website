@@ -2,6 +2,8 @@
     ViewData["Title"] = "Просмотр пользователя";
 }
 @using Castle.Core.Internal
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
 @model UserViewModel
 
 <h2>Просмотр пользователя</h2>
@@ -14,7 +16,17 @@
         </button>
     </div>
 }
-<a class="btn btn-outline-primary my-2" asp-area="" asp-route-id="@Model.Id" asp-action="EditUser">Редактировать</a>
+@if ((await AuthorizationService.AuthorizeAsync(User, "EditUsers")).Succeeded){
+    <a class="btn btn-outline-primary my-2" asp-area="" asp-route-id="@Model.Id" asp-action="EditUser">Редактировать</a>
+}
+@if ((await AuthorizationService.AuthorizeAsync(User, "DeleteUsers")).Succeeded){
+    TempData["DeleteToken"] = Guid.NewGuid();
+    <form class="d-inline-block" asp-action="DeleteUser" method="get">
+        <input class="btn btn-outline-danger mr-2" type="submit" value="Удалить"/>
+        <input asp-for="Id" hidden/>
+        <input name="DeleteToken" value="@TempData.Peek("DeleteToken")" hidden/>
+    </form>
+}
 
 <div class="table-responsive">
     <table class="table table-striped">

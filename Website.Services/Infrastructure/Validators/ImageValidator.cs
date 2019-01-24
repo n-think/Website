@@ -32,13 +32,11 @@ namespace Website.Services.Infrastructure.Validators
             if (img.ProductId <= 0)
             {
                 errors.Add(manager.ErrorDescriber.InvalidModel());
-                return;
             }
             
             if (!IsValidImage(img.BinData.FullData))
             {
                 errors.Add(manager.ErrorDescriber.InvalidImageFormat());
-                return;
             }
         }
 

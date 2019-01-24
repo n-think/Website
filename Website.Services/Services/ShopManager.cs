@@ -333,13 +333,14 @@ namespace Website.Services.Services
             return product;
         }
 
-        public async Task<IEnumerable<Product>> SearchProductsByName(string searchString)
+        public async Task<IEnumerable<Product>> SearchProductsByName(string searchString, int count)
         {
             ThrowIfDisposed();
             if (searchString.IsNullOrEmpty())
                 return Enumerable.Empty<Product>();
             return await _repository.ProductsQueryable
                 .Where(x => x.Name.Contains(searchString))
+                .Take(count)
                 .Include(x=>x.Images)
                 .ToListAsync(CancellationToken);
         }
@@ -807,6 +808,7 @@ namespace Website.Services.Services
 
 
             var newProducts = await _repository.ProductsQueryable
+                .Where(x=>x.Available)
                 .OrderByDescending(x => x.Created)
                 .Take(count)
                 .Include(x => x.Images)
@@ -814,7 +816,7 @@ namespace Website.Services.Services
             return newProducts;
         }
 
-        private void TransformImages(IEnumerable<Image> images)
+        public void TransformImages(IEnumerable<Image> images)
         {
             if (images == null)
                 return;
@@ -830,7 +832,7 @@ namespace Website.Services.Services
             }
         }
 
-        private async Task<OperationResult> Validate<T>(
+        public async Task<OperationResult> Validate<T>(
             IEnumerable<T> items, IEnumerable<IShopValidator<T>> validators,
             Func<T, bool> predicateBeforeValidation = null) where T : class
         {

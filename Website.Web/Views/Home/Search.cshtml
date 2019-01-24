@@ -5,7 +5,7 @@
     ViewBag.Title = "Поиск";
 }
 
-<form id="search-form" asp-action="" method="get" class="my-4">
+<form id="search-form" asp-action="Search" method="get" class="my-4">
     <div class="form-inline form-group">
         <div class="d-flex flex-grow-1">
             <input class="form-control mr-2 mb-1 w-100" placeholder="Поиск" type="text" name="s" value="@Model.CurrentSearch"/>

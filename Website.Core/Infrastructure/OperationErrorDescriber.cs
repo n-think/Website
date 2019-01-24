@@ -11,12 +11,12 @@
             };
         }
 
-        public virtual OperationError InvalidModel()
+        public virtual OperationError InvalidModel(string modelName = null)
         {
             return new OperationError()
             {
                 Code = nameof(InvalidModel),
-                Description = $"Получены некорректные данные."
+                Description = $"Получены некорректные данные." + (modelName == null ? "": $" {modelName}")
             };
         }
 
@@ -208,6 +208,15 @@
             {
                 Code = nameof(EmptyCategoryName),
                 Description = $"Имя категории не может быть пустым."
+            };
+        }
+
+        public virtual OperationError DuplicateProductName()
+        {
+            return new OperationError
+            {
+                Code = nameof(DuplicateProductName),
+                Description = $"Товар с таким названием уже существует."
             };
         }
     }
