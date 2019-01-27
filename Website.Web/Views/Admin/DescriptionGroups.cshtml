@@ -60,7 +60,7 @@
                     var count = descGroupAndCountTuple.Item2;
                     <a class="list-group-item list-group-item-action description-group" data-id="@descGroup.Id">
                         <div class="d-flex flex-row">
-                            <div class="w-75">
+                            <div class="flex-grow-1">
                                 <div class="group-view">
                                     <span class="desc-group-name" data-val="@descGroup.Name">@descGroup.Name</span>
                                     @if (count > 0)
@@ -92,7 +92,7 @@
                             </div>
                             @if (canEditAdd || canDelete)
                             {
-                                <div class="align-self-center justify-content-end ml-auto">
+                                <div class="align-self-center justify-content-end">
                                     <span class="group-controls">
                                         @if (canEditAdd)
                                         {
