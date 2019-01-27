@@ -40,16 +40,10 @@ namespace Website.Web
                 #endregion
             }
 
-
-
             host.Run();
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
-            WebHost
-                .CreateDefaultBuilder(args)
-                //.UseKestrel()
-                .UseIISIntegration()
-                .UseStartup<Startup>();
+            WebHost.CreateDefaultBuilder<Startup>(args);
     }
 }

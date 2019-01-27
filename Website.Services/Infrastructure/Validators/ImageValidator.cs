@@ -10,13 +10,14 @@ namespace Website.Services.Infrastructure.Validators
 {
     public class ImageValidator : IShopValidator<Image>
     {
-        public async Task<OperationResult> ValidateAsync(IShopManager manager, Image img)
+        public async Task<OperationResult> ValidateAsync(IShopManager manager, Image image)
         {
             if (manager == null) throw new ArgumentNullException(nameof(manager));
-            if (img?.BinData == null) throw new ArgumentNullException(nameof(img));
+            if (image == null) throw new ArgumentNullException(nameof(image));
+            if (image.BinData == null) throw new ArgumentNullException(nameof(image.BinData));
 
             var errors = new List<OperationError>();
-            await Task.Run(() => ValidateImage(manager.Options.Image, img, manager, errors));
+            await Task.Run(() => ValidateImage(manager.Options.Image, image, manager, errors));
 
             if (errors.Count > 0)
             {
@@ -29,11 +30,6 @@ namespace Website.Services.Infrastructure.Validators
         private void ValidateImage(ImageOptions options, Image img, IShopManager manager,
             ICollection<OperationError> errors)
         {
-            if (img.ProductId <= 0)
-            {
-                errors.Add(manager.ErrorDescriber.InvalidModel());
-            }
-            
             if (!IsValidImage(img.BinData.FullData))
             {
                 errors.Add(manager.ErrorDescriber.InvalidImageFormat());

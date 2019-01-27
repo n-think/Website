@@ -102,6 +102,15 @@
                 Description = $"Некорректный ID продукта."
             };
         }
+        
+        public virtual OperationError InvalidDescriptionItemId()
+        {
+            return new OperationError
+            {
+                Code = nameof(InvalidProductId),
+                Description = $"Некорректный ID продукта."
+            };
+        }
 
         public virtual OperationError EmptyProductCode()
         {
@@ -109,15 +118,6 @@
             {
                 Code = nameof(EmptyProductCode),
                 Description = $"Необходимо указать артикул продукта."
-            };
-        }
-
-        public virtual OperationError EmptyProductDescriptionItem()
-        {
-            return new OperationError
-            {
-                Code = nameof(EmptyProductDescriptionItem),
-                Description = $"Пункт описания не может быть пустым."
             };
         }
         
@@ -136,6 +136,14 @@
             {
                 Code = nameof(EmptyDescriptionGroupItemName),
                 Description = $"Имя описания не может быть пустым."
+            };
+        }
+        public virtual OperationError EmptyDescriptionValue()
+        {
+            return new OperationError
+            {
+                Code = nameof(EmptyDescriptionValue),
+                Description = $"Описание не может быть пустым."
             };
         }
 

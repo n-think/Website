@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,7 +22,7 @@ namespace Website.Core.Interfaces.Repositories
         where TDescription : class
         where TOrder : class
     {
-        IDbContextTransaction BeginTransaction(IsolationLevel iLevel = IsolationLevel.Serializable);
+        DbTransaction BeginTransaction(IsolationLevel iLevel = IsolationLevel.Serializable);
         void JoinTransaction(IDbContextTransaction tran);
         
         //TODO split repos

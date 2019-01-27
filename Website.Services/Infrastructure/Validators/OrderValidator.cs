@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Website.Core.Infrastructure;
 using Website.Core.Interfaces.Services;
@@ -9,6 +10,9 @@ namespace Website.Services.Infrastructure.Validators
     {
         public/* async*/ Task<OperationResult> ValidateAsync(IShopManager manager, Order entity)
         {
+            if (manager == null) throw new ArgumentNullException(nameof(manager));
+            if (entity == null) throw new ArgumentNullException(nameof(entity));
+            
             throw new System.NotImplementedException();
         }
     }

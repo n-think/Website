@@ -12,6 +12,7 @@ using Image = Website.Core.Models.Domain.Image;
 
 namespace Website.Services.Infrastructure
 {
+    //does NOT crop
     public class ShopImageTransformer : IShopImageTransformer<Image>
     {
         public ShopManagerOptions Options { get; private set; }

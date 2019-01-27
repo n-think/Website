@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Castle.Core.Internal;
@@ -9,19 +11,35 @@ namespace Website.Services.Infrastructure.Validators
 {
     public class DescriptionValidator : IShopValidator<Description>
     {
-        public Task<OperationResult> ValidateAsync(IShopManager manager, Description description)
+        public async Task<OperationResult> ValidateAsync(IShopManager manager, Description description)
         {
+            if (manager == null) throw new ArgumentNullException(nameof(manager));
+            if (description == null) throw new ArgumentNullException(nameof(description));
+            
+            var errors = new List<OperationError>();
+            
             if (description.Value.IsNullOrEmpty())
             {
-                return Task.FromResult(OperationResult.Failure(manager.ErrorDescriber.EmptyProductDescriptionItem()));
+                errors.Add(manager.ErrorDescriber.EmptyDescriptionValue());
             }
 
             if (!description.DescriptionGroupItemId.HasValue)
             {
-                return Task.FromResult(OperationResult.Failure(manager.ErrorDescriber.InvalidModel("Описание без ID")));
+                errors.Add(manager.ErrorDescriber.InvalidModel());
             }
             
-            return Task.FromResult(OperationResult.Success());
+            var existingDescItem = await manager.GetDescriptionItemByIdAsync(description.DescriptionGroupItemId.GetValueOrDefault());
+            if (existingDescItem == null)
+            {
+                errors.Add(manager.ErrorDescriber.EntityNotFound("Пункт описания группы"));
+            }
+            
+            if (errors.Count > 0)
+            {
+                return OperationResult.Failure(errors.ToArray());
+            }
+
+            return OperationResult.Success();
         }
     }
 }

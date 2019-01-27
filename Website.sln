@@ -13,8 +13,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests", "Tests\Tests.csproj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Website.Core", "Website.Core\Website.Core.csproj", "{1F557F1E-88F5-4749-96FE-13FB8C20C9C6}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0367CCF6-B27B-4EAB-84CF-EC29A5EEB746}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -49,6 +47,5 @@ Global
 		SolutionGuid = {23FF6FC4-B66A-4F2E-B042-A1375682AF62}
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{80C6B2F0-2580-4F7A-8F04-E92D2CDDC9E5} = {0367CCF6-B27B-4EAB-84CF-EC29A5EEB746}
 	EndGlobalSection
 EndGlobal

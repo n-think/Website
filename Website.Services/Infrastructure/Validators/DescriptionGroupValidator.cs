@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Castle.Core.Internal;
@@ -11,6 +12,9 @@ namespace Website.Services.Infrastructure.Validators
     {
         public async Task<OperationResult> ValidateAsync(IShopManager manager, DescriptionGroup entity)
         {
+            if (manager == null) throw new ArgumentNullException(nameof(manager));
+            if (entity == null) throw new ArgumentNullException(nameof(entity));
+            
             var errors = new List<OperationError>();
             
             if (entity.Name.IsNullOrEmpty())

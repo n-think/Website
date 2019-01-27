@@ -2,11 +2,8 @@
 using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
-using System.Security.Claims;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -21,7 +18,6 @@ using Website.Web.Infrastructure;
 using Website.Web.Infrastructure.Localization;
 using Website.Web.Infrastructure.Mapper;
 using Microsoft.AspNetCore.DataProtection;
-using Website.Core.Enums;
 using Website.Core.Infrastructure;
 using Website.Core.Interfaces.Repositories;
 using Website.Core.Interfaces.Services;
@@ -47,17 +43,28 @@ namespace Website.Web
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            string connectionString = Configuration.GetConnectionString("DefaultConnection");
-            if(connectionString.Contains("%CONTENTROOTPATH%"))
+            if (Environment.IsEnvironment("Testing"))
             {
-                connectionString = connectionString.Replace("%CONTENTROOTPATH%", Environment.ContentRootPath);
+                services.AddDbContext<WebsiteDbContext>(options =>
+                    options.UseInMemoryDatabase("Website")); 
             }
-            
-            services.AddDbContext<WebsiteDbContext>(options =>
-                options.UseSqlServer(connectionString));
+            else
+            {
+                string connectionString = Configuration.GetConnectionString("DefaultConnection");
+                if (connectionString.Contains("%CONTENTROOTPATH%"))
+                {
+                    connectionString = connectionString.Replace("%CONTENTROOTPATH%", Environment.ContentRootPath);
+                }
+
+                services.AddDbContext<WebsiteDbContext>(options =>
+                    options.UseSqlServer(connectionString));
+            }
+
+
             services.AddScoped<DbContext, WebsiteDbContext>();
 
-            services.AddAutoMapper(opt => { opt.AddProfile<WebsiteProfile>(); });
+            services.AddAutoMapper(opt => { opt.AddProfile<WebsiteProfile>(); },
+                typeof(Startup));
 
             services.AddIdentity<User, Role>(options =>
                 {
@@ -162,7 +169,7 @@ namespace Website.Web
                 options.Image.SaveFormat = ImageFormat.Jpeg;
                 options.Image.EncoderQuality = 80L;
                 options.Image.MaxWidth = 1000;
-                options.Image.MaxWidth = 1000;
+                options.Image.MaxHeight = 1000;
                 options.Image.MaxThumbWidth = 150;
                 options.Image.MaxThumbHeight = 150;
             });

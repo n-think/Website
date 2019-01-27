@@ -1,0 +1,7 @@
+﻿{
+  "DevelopmentErrorHandlingMode": true,
+
+  "AdminAccount": {
+    "Password": "1234" //login:: admin
+  }
+}

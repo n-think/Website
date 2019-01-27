@@ -60,8 +60,15 @@ namespace Website.Data.EF.Repositories
         public IQueryable<DescriptionGroup> DescriptionGroupsQueryable => DescGroupsSet.AsQueryable();
         public IQueryable<DescriptionGroupItem> DescriptionGroupItemsQueryable => DescGroupItemsSet.AsQueryable();
 
-        public IDbContextTransaction BeginTransaction(IsolationLevel iLevel = IsolationLevel.Serializable) =>
-            Context.Database.BeginTransaction(iLevel);
+        public DbTransaction BeginTransaction(IsolationLevel iLevel = IsolationLevel.Serializable)
+        {
+            if (Context.Database.IsInMemory())
+            {
+                return new RepositoryTransaction(null, iLevel, true);
+            }
+            var connection = Context.Database.BeginTransaction(iLevel).GetDbTransaction().Connection;
+            return new RepositoryTransaction(connection, iLevel);
+        }
 
         public void JoinTransaction(IDbContextTransaction tran)
         {
@@ -114,8 +121,8 @@ namespace Website.Data.EF.Repositories
 
             product.Changed = DateTimeOffset.Now;
             Context.Entry(product).State = EntityState.Modified;
-            Context.Entry(product).Property(x=>x.Created).IsModified = false;
-            
+            Context.Entry(product).Property(x => x.Created).IsModified = false;
+
             try
             {
                 await Context.SaveChangesAsync(ct);

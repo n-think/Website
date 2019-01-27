@@ -4,6 +4,7 @@ using System.IO;
 using Microsoft.AspNetCore.Hosting;
 using Website.Core.Models.Domain;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 using Image = Website.Core.Models.Domain.Image;
 
@@ -11,11 +12,11 @@ namespace Website.Services.Infrastructure
 {
     public class RandomProductGenerator
     {
-        private IHostingEnvironment Environment { get; }
+        private readonly string _testImagesFolderPath;
 
-        public RandomProductGenerator(IHostingEnvironment environment)
+        public RandomProductGenerator(string testImagesFolderPath)
         {
-            Environment = environment;
+            _testImagesFolderPath = testImagesFolderPath;
 
             descriptionGroups[0].DescriptionGroupItems.ElementAt(0).DescriptionGroup = descriptionGroups[0];
             descriptionGroups[0].DescriptionGroupItems.ElementAt(1).DescriptionGroup = descriptionGroups[0];
@@ -210,7 +211,7 @@ namespace Website.Services.Infrastructure
                 //try image 1
                 try
                 {
-                    var path = Environment.ContentRootPath + $"\\TestImages\\{i+1}-1.jpg";
+                    var path = _testImagesFolderPath + $"\\{i+1}-1.jpg";
                     var img = System.Drawing.Image.FromFile(path);
 
                     using (MemoryStream ms = new MemoryStream())
@@ -222,28 +223,51 @@ namespace Website.Services.Infrastructure
                 }
                 catch (FileNotFoundException)
                 {
-                    array[i][0] = new byte[0];
+                    array[i][0] = GenerateValidImageBytes(1000, 1000, ImageFormat.Jpeg);
                 }
 
                 //try image 2
                 try
                 {
-                    var path = Environment.ContentRootPath + $"\\TestImages\\{i+1}-2.jpg";
+                    
+                    var path = _testImagesFolderPath + $"\\{i+1}-1.jpg";
                     var img = System.Drawing.Image.FromFile(path);
 
                     using (MemoryStream ms = new MemoryStream())
                     {
-                        img.Save(ms, System.Drawing.Imaging.ImageFormat.Jpeg);
+                        img.Save(ms, ImageFormat.Jpeg);
                         array[i][1] = ms.ToArray();
                     }
                 }
                 catch (FileNotFoundException)
                 {
-                    array[i][1] = new byte[0];
+                    array[i][1] = GenerateValidImageBytes(1000, 1000, ImageFormat.Jpeg);
                 }
             }
 
             return array;
+        }
+        
+        private static Bitmap DrawFilledRectangle(int x, int y)
+        {
+            Bitmap bmp = new Bitmap(x, y);
+            using (Graphics graph = Graphics.FromImage(bmp))
+            {
+                Rectangle ImageSize = new Rectangle(0, 0, x, y);
+                graph.FillRectangle(Brushes.White, ImageSize);
+            }
+
+            return bmp;
+        }
+
+        public static byte[] GenerateValidImageBytes(int x, int y, ImageFormat format)
+        {
+            var bmp = DrawFilledRectangle(x, y);
+            using (var ms = new MemoryStream())
+            {
+                bmp.Save(ms, format);
+                return ms.ToArray();
+            }
         }
     }
 }

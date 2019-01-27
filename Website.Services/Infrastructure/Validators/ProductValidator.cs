@@ -16,18 +16,7 @@ namespace Website.Services.Infrastructure.Validators
             if (product == null) throw new ArgumentNullException(nameof(product));
 
             var errors = new List<OperationError>();
-            await ValidateProductAsync(manager, product, errors);
-            if (errors.Count > 0)
-            {
-                return OperationResult.Failure(errors.ToArray());
-            }
-
-            return OperationResult.Success();
-        }
-
-        private async Task ValidateProductAsync(IShopManager manager, Product product,
-            ICollection<OperationError> errors)
-        {
+            
             if (product.Name.IsNullOrEmpty())
             {
                 errors.Add(manager.ErrorDescriber.EmptyProductName());
@@ -49,6 +38,13 @@ namespace Website.Services.Infrastructure.Validators
             {
                 errors.Add(manager.ErrorDescriber.DuplicateProductName());
             }
+            
+            if (errors.Count > 0)
+            {
+                return OperationResult.Failure(errors.ToArray());
+            }
+
+            return OperationResult.Success();
         }
     }
 }
