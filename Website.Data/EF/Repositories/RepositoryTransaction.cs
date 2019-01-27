@@ -1,6 +1,7 @@
 using System;
 using System.Data;
 using System.Data.Common;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Website.Data.EF.Repositories
 {
@@ -8,31 +9,37 @@ namespace Website.Data.EF.Repositories
     {
         protected override DbConnection DbConnection { get; }
         public override IsolationLevel IsolationLevel { get; }
-        protected DbTransaction InternalTransaction;
-        
-        internal RepositoryTransaction(DbConnection dbConnection, IsolationLevel isolationLevel, bool inMemory = false)
+        protected IDbContextTransaction InternalTransaction;
+        private bool Completed = false;
+
+        internal RepositoryTransaction(IDbContextTransaction efTransaction, IsolationLevel isolationLevel,
+            bool inMemory = false)
         {
             if (!inMemory)
             {
-                DbConnection = dbConnection ?? throw new ArgumentNullException(nameof(dbConnection));
-                InternalTransaction = DbConnection.BeginTransaction(isolationLevel);
+                if (efTransaction == null) throw new ArgumentNullException(nameof(efTransaction));
             }
+
+            DbConnection = efTransaction?.GetDbTransaction().Connection;
+            InternalTransaction = efTransaction;
             IsolationLevel = isolationLevel;
         }
-        
+
         public override void Commit()
         {
             InternalTransaction?.Commit();
+            Completed = true;
         }
 
         public override void Rollback()
         {
-            InternalTransaction?.Rollback();
+            if (!Completed)
+                InternalTransaction?.Rollback();
         }
-        
+
         protected override void Dispose(bool disposing)
         {
-            InternalTransaction?.Rollback();
+            Rollback();
         }
     }
 }

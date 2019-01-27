@@ -48,6 +48,7 @@ namespace Website.Web.Controllers
             _shopManager = shopManager;
         }
 
+        [HttpGet("/[controller]")]
         public IActionResult Index()
         {
             return View();

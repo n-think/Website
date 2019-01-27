@@ -66,8 +66,8 @@ namespace Website.Data.EF.Repositories
             {
                 return new RepositoryTransaction(null, iLevel, true);
             }
-            var connection = Context.Database.BeginTransaction(iLevel).GetDbTransaction().Connection;
-            return new RepositoryTransaction(connection, iLevel);
+            var efTran = Context.Database.BeginTransaction(iLevel);
+            return new RepositoryTransaction(efTran, iLevel);
         }
 
         public void JoinTransaction(IDbContextTransaction tran)

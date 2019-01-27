@@ -230,7 +230,7 @@ namespace Website.Services.Infrastructure
                 try
                 {
                     
-                    var path = _testImagesFolderPath + $"\\{i+1}-1.jpg";
+                    var path = _testImagesFolderPath + $"\\{i+1}-2.jpg";
                     var img = System.Drawing.Image.FromFile(path);
 
                     using (MemoryStream ms = new MemoryStream())
