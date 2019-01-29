@@ -64,10 +64,9 @@ namespace Website.Data.EF.Repositories
         {
             if (Context.Database.IsInMemory())
             {
-                return new RepositoryTransaction(null, iLevel, true);
+                return new EmptyRepositoryTransaction(); // sql in memory doesnt support trans
             }
-            var efTran = Context.Database.BeginTransaction(iLevel);
-            return new RepositoryTransaction(efTran, iLevel);
+            return Context.Database.BeginTransaction(iLevel).GetDbTransaction();
         }
 
         public void JoinTransaction(IDbContextTransaction tran)
