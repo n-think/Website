@@ -23,9 +23,7 @@ namespace Website.Services.Services
     public class ShopManager : IShopManager, IDisposable
     {
         public ShopManager(
-            IShopRepository<Product, Image, ImageBinData, Category, ProductToCategory, DescriptionGroup,
-                DescriptionGroupItem,
-                Description, Order> repository,
+            IShopRepository repository,
             ILogger<ShopManager> logger,
             IHttpContextAccessor context,
             IOptions<ShopManagerOptions> optionsAccessor,
@@ -85,8 +83,7 @@ namespace Website.Services.Services
                                new ShopImageTransformer(optionsAccessor);
         }
 
-        private readonly IShopRepository<Product, Image, ImageBinData, Category, ProductToCategory, DescriptionGroup,
-            DescriptionGroupItem, Description, Order> _repository;
+        private readonly IShopRepository _repository;
 
         public OperationErrorDescriber ErrorDescriber { get; }
         private readonly ILogger<ShopManager> _logger;

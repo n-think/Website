@@ -9,7 +9,8 @@ namespace Website.Core.Interfaces.Services
 {
     public interface IShopManager
     {
-        //TODO interface
+        //TODO ISP
+        
         ShopManagerOptions Options { get; }
         OperationErrorDescriber ErrorDescriber { get; }
         

@@ -36,12 +36,9 @@ namespace Tests
             return server.Host.Services.GetRequiredService<T>();
         }
 
-        public static
-            IShopRepository<Product, Image, ImageBinData, Category, ProductToCategory, DescriptionGroup,
-                DescriptionGroupItem, Description, Order> GetShopRepository(this TestServer server)
+        public static IShopRepository GetShopRepository(this TestServer server)
         {
-            return server.Host.Services.GetRequiredService<IShopRepository<Product, Image, ImageBinData, Category,
-                ProductToCategory, DescriptionGroup, DescriptionGroupItem, Description, Order>>();
+            return server.Host.Services.GetRequiredService<IShopRepository>();
         }
         
         private static Bitmap DrawFilledRectangle(int x, int y)

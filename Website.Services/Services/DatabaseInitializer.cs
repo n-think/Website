@@ -73,7 +73,7 @@ namespace Website.Services.Services
             int failedAttempts = 0;
 
             var productGenerator = new RandomProductGenerator(HostingEnvironment.ContentRootPath+"\\TestImages");
-
+            
             while (generatedCount < count && failedAttempts < 3)
             {
                 var productsEnumerable = productGenerator.GetRandomProducts(count - generatedCount);

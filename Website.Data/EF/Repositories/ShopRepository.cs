@@ -19,10 +19,7 @@ using Website.Core.Models.Domain;
 
 namespace Website.Data.EF.Repositories
 {
-    public class ShopRepository : IShopRepository<Product, Image, ImageBinData, Category, ProductToCategory,
-        DescriptionGroup,
-        DescriptionGroupItem,
-        Description, Order>
+    public class ShopRepository : IShopRepository
     {
         public ShopRepository(DbContext dbContext, IHostingEnvironment environment,
             ILogger<ShopRepository> logger, OperationErrorDescriber describer = null)
@@ -66,7 +63,7 @@ namespace Website.Data.EF.Repositories
             {
                 return new EmptyRepositoryTransaction(); // sql in memory doesnt support trans
             }
-            return Context.Database.BeginTransaction(iLevel).GetDbTransaction();
+            return Context.Database.CurrentTransaction?.GetDbTransaction() ?? Context.Database.BeginTransaction(iLevel).GetDbTransaction();
         }
 
         public void JoinTransaction(IDbContextTransaction tran)
