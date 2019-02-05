@@ -22,7 +22,7 @@
     {
         <div class="mt-2">
             <span class="h5">Сгенерировать пользователей</span>
-            <form class="" asp-controller="Admin" asp-action="GenerateUsers">
+            <form id="create-users-form" class="" asp-controller="Admin" asp-action="GenerateUsers">
                 <input class="form-control w-auto my-2" id="count" name="count" type="number" value="" placeholder="количество (1-100)"
                        data-val="true"
                        required
@@ -30,7 +30,7 @@
                        data-val-required="Необходимо ввести число."
                        data-msg-range="Необходимо ввести число от 1 до 100."/>
                 <span class="text-danger field-validation-valid d-block" data-valmsg-for="count" data-valmsg-replace="true"></span>
-                <input class="w-auto btn btn-outline-primary my-2 d-block" type="submit" value="Сгенерировать"/>
+                <input id="create-users-btn" class="w-auto btn btn-outline-primary my-2 d-block" type="submit" value="Сгенерировать"/>
             </form>
         </div>
     }
@@ -39,14 +39,14 @@
     {
         <div class="mt-2">
             <span class="h5">Сгенерировать товары</span>
-            <form class="" asp-controller="Admin" asp-action="GenerateItems">
+            <form id="create-items-form" class="" asp-controller="Admin" asp-action="GenerateItems">
                 <input class="form-control w-auto my-2" id="count" name="count" type="number" value="" placeholder="количество (1-100)"
                        data-val="true"
                        data-rule-range="[1,100]" 
                        data-val-required="Необходимо ввести число."
                        data-msg-range="Необходимо ввести число от 1 до 100."/>
                 <span class="text-danger field-validation-valid d-block" data-valmsg-for="count" data-valmsg-replace="true"></span>
-                <input class="w-auto btn btn-outline-primary my-2d-block" type="submit" value="Сгенерировать"/>
+                <input id="create-items-btn" class="w-auto btn btn-outline-primary my-2d-block" type="submit" value="Сгенерировать"/>
             </form>
         </div>
     }
@@ -55,7 +55,7 @@
     {
         <div class="mt-2">
             <span class="h5">Очистить базу данных</span>
-            <form class="" asp-controller="Admin" asp-action="DropCreateDatabase">
+            <form id="reset-db-form" class="" asp-controller="Admin" asp-action="DropCreateDatabase">
                 <button type="button" class="my-2 btn btn-outline-primary" data-toggle="modal" data-target="#modal">Очистить</button>
                 <div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
                     <div class="modal-dialog" role="document">
@@ -70,7 +70,7 @@
                                 База данных будет удалена и создана заново.
                             </div>
                             <div class="modal-footer">
-                                <input class="btn btn-primary" type="submit" value="Подтвердить"/>
+                                <input id="reset-db-button" class="btn btn-primary" type="submit" value="Подтвердить"/>
                                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
                             </div>
                         </div>

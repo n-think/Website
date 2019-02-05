@@ -5,25 +5,25 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Website.Data.EF.Repositories
 {
-    public class EmptyRepositoryTransaction : DbTransaction, IDisposable
+    public class EmptyRepositoryTransaction : IDbContextTransaction
     {
-        protected override DbConnection DbConnection { get; }
-        public override IsolationLevel IsolationLevel { get; }
 
         internal EmptyRepositoryTransaction()
         {
         }
 
-        public override void Commit()
+        public void Dispose()
         {
         }
 
-        public override void Rollback()
+        public void Commit()
         {
         }
 
-        protected override void Dispose(bool disposing)
+        public void Rollback()
         {
         }
+
+        public Guid TransactionId { get; }
     }
 }

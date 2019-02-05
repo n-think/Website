@@ -6,7 +6,7 @@
 
 <h2>Редактировать пользователя</h2>
 <div asp-validation-summary="All" class="text-danger"></div>
-<form asp-area="" asp-action="EditUser" method="post">
+<form action="/Admin/EditUser" asp-antiforgery="true" method="post">
     <input asp-for="ConcurrencyStamp" type="hidden" class="form-control" />
     <div class="table-responsive">
         <table class="table table-striped">

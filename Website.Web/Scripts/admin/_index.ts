@@ -5,6 +5,7 @@ import "./admin"
 import "./productEdit"
 import "./categories"
 import "./descriptionGroups"
+import "./indexPage"
 //css
 import "../../Css/admin.css"
 

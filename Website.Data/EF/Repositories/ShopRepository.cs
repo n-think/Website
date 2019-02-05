@@ -57,13 +57,13 @@ namespace Website.Data.EF.Repositories
         public IQueryable<DescriptionGroup> DescriptionGroupsQueryable => DescGroupsSet.AsQueryable();
         public IQueryable<DescriptionGroupItem> DescriptionGroupItemsQueryable => DescGroupItemsSet.AsQueryable();
 
-        public DbTransaction BeginTransaction(IsolationLevel iLevel = IsolationLevel.Serializable)
+        public IDbContextTransaction BeginTransaction(IsolationLevel iLevel = IsolationLevel.Serializable)
         {
             if (Context.Database.IsInMemory())
             {
                 return new EmptyRepositoryTransaction(); // sql in memory doesnt support trans
             }
-            return Context.Database.CurrentTransaction?.GetDbTransaction() ?? Context.Database.BeginTransaction(iLevel).GetDbTransaction();
+            return Context.Database.CurrentTransaction ?? Context.Database.BeginTransaction(iLevel);
         }
 
         public void JoinTransaction(IDbContextTransaction tran)

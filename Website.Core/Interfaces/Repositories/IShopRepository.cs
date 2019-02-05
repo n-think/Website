@@ -36,7 +36,7 @@ namespace Website.Core.Interfaces.Repositories
         where TDescription : class
         where TOrder : class
     {
-        DbTransaction BeginTransaction(IsolationLevel iLevel = IsolationLevel.Serializable);
+        IDbContextTransaction BeginTransaction(IsolationLevel iLevel = IsolationLevel.Serializable);
         void JoinTransaction(IDbContextTransaction tran);
 
        

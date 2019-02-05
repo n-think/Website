@@ -44,6 +44,7 @@ namespace Website.Web
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
-            WebHost.CreateDefaultBuilder<Startup>(args);
+            WebHost.CreateDefaultBuilder<Startup>(args)
+                .UseUrls("http://localhost:5000;http://192.168.1.2:5000");//TODO remove
     }
 }
